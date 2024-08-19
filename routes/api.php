@@ -34,8 +34,6 @@ Route::get('/settings', [SettingController::class, 'index']);
 Route::post('/settings', [SettingController::class, 'store']);
 
 
-
-
 Route::get('/weather', [WeatherController::class, 'show']);
 
 Route::get('/social-links', [SocialLinkController::class, 'index']);
