@@ -28,6 +28,15 @@ Route::post('/user/check/login', [AuthController::class, 'checkTokenExpiration']
 Route::post('/user/check-token', [AuthController::class, 'checkToken']);
 Route::post('/user/register', [AuthController::class, 'register']);
 
+// Register a new user
+// Route::post('users/register', [UserController::class, 'register']);
+
+
+
+
+
+
+
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/user/logout', [AuthController::class, 'logout'])->name('user.logout');
 
