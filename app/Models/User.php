@@ -53,7 +53,11 @@ class User extends Authenticatable implements JWTSubject
         'bodyType',
         'race',
         'blood_group',
-        'mother_status', // Changed from motherStatus to mother_status
+        'mother_status',
+        'birth_place',
+        'personal_values',
+        'disability',
+        'posted_by',
     ];
 
     /**

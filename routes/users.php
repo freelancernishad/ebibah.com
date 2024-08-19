@@ -52,6 +52,21 @@ Route::middleware(['auth:api'])->group(function () {
         ->name('users.change_password')
         ->middleware('checkPermission:users.change_password');
 
+
+    Route::post('/users/{id}/basics-lifestyle', [UserController::class, 'updateBasicsAndLifestyle']);
+    Route::put('/users/{id}/religious-background', [UserController::class, 'updateReligiousBackground']);
+    Route::put('/users/{id}/education-career', [UserController::class, 'updateEducationAndCareer']);
+    Route::put('/users/{id}/family-details', [UserController::class, 'updateFamilyDetails']);
+    // Update Hobbies and Interests
+    Route::put('/users/{id}/hobbies-interests', [UserController::class, 'updateHobbiesAndInterests']);
+    Route::put('/user/{id}/update-partner-basics-lifestyle', [UserController::class, 'updatePartnerBasicsAndLifestyle']);
+    Route::put('/user/{id}/update-partner-location-details', [UserController::class, 'updatePartnerLocationDetails']);
+    Route::put('/user/{id}/update-partner-education-career', [UserController::class, 'updatePartnerEducationAndCareer']);
+    Route::put('/users/{id}/profile', [UserController::class, 'update'])->name('users.update');
+
+
+
+
     Route::get('/user-access', function () {
         return 'user access';
     })->name('user.access')->middleware('checkPermission:user.access');
