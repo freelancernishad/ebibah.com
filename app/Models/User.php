@@ -160,6 +160,9 @@ public function permissions()
         return $checkPermission;
 
     }
-
+    public function images()
+    {
+        return $this->hasMany(UserImage::class);
+    }
 
 }

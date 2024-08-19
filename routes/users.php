@@ -5,6 +5,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\RoleUserController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\api\UserImageController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\Auth\users\AuthController;
 
@@ -63,6 +64,15 @@ Route::middleware(['auth:api'])->group(function () {
     Route::put('/user/{id}/update-partner-location-details', [UserController::class, 'updatePartnerLocationDetails']);
     Route::put('/user/{id}/update-partner-education-career', [UserController::class, 'updatePartnerEducationAndCareer']);
     Route::put('/users/{id}/profile', [UserController::class, 'update'])->name('users.update');
+
+
+    Route::prefix('user-images')->group(function () {
+        // Upload an image
+        Route::post('/', [UserImageController::class, 'store'])->name('user-images.store');
+    
+        // Retrieve an image by ID
+        Route::get('/{userImage}', [UserImageController::class, 'show'])->name('user-images.show');
+    });
 
 
 
