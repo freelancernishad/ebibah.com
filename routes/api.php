@@ -1,9 +1,10 @@
 <?php
 
 use App\Models\Permission;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\SocialLinkController;
@@ -27,6 +28,12 @@ use App\Http\Controllers\AdvertisementController;
 Route::get('/userAgent', function (Request $request) {
     return request()->header('User-Agent');
 });
+
+
+Route::get('/settings', [SettingController::class, 'index']);
+Route::post('/settings', [SettingController::class, 'store']);
+
+
 
 Route::get('/weather', [WeatherController::class, 'show']);
 
