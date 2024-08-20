@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('package_active_services', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('package_id');
-            $table->unsignedBigInteger('service_id');
+            $table->unsignedBigInteger('package_id')->nullable();
+            $table->unsignedBigInteger('service_id')->nullable();
             $table->enum('status', ['active', 'deactive']);
             $table->timestamps();
 

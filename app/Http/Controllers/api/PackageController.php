@@ -10,24 +10,103 @@ use Illuminate\Http\Request;
 
 class PackageController extends Controller
 {
-    // Fetch all packages
-    public function index()
-    {
-        $packages = Package::with('activeServices.service')->get();
-        return response()->json($packages, 200);
-    }
+// Fetch all packages with allowed services
+public function index()
+{
+    $packages = Package::with('activeServices.service')->get();
 
-    // Fetch a specific package by ID
-    public function show($id)
-    {
-        $package = Package::with('activeServices.service')->find($id);
+    // Fetch all package services for reference
+    $allPackageServices = PackageService::all()->keyBy('id');
 
-        if (!$package) {
-            return response()->json(['message' => 'Package not found'], 404);
+    // Transform the packages to include only allowed_services array
+    $packagesWithAllowedServices = $packages->map(function ($package) use ($allPackageServices) {
+        $activeServices = $package->activeServices->keyBy('service_id');
+
+        $allowedServices = $activeServices->map(function ($activeService) {
+            return [
+                'name' => $activeService->service->name,
+                'status' => $activeService->status
+            ];
+        })->values();
+
+        // If no active services, use all package services with 'deactive' status
+        if ($allowedServices->isEmpty()) {
+            $allowedServices = $allPackageServices->map(function ($service) {
+                return [
+                    'name' => $service->name,
+                    'status' => 'deactive'
+                ];
+            })->values();
         }
 
-        return response()->json($package, 200);
+        return [
+            'id' => $package->id,
+            'package_name' => $package->package_name,
+            'price' => $package->price,
+            'discount_type' => $package->discount_type,
+            'discount' => $package->discount,
+            'sub_total_price' => $package->sub_total_price,
+            'currency' => $package->currency,
+            'duration' => $package->duration,
+            'created_at' => $package->created_at,
+            'updated_at' => $package->updated_at,
+            'allowed_services' => $allowedServices
+        ];
+    });
+
+    return response()->json($packagesWithAllowedServices, 200);
+}
+
+
+// Fetch a specific package by ID
+public function show($id)
+{
+    // Fetch the package with active services
+    $package = Package::with('activeServices.service')->find($id);
+
+    if (!$package) {
+        return response()->json(['message' => 'Package not found'], 404);
     }
+
+    // Fetch all package services for reference
+    $allPackageServices = PackageService::all()->keyBy('id');
+
+    // Map active services
+    $activeServices = $package->activeServices->keyBy('service_id')->map(function ($activeService) {
+        return [
+            'name' => $activeService->service->name,
+            'status' => $activeService->status
+        ];
+    })->values();
+
+    // If no active services, use all package services with 'deactive' status
+    if ($activeServices->isEmpty()) {
+        $activeServices = $allPackageServices->map(function ($service) {
+            return [
+                'name' => $service->name,
+                'status' => 'deactive'
+            ];
+        })->values();
+    }
+
+    // Prepare the response data
+    $responseData = [
+        'id' => $package->id,
+        'package_name' => $package->package_name,
+        'price' => $package->price,
+        'discount_type' => $package->discount_type,
+        'discount' => $package->discount,
+        'sub_total_price' => $package->sub_total_price,
+        'currency' => $package->currency,
+        'duration' => $package->duration,
+        'created_at' => $package->created_at,
+        'updated_at' => $package->updated_at,
+        'allowed_services' => $activeServices
+    ];
+
+    return response()->json($responseData, 200);
+}
+
 
     // Create a new package
     public function store(Request $request)
@@ -242,6 +321,7 @@ public function deletePackageService($id)
             'services.*.service_id' => 'required|exists:package_services,id',
             'services.*.status' => 'required|in:active,deactive',
         ]);
+        // return Package::find($packageId);
 
         // Delete all existing services for the package
         PackageActiveService::where('package_id', $packageId)->delete();
@@ -250,16 +330,28 @@ public function deletePackageService($id)
         $servicesStatus = [];
 
         foreach ($validated['services'] as $service) {
-            $packageActiveService = PackageActiveService::create([
-                'package_id' => $packageId,
-                'service_id' => $service['service_id'],
-                'status' => $service['status']
-            ]);
+            // Check if the service ID exists in the package_services table
+            $packageService = PackageService::find($service['service_id']);
+            if ($packageService) {
+                $packageActiveService = PackageActiveService::create([
+                    'package_id' => $packageId,
+                    'service_id' => $service['service_id'],
+                    'status' => $service['status']
+                ]);
 
-            $servicesStatus[] = $packageActiveService;
+                $servicesStatus[] = $packageActiveService;
+            } else {
+                return response()->json(['message' => 'Service ID ' . $service['service_id'] . ' does not exist'], 400);
+            }
         }
 
         return response()->json($servicesStatus, 201);
+    }
+
+    public function getAllPackageServices()
+    {
+        $packageServices = PackageService::all();
+        return response()->json($packageServices, 200);
     }
 
 
