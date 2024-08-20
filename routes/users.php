@@ -124,7 +124,10 @@ Route::middleware(['auth:api'])->group(function () {
     Route::patch('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
 
 
+    Route::apiResource('packages', PackageController::class);
 
+
+    
     Route::get('/user-access', function () {
         return 'user access';
     })->name('user.access')->middleware('checkPermission:user.access');
