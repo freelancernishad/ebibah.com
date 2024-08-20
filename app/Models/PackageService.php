@@ -12,15 +12,11 @@ class PackageService extends Model
 
 
     protected $fillable = [
-        'package_id',
         'name',
         'slug',
-        'status',
     ];
 
-    public function package()
-    {
-        return $this->belongsTo(Package::class);
-    }
+
+
 
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\RoleUserController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\api\PackageController;
 use App\Http\Controllers\api\UserImageController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\RolePermissionController;
@@ -124,10 +125,21 @@ Route::middleware(['auth:api'])->group(function () {
     Route::patch('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
 
 
-    Route::apiResource('packages', PackageController::class);
 
 
-    
+    Route::get('packages', [PackageController::class, 'index']);
+    Route::get('packages/{id}', [PackageController::class, 'show']);
+    Route::get('packages/{packageId}/services', [PackageController::class, 'getPackageServices']);
+
+
+
+
+
+
+
+
+
+
     Route::get('/user-access', function () {
         return 'user access';
     })->name('user.access')->middleware('checkPermission:user.access');

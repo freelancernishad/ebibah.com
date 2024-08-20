@@ -21,9 +21,10 @@ class Package extends Model
         'duration',
     ];
 
-    public function packageServices()
+
+    public function activeServices()
     {
-        return $this->hasMany(PackageService::class);
+        return $this->hasMany(PackageActiveService::class);
     }
 
 }

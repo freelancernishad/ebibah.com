@@ -13,13 +13,10 @@ return new class extends Migration
     {
         Schema::create('package_services', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('package_id');
             $table->string('name');
             $table->string('slug')->unique();
-            $table->enum('status', ['active', 'deactive']);
             $table->timestamps();
 
-            $table->foreign('package_id')->references('id')->on('packages')->onDelete('cascade');
         });
     }
 

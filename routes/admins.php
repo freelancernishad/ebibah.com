@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\UserController;
+use App\Http\Controllers\api\PackageController;
 use App\Http\Controllers\Auth\admins\AdminAuthController;
 
 // Admin auth routes
@@ -28,6 +29,17 @@ Route::middleware('auth:admin')->group(function () {
         // Show user details by id
         Route::get('{id}', [UserController::class, 'show']);
     });
+
+
+    Route::post('packages', [PackageController::class, 'store']);
+    Route::post('packages/{id}', [PackageController::class, 'update']);
+    Route::delete('packages/{id}', [PackageController::class, 'destroy']);
+    Route::post('packages/{packageId}/services', [PackageController::class, 'addServiceToPackage']);
+    Route::post('packages/{packageId}/services/{serviceId}/activate', [PackageController::class, 'activateService']);
+    Route::post('packages/{packageId}/services/{serviceId}/deactivate', [PackageController::class, 'deactivateService']);
+
+
+
 
 
 
