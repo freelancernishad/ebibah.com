@@ -9,7 +9,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -164,5 +165,49 @@ public function permissions()
     {
         return $this->hasMany(UserImage::class);
     }
+
+
+    /**
+     * Get the profile views where the user is the viewed profile.
+     */
+    public function profileViews(): HasMany
+    {
+        return $this->hasMany(ProfileView::class, 'profile_id');
+    }
+
+    /**
+     * Get the profile views where the user is the viewer.
+     */
+    public function viewedProfiles(): HasMany
+    {
+        return $this->hasMany(ProfileView::class, 'viewer_id');
+    }
+
+    // Other relationships...
+    public function sentInvitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class, 'sender_id');
+    }
+
+    public function receivedInvitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class, 'receiver_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'sonodId');
+    }
+
+    public function userImages(): HasMany
+    {
+        return $this->hasMany(UserImage::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
 
 }

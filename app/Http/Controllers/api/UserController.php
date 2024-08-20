@@ -13,6 +13,44 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
+
+
+
+    public function myProfile()
+    {
+        // Get the authenticated user
+        $user = Auth::guard('web')->user();
+
+        // Check if the user is authenticated
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+
+
+
+        $user->load([
+            'sentInvitations',
+            'receivedInvitations',
+            'profileViews',
+            'viewedProfiles',
+            'payments',
+            'userImages',
+        ]);
+
+
+           // Calculate age
+    $age = calculateAge($user->date_of_birth);
+
+    // Convert user to array and include age
+    $userArray = $user->toArray();
+    $userArray['age'] = $age;
+
+        // Return the authenticated user's profile
+        return response()->json(['user' => $userArray], 200);
+    }
+
+
+
     // User registration
     public function register(Request $request)
     {

@@ -6,8 +6,11 @@ use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\RoleUserController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\api\UserImageController;
+use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\RolePermissionController;
+use App\Http\Controllers\Api\ProfileViewController;
 use App\Http\Controllers\Auth\users\AuthController;
+use App\Http\Controllers\Api\NotificationController;
 
 Route::post('store/permissions', [RolePermissionController::class, 'storePermissions']);
 
@@ -41,6 +44,12 @@ Route::post('/user/register', [AuthController::class, 'register']);
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/user/logout', [AuthController::class, 'logout'])->name('user.logout');
 
+    Route::get('/my-profile', [UserController::class, 'myProfile'])->name('user.myProfile');
+
+
+
+
+
     Route::prefix('users/role/system')->group(function () {
         Route::get('/', [RoleUserController::class, 'index']);
         Route::post('/', [RoleUserController::class, 'store']);
@@ -69,11 +78,50 @@ Route::middleware(['auth:api'])->group(function () {
     Route::prefix('user-images')->group(function () {
         // Upload an image
         Route::post('/', [UserImageController::class, 'store'])->name('user-images.store');
-    
+
         // Retrieve an image by ID
         Route::get('/{userImage}', [UserImageController::class, 'show'])->name('user-images.show');
     });
 
+
+
+
+        // Send an invitation
+        Route::post('/invitations/send', [InvitationController::class, 'sendInvitation'])->name('invitations.send');
+
+        // Accept an invitation
+        Route::post('/invitations/{id}/accept', [InvitationController::class, 'acceptInvitation'])->name('invitations.accept');
+
+        // Reject an invitation
+        Route::post('/invitations/{id}/reject', [InvitationController::class, 'rejectInvitation'])->name('invitations.reject');
+
+        // Get all sent invitations
+        Route::get('/invitations/sent', [InvitationController::class, 'sentInvitations'])->name('invitations.sent');
+
+        // Get all received invitations
+        Route::get('/invitations/received', [InvitationController::class, 'receivedInvitations'])->name('invitations.received');
+
+
+
+
+          // Record a profile view
+    Route::post('/profile-views', [ProfileViewController::class, 'store'])->name('profile-views.store');
+
+    // Get all profiles the authenticated user has viewed
+    Route::get('/profile-views/viewed', [ProfileViewController::class, 'profilesViewed'])->name('profile-views.viewed');
+
+    // Get all users who have viewed the authenticated user's profile
+    Route::get('/profile-views/who-viewed', [ProfileViewController::class, 'whoViewedMyProfile'])->name('profile-views.who-viewed');
+
+
+
+
+    Route::post('notifications/create', [NotificationController::class, 'create']);
+    Route::get('notifications', [NotificationController::class, 'getAll']);
+    Route::get('notifications/{id}', [NotificationController::class, 'getById']);
+    Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('notifications/{id}', [NotificationController::class, 'delete']);
+    Route::patch('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
 
 
 

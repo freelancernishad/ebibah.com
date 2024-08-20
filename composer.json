@@ -33,7 +33,9 @@
         },
         "files": [
             "app/helper/functions.php",
+            "app/helper/user_functions.php",
             "app/helper/ekpay.php",
+            "app/helper/notificaions.php",
             "app/helper/imgur.php"
         ]
     },
