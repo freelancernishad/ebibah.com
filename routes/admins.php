@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\PackageController;
-use App\Http\Controllers\Api\PackagePurchaseController;
+use App\Http\Controllers\api\PackagePurchaseController;
 use App\Http\Controllers\Auth\admins\AdminAuthController;
 
 // Admin auth routes
