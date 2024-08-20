@@ -10,11 +10,13 @@ class Payment extends Model
     use HasFactory;
 
     protected $fillable = [
+        'package_purchase_id',
         'union',
         'trxId',
-        'sonodId',
-        'sonod_type',
+        'user_id',
+        'type',
         'amount',
+        'currency',
         'applicant_mobile',
         'status',
         'date',
@@ -28,9 +30,17 @@ class Payment extends Model
     ];
 
 
-
-    public function user(): BelongsTo
+    // Define the relationship with the User model
+    public function user()
     {
-        return $this->belongsTo(User::class, 'sonodId');
+        return $this->belongsTo(User::class);
     }
+
+
+        // Define the inverse relationship
+        public function packagePurchase()
+        {
+            return $this->belongsTo(PackagePurchase::class);
+        }
+
 }

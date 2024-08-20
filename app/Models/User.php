@@ -21,6 +21,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $fillable = [
+        'active_package_id',
         'name',
         'email',
         'password',
@@ -194,9 +195,9 @@ public function permissions()
         return $this->hasMany(Invitation::class, 'receiver_id');
     }
 
-    public function payments(): HasMany
+    public function payments()
     {
-        return $this->hasMany(Payment::class, 'sonodId');
+        return $this->hasMany(Payment::class);
     }
 
     public function userImages(): HasMany

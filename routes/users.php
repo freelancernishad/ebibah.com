@@ -12,6 +12,7 @@ use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\Api\ProfileViewController;
 use App\Http\Controllers\Auth\users\AuthController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PackagePurchaseController;
 
 Route::post('store/permissions', [RolePermissionController::class, 'storePermissions']);
 
@@ -133,7 +134,8 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('package-services', [PackageController::class, 'getAllPackageServices']);
 
 
-
+    Route::post('purchase', [PackagePurchaseController::class, 'purchase']);
+    Route::get('user-purchases', [PackagePurchaseController::class, 'userPurchases']);
 
 
 
@@ -145,6 +147,9 @@ Route::middleware(['auth:api'])->group(function () {
     })->name('user.access')->middleware('checkPermission:user.access');
 });
 
+
+
+Route::post('/ipnresponse', [PackagePurchaseController::class, 'ipnresponse']);
 
 
 

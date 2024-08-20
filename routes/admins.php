@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\PackageController;
+use App\Http\Controllers\Api\PackagePurchaseController;
 use App\Http\Controllers\Auth\admins\AdminAuthController;
 
 // Admin auth routes
@@ -47,6 +48,6 @@ Route::middleware('auth:admin')->group(function () {
 
     Route::post('packages/{packageId}/services/update-status', [PackageController::class, 'updateServicesStatus']);
 
-
+    Route::get('all-purchases', [PackagePurchaseController::class, 'allPurchases']);
 
 });

@@ -10,3 +10,8 @@ function calculateAge($dateOfBirth)
     $today = new \DateTime();
     return $today->diff($birthDate)->y;
 }
+
+ function generateTrxId()
+{
+    return strtoupper(uniqid(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 3) . rand(10000, 99999)));
+}
