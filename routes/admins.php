@@ -34,12 +34,18 @@ Route::middleware('auth:admin')->group(function () {
     Route::post('packages', [PackageController::class, 'store']);
     Route::post('packages/{id}', [PackageController::class, 'update']);
     Route::delete('packages/{id}', [PackageController::class, 'destroy']);
-    Route::post('packages/{packageId}/services', [PackageController::class, 'addServiceToPackage']);
+
+    Route::post('packages/create/services', [PackageController::class, 'createPackageService']);
+    Route::post('packages/update/services/{id}', [PackageController::class, 'updatePackageService']);
+    Route::delete('packages/delete/services/{id}', [PackageController::class, 'deletePackageService']);
+
+
     Route::post('packages/{packageId}/services/{serviceId}/activate', [PackageController::class, 'activateService']);
     Route::post('packages/{packageId}/services/{serviceId}/deactivate', [PackageController::class, 'deactivateService']);
+    Route::post('packages/{packageId}/services/multiple', [PackageController::class, 'addMultipleServicesToPackage']);
+    Route::post('packages/{packageId}/services/deactivate', [PackageController::class, 'deactivateMultipleServices']);
 
-
-
+    Route::post('packages/{packageId}/services/update-status', [PackageController::class, 'updateServicesStatus']);
 
 
 
