@@ -11,7 +11,9 @@ class IpAddressProtectionMiddleware
     protected $allowedIPs = [
         '',
         'http://test.localhost:8000',
-      
+        'http://localhost:5173',
+        'https://usamarry.com',
+
 
 
 
