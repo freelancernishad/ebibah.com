@@ -39,7 +39,7 @@ class AuthController extends Controller
             'email' => $user->email,
             'name' => $user->name,
         ];
-            $token = JWTAuth::fromUser($user, ['guard' => 'web']);
+            $token = JWTAuth::fromUser($user, ['guard' => 'users']);
             return response()->json(['token' => $token,'user'=>$payload], 200);
         }
 
