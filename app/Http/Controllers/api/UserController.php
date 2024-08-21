@@ -19,7 +19,7 @@ class UserController extends Controller
     public function myProfile()
     {
         // Get the authenticated user
-        $user = Auth::guard('web')->user();
+        $user = Auth::guard('api')->user();
 
         // Check if the user is authenticated
         if (!$user) {

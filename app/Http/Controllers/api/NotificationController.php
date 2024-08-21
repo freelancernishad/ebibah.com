@@ -45,7 +45,7 @@ class NotificationController extends Controller
      */
     public function getAll()
     {
-        $user = Auth::guard('web')->user();
+        $user = Auth::guard('api')->user();
         $notifications = Notification::where('user_id', $user->id)->get();
 
         return response()->json(['notifications' => $notifications], 200);
@@ -113,7 +113,7 @@ class NotificationController extends Controller
      */
     public function markAllAsRead()
     {
-        $user = Auth::guard('web')->user();
+        $user = Auth::guard('api')->user();
         Notification::where('user_id', $user->id)->update(['read' => true]);
 
         return response()->json(['message' => 'All notifications marked as read'], 200);

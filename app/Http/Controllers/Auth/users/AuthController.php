@@ -39,7 +39,7 @@ class AuthController extends Controller
             'email' => $user->email,
             'name' => $user->name,
         ];
-            $token = JWTAuth::fromUser($user, ['guard' => 'user']);
+            $token = JWTAuth::fromUser($user, ['guard' => 'api']);
             return response()->json(['token' => $token,'user'=>$payload], 200);
         }
 
@@ -63,7 +63,7 @@ public function checkTokenExpiration(Request $request)
         // Check if the token's expiration time (exp) is greater than the current timestamp
         $isExpired = $payload->get('exp') < time();
 
-        $user = Auth::guard('web')->setToken($token)->authenticate();
+        $user = Auth::guard('api')->setToken($token)->authenticate();
 
 
         // Get user's roles
@@ -128,7 +128,7 @@ public function checkToken(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-        
+
             'email' => 'nullable|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'role' => 'nullable|string|max:255',
@@ -163,14 +163,14 @@ public function checkToken(Request $request)
             'blood_group' => 'nullable|string|max:255',
             'mother_status' => 'nullable|string|max:255',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
-    
+
         $user = User::create([
             'name' => $request->name,
-           
+
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
@@ -205,10 +205,10 @@ public function checkToken(Request $request)
             'blood_group' => $request->blood_group,
             'mother_status' => $request->mother_status,
         ]);
-    
+
         // Generate JWT token for the registered user
         $token = JWTAuth::fromUser($user);
-    
+
         return response()->json([
             'message' => 'User registered successfully',
             'user' => $user,
@@ -232,7 +232,7 @@ public function checkToken(Request $request)
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 400);
             }
-            $user = Auth::guard('web')->user();
+            $user = Auth::guard('api')->user();
              if (!Hash::check($request->current_password, $user->password)) {
                 return response()->json(['message' => 'Current password is incorrect.'], 400);
              }
