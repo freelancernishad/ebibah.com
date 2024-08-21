@@ -39,7 +39,7 @@ class AuthController extends Controller
             'email' => $user->email,
             'name' => $user->name,
         ];
-            $token = JWTAuth::fromUser($user, ['guard' => 'api']);
+            $token = JWTAuth::fromUser($user, ['guard' => 'web']);
             return response()->json(['token' => $token,'user'=>$payload], 200);
         }
 
@@ -63,7 +63,7 @@ public function checkTokenExpiration(Request $request)
         // Check if the token's expiration time (exp) is greater than the current timestamp
         $isExpired = $payload->get('exp') < time();
 
-        $user = Auth::guard('api')->setToken($token)->authenticate();
+        $user = Auth::guard('web')->setToken($token)->authenticate();
 
 
         // Get user's roles
@@ -100,7 +100,7 @@ public function checkTokenExpiration(Request $request)
 }
 public function checkToken(Request $request)
 {
-    $user = Auth::guard('api')->user();
+    $user = Auth::guard('web')->user();
     if ($user) {
         return response()->json(['message' => 'Token is valid']);
     } else {
