@@ -42,11 +42,12 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
+            \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:6000,1',
             // \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            
+
         ],
     ];
 

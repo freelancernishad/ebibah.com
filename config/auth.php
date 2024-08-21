@@ -31,7 +31,7 @@ return [
     | users are actually retrieved out of your database or other storage
     | mechanisms used by this application to persist your user's data.
     |
-    | Supported: "session"
+    | Supported: "session", "token", "jwt"
     |
     */
 
@@ -40,33 +40,37 @@ return [
             'driver' => 'jwt',
             'provider' => 'users',
             'secret' => env('JWT_SECRET'),
+            'session' => false, // JWT does not use sessions
         ],
 
         'api' => [
             'driver' => 'jwt',
             'provider' => 'users',
             'secret' => env('JWT_SECRET'),
+            'session' => false,
         ],
 
         'organization' => [
             'driver' => 'jwt',
             'provider' => 'organizations',
             'secret' => env('ORG_JWT_SECRET'), // Replace with your organization secret key
+            'session' => false,
         ],
 
         'admin' => [
             'driver' => 'jwt',
             'provider' => 'admins',
             'secret' => env('ADMIN_JWT_SECRET'), // Replace with your admin secret key
+            'session' => false,
         ],
 
         'student' => [
             'driver' => 'jwt',
             'provider' => 'students',
-            'secret' => env('STUDENT_JWT_SECRET'), // Replace with your admin secret key
+            'secret' => env('STUDENT_JWT_SECRET'), // Replace with your student secret key
+            'session' => false,
         ],
     ],
-
 
     /*
     |--------------------------------------------------------------------------
@@ -100,11 +104,13 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\Admin::class,
         ],
+
         'students' => [
             'driver' => 'eloquent',
             'model' => App\Models\Student::class,
         ],
     ],
+
     /*
     |--------------------------------------------------------------------------
     | Resetting Passwords
