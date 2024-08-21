@@ -46,7 +46,7 @@ Route::post('/user/register', [AuthController::class, 'register']);
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/user/logout', [AuthController::class, 'logout'])->name('user.logout');
 
-    Route::get('/my-profile', [UserController::class, 'myProfile'])->name('user.myProfile');
+    Route::get('user/my-profile', [UserController::class, 'myProfile'])->name('user.myProfile');
 
 
 

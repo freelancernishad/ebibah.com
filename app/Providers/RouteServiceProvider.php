@@ -33,6 +33,11 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('api')
                 ->prefix('api')
+                ->group(base_path('routes/Gateway/stripe.php'));
+
+
+            Route::middleware('api')
+                ->prefix('api')
                 ->group(base_path('routes/ekpay.php'));
 
 
