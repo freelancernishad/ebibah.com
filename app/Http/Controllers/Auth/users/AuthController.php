@@ -100,7 +100,7 @@ public function checkTokenExpiration(Request $request)
 }
 public function checkToken(Request $request)
 {
-    $user = $request->user('web');
+    $user = $request->user('api');
     if ($user) {
         return response()->json(['message' => 'Token is valid']);
     } else {
