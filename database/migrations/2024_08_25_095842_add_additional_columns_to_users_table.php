@@ -12,29 +12,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('profile_created_by')->nullable();
-            $table->string('whatsapp')->nullable();
-            $table->string('community')->nullable();
-            $table->string('mother_tongue')->nullable();
-            $table->string('sub_community')->nullable();
-            $table->string('family_values')->nullable();
-            $table->string('family_location')->nullable();
-            $table->string('family_type')->nullable();
-            $table->string('family_native_place')->nullable();
-            $table->integer('total_siblings')->nullable();
-            $table->integer('siblings_married')->nullable();
-            $table->integer('siblings_not_married')->nullable();
-            $table->string('state')->nullable();
-            $table->text('about_myself')->nullable();
-            $table->string('partner_age')->nullable();
-            $table->string('partner_marital_status')->nullable();
-            $table->string('partner_religion')->nullable();
-            $table->string('partner_community')->nullable();
-            $table->string('partner_mother_tongue')->nullable();
-            $table->json('partner_qualification')->nullable();
-            $table->json('partner_working_with')->nullable();
-            $table->json('partner_profession')->nullable();
-            $table->text('partner_professional_details')->nullable();
+            $table->string('profile_created_by')->nullable()->after('posted_by');
+            $table->string('whatsapp')->nullable()->after('profile_created_by');
+            $table->string('community')->nullable()->after('whatsapp');
+            $table->string('mother_tongue')->nullable()->after('community');
+            $table->string('sub_community')->nullable()->after('mother_tongue');
+            $table->string('family_values')->nullable()->after('sub_community');
+            $table->string('family_location')->nullable()->after('family_values');
+            $table->string('family_type')->nullable()->after('family_location');
+            $table->string('family_native_place')->nullable()->after('family_type');
+            $table->integer('total_siblings')->nullable()->after('family_native_place');
+            $table->integer('siblings_married')->nullable()->after('total_siblings');
+            $table->integer('siblings_not_married')->nullable()->after('siblings_married');
+            $table->string('state')->nullable()->after('siblings_not_married');
+            $table->text('about_myself')->nullable()->after('state');
+            $table->string('partner_age')->nullable()->after('about_myself');
+            $table->string('partner_marital_status')->nullable()->after('partner_age');
+            $table->string('partner_religion')->nullable()->after('partner_marital_status');
+            $table->string('partner_community')->nullable()->after('partner_religion');
+            $table->string('partner_mother_tongue')->nullable()->after('partner_community');
+            $table->json('partner_qualification')->nullable()->after('partner_mother_tongue');
+            $table->json('partner_working_with')->nullable()->after('partner_qualification');
+            $table->json('partner_profession')->nullable()->after('partner_working_with');
+            $table->text('partner_professional_details')->nullable()->after('partner_profession');
         });
     }
 
