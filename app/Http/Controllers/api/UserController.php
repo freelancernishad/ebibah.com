@@ -115,6 +115,7 @@ public function update(Request $request, $id)
         return response()->json(['message' => 'User not found'], 404);
     }
 
+    // Validation rules for all fields
     $validator = Validator::make($request->all(), [
         'name' => 'required|string|max:255',
         'email' => [
@@ -160,7 +161,29 @@ public function update(Request $request, $id)
         'personal_values' => 'nullable|string|max:255',
         'disability' => 'nullable|string|max:255',
         'posted_by' => 'nullable|string|max:255',
-        // Add validation rules for other fields as needed
+        'profile_created_by' => 'nullable|string|max:255',
+        'whatsapp' => 'nullable|string|max:20',
+        'community' => 'nullable|string|max:255',
+        'mother_tongue' => 'nullable|string|max:255',
+        'sub_community' => 'nullable|string|max:255',
+        'family_values' => 'nullable|string|max:255',
+        'family_location' => 'nullable|string|max:255',
+        'family_type' => 'nullable|string|max:255',
+        'family_native_place' => 'nullable|string|max:255',
+        'total_siblings' => 'nullable|integer',
+        'siblings_married' => 'nullable|integer',
+        'siblings_not_married' => 'nullable|integer',
+        'state' => 'nullable|string|max:255',
+        'about_myself' => 'nullable|string',
+        'partner_age' => 'nullable|string|max:50',
+        'partner_marital_status' => 'nullable|string|max:50',
+        'partner_religion' => 'nullable|string|max:255',
+        'partner_community' => 'nullable|string|max:255',
+        'partner_mother_tongue' => 'nullable|string|max:255',
+        'partner_qualification' => 'nullable|array',
+        'partner_working_with' => 'nullable|array',
+        'partner_profession' => 'nullable|array',
+        'partner_professional_details' => 'nullable|string',
     ]);
 
     if ($validator->fails()) {
@@ -205,6 +228,29 @@ public function update(Request $request, $id)
         'personal_values' => $request->personal_values,
         'disability' => $request->disability,
         'posted_by' => $request->posted_by,
+        'profile_created_by' => $request->profile_created_by,
+        'whatsapp' => $request->whatsapp,
+        'community' => $request->community,
+        'mother_tongue' => $request->mother_tongue,
+        'sub_community' => $request->sub_community,
+        'family_values' => $request->family_values,
+        'family_location' => $request->family_location,
+        'family_type' => $request->family_type,
+        'family_native_place' => $request->family_native_place,
+        'total_siblings' => $request->total_siblings,
+        'siblings_married' => $request->siblings_married,
+        'siblings_not_married' => $request->siblings_not_married,
+        'state' => $request->state,
+        'about_myself' => $request->about_myself,
+        'partner_age' => $request->partner_age,
+        'partner_marital_status' => $request->partner_marital_status,
+        'partner_religion' => $request->partner_religion,
+        'partner_community' => $request->partner_community,
+        'partner_mother_tongue' => $request->partner_mother_tongue,
+        'partner_qualification' => $request->partner_qualification,
+        'partner_working_with' => $request->partner_working_with,
+        'partner_profession' => $request->partner_profession,
+        'partner_professional_details' => $request->partner_professional_details,
     ]);
 
     return response()->json(['message' => 'User updated successfully'], 200);
