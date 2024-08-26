@@ -74,7 +74,9 @@ Route::middleware(['auth:api'])->group(function () {
     Route::put('/user/{id}/update-partner-basics-lifestyle', [UserController::class, 'updatePartnerBasicsAndLifestyle']);
     Route::put('/user/{id}/update-partner-location-details', [UserController::class, 'updatePartnerLocationDetails']);
     Route::put('/user/{id}/update-partner-education-career', [UserController::class, 'updatePartnerEducationAndCareer']);
-    Route::put('/users/{id}/profile', [UserController::class, 'update'])->name('users.update');
+
+    Route::put('/users/update/profile', [UserController::class, 'update'])->name('users.update');
+
 
 
     Route::prefix('user-images')->group(function () {
