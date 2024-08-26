@@ -233,5 +233,9 @@ public function permissions()
         return $this->hasMany(Notification::class);
     }
 
+    public function popularity()
+    {
+        return $this->hasOne(Popularity::class);
+    }
 
 }

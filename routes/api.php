@@ -9,6 +9,7 @@ use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\SocialLinkController;
 use App\Http\Controllers\AdvertisementController;
+use App\Http\Controllers\Global\FilterUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,3 +46,8 @@ Route::get('advertisements', [AdvertisementController::class, 'index']);
 
 Route::get('/visitors', [VisitorController::class, 'index']);
 Route::get('/visitors/reports', [VisitorController::class, 'generateReports']);
+
+
+
+
+Route::get('/search/partner', [FilterUserController::class, 'filter']);
