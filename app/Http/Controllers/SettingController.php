@@ -23,7 +23,7 @@ class SettingController extends Controller
             }
 
             // Example to add "All" option as the first item
-            array_unshift($formattedValues, ['id' => '', 'name' => 'All']);
+            // array_unshift($formattedValues, ['id' => '', 'name' => 'All']);
 
             // Format the output as key-value pairs
             $formattedSettings[$setting->name] = $formattedValues;
