@@ -23,7 +23,8 @@ class FilterUserController extends Controller
         }
 
         if ($request->has('marital_status')) {
-            $query->where('marital_status', $request->marital_status);
+            $maritalStatuses = explode(',', $request->marital_status);
+            $query->whereIn('marital_status', $maritalStatuses);
         }
 
         if ($request->has('age_from') && $request->has('age_to')) {
@@ -34,7 +35,8 @@ class FilterUserController extends Controller
         }
 
         if ($request->has('living_country')) {
-            $query->where('living_country', $request->living_country);
+            $livingCountries = explode(',', $request->living_country);
+            $query->whereIn('living_country', $livingCountries);
         }
 
         if ($request->has('highest_qualification')) {
