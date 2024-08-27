@@ -9,11 +9,6 @@ use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
         $faker = \Faker\Factory::create();
@@ -78,7 +73,7 @@ class UserSeeder extends Seeder
                 'partner_religion' => $faker->randomElement(['Hindu', 'Muslim', 'Christian', 'Buddhist']),
                 'partner_community' => $faker->word,
                 'partner_mother_tongue' => $faker->languageCode,
-                'partner_qualification' => $faker->randomElement(['Bachelor', 'Master', 'PhD']),
+                'partner_qualification' => $faker->randomElement(['Bachelor', 'Master', 'PhD']), // Ensure this matches the column type
                 'partner_working_with' => $faker->randomElement(['Private', 'Government', 'Self-employed']),
                 'partner_profession' => $faker->jobTitle,
                 'partner_professional_details' => $faker->sentence,
@@ -86,6 +81,7 @@ class UserSeeder extends Seeder
         }
     }
 }
+
 
 
 // php artisan db:seed --class=UserSeeder
