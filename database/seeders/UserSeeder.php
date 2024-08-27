@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
 
         for ($i = 0; $i < 50; $i++) {
             User::create([
-                'active_package_id' => $faker->numberBetween(1, 5),
+                'active_package_id' => null,
                 'name' => $faker->name,
                 'email' => $faker->unique()->safeEmail,
                 'password' => Hash::make('password'), // default password
