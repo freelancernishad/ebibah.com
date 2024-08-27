@@ -53,6 +53,12 @@ class FilterUserController extends Controller
         // Pagination
         $users = $query->paginate(10); // 10 users per page
 
+        // Add age calculation to each user
+        $users->getCollection()->transform(function ($user) {
+            $user->age = calculateAge($user->date_of_birth);
+            return $user;
+        });
+
         return response()->json($users);
     }
 
