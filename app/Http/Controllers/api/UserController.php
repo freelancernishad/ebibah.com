@@ -106,146 +106,152 @@ class UserController extends Controller
         return response()->json(['message' => 'User registered successfully', 'user' => $user], 201);
     }
 
-// User update
-public function update(Request $request)
-{
-    $user = auth()->user();
-
-    if (!$user) {
-        return response()->json(['message' => 'User not found'], 404);
+    public function update(Request $request)
+    {
+        $user = auth()->user();
+    
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+    
+        // Validation rules for all fields including new fields
+        $validator = Validator::make($request->all(), [
+            'date_of_birth' => 'nullable|date',
+            'gender' => 'nullable|string|max:10',
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'father_name' => 'nullable|string|max:255',
+            'mother_name' => 'nullable|string|max:255',
+            'marital_status' => 'nullable|string|max:50',
+            'religion' => 'nullable|string|max:255',
+            'nationality' => 'nullable|string|max:255',
+            'highest_qualification' => 'nullable|string|max:255',
+            'college_name' => 'nullable|string|max:255',
+            'working_sector' => 'nullable|string|max:255',
+            'profession' => 'nullable|string|max:255',
+            'profession_details' => 'nullable|string|max:255',
+            'monthly_income' => 'nullable|numeric',
+            'father_occupation' => 'nullable|string|max:255',
+            'mother_occupation' => 'nullable|string|max:255',
+            'living_country' => 'nullable|string|max:255',
+            'currently_living_in' => 'nullable|string|max:255',
+            'city_living_in' => 'nullable|string|max:255',
+            'family_details' => 'nullable|string|max:255',
+            'height' => 'nullable|string|max:50',
+            'weight' => 'nullable|string|max:50',
+            'bodyType' => 'nullable|string|max:50',
+            'race' => 'nullable|string|max:50',
+            'blood_group' => 'nullable|string|max:10',
+            'mother_status' => 'nullable|string|max:50',
+            'birth_place' => 'nullable|string|max:255',
+            'personal_values' => 'nullable|string|max:255',
+            'disability' => 'nullable|string|max:255',
+            'posted_by' => 'nullable|string|max:255',
+            'profile_created_by' => 'nullable|string|max:255',
+            'whatsapp' => 'nullable|string|max:20',
+            'community' => 'nullable|string|max:255',
+            'mother_tongue' => 'nullable|string|max:255',
+            'sub_community' => 'nullable|string|max:255',
+            'family_values' => 'nullable|string|max:255',
+            'family_location' => 'nullable|string|max:255',
+            'family_type' => 'nullable|string|max:255',
+            'family_native_place' => 'nullable|string|max:255',
+            'total_siblings' => 'nullable|integer',
+            'siblings_married' => 'nullable|integer',
+            'siblings_not_married' => 'nullable|integer',
+            'state' => 'nullable|string|max:255',
+            'about_myself' => 'nullable|string',
+            'partner_age' => 'nullable|string|max:50',
+            'partner_marital_status' => 'nullable|string|max:50',
+            'partner_religion' => 'nullable|string|max:255',
+            'partner_community' => 'nullable|string|max:255',
+            'partner_mother_tongue' => 'nullable|string|max:255',
+            'partner_qualification' => 'nullable|array',
+            'partner_working_with' => 'nullable|array',
+            'partner_profession' => 'nullable|array',
+            'partner_professional_details' => 'nullable|string',
+            'partner_country' => 'nullable|string|max:255', // New validation rule
+            'partner_state' => 'nullable|string|max:255',   // New validation rule
+            'partner_city' => 'nullable|string|max:255',    // New validation rule
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+    
+        // Filter out null values from the request data including new fields
+        $data = array_filter($request->only([
+            'name',
+            'email',
+            'role',
+            'role_id',
+            'profile_for',
+            'mobile_number',
+            'date_of_birth',
+            'gender',
+            'first_name',
+            'last_name',
+            'father_name',
+            'mother_name',
+            'marital_status',
+            'religion',
+            'nationality',
+            'highest_qualification',
+            'college_name',
+            'working_sector',
+            'profession',
+            'profession_details',
+            'monthly_income',
+            'father_occupation',
+            'mother_occupation',
+            'living_country',
+            'currently_living_in',
+            'city_living_in',
+            'family_details',
+            'height',
+            'weight',
+            'bodyType',
+            'race',
+            'blood_group',
+            'mother_status',
+            'birth_place',
+            'personal_values',
+            'disability',
+            'posted_by',
+            'profile_created_by',
+            'whatsapp',
+            'community',
+            'mother_tongue',
+            'sub_community',
+            'family_values',
+            'family_location',
+            'family_type',
+            'family_native_place',
+            'total_siblings',
+            'siblings_married',
+            'siblings_not_married',
+            'state',
+            'about_myself',
+            'partner_age',
+            'partner_marital_status',
+            'partner_religion',
+            'partner_community',
+            'partner_mother_tongue',
+            'partner_qualification',
+            'partner_working_with',
+            'partner_profession',
+            'partner_professional_details',
+            'partner_country',   // New field
+            'partner_state',    // New field
+            'partner_city',     // New field
+        ]));
+    
+        // Update the user with the filtered data
+        $user->update($data);
+    
+        return response()->json(['message' => 'User updated successfully'], 200);
     }
-
-    // Validation rules for all fields
-    $validator = Validator::make($request->all(), [
-        'date_of_birth' => 'nullable|date',
-        'gender' => 'nullable|string|max:10',
-        'first_name' => 'nullable|string|max:255',
-        'last_name' => 'nullable|string|max:255',
-        'father_name' => 'nullable|string|max:255',
-        'mother_name' => 'nullable|string|max:255',
-        'marital_status' => 'nullable|string|max:50',
-        'religion' => 'nullable|string|max:255',
-        'nationality' => 'nullable|string|max:255',
-        'highest_qualification' => 'nullable|string|max:255',
-        'college_name' => 'nullable|string|max:255',
-        'working_sector' => 'nullable|string|max:255',
-        'profession' => 'nullable|string|max:255',
-        'profession_details' => 'nullable|string|max:255',
-        'monthly_income' => 'nullable|numeric',
-        'father_occupation' => 'nullable|string|max:255',
-        'mother_occupation' => 'nullable|string|max:255',
-        'living_country' => 'nullable|string|max:255',
-        'currently_living_in' => 'nullable|string|max:255',
-        'city_living_in' => 'nullable|string|max:255',
-        'family_details' => 'nullable|string|max:255',
-        'height' => 'nullable|string|max:50',
-        'weight' => 'nullable|string|max:50',
-        'bodyType' => 'nullable|string|max:50',
-        'race' => 'nullable|string|max:50',
-        'blood_group' => 'nullable|string|max:10',
-        'mother_status' => 'nullable|string|max:50',
-        'birth_place' => 'nullable|string|max:255',
-        'personal_values' => 'nullable|string|max:255',
-        'disability' => 'nullable|string|max:255',
-        'posted_by' => 'nullable|string|max:255',
-        'profile_created_by' => 'nullable|string|max:255',
-        'whatsapp' => 'nullable|string|max:20',
-        'community' => 'nullable|string|max:255',
-        'mother_tongue' => 'nullable|string|max:255',
-        'sub_community' => 'nullable|string|max:255',
-        'family_values' => 'nullable|string|max:255',
-        'family_location' => 'nullable|string|max:255',
-        'family_type' => 'nullable|string|max:255',
-        'family_native_place' => 'nullable|string|max:255',
-        'total_siblings' => 'nullable|integer',
-        'siblings_married' => 'nullable|integer',
-        'siblings_not_married' => 'nullable|integer',
-        'state' => 'nullable|string|max:255',
-        'about_myself' => 'nullable|string',
-        'partner_age' => 'nullable|string|max:50',
-        'partner_marital_status' => 'nullable|string|max:50',
-        'partner_religion' => 'nullable|string|max:255',
-        'partner_community' => 'nullable|string|max:255',
-        'partner_mother_tongue' => 'nullable|string|max:255',
-        'partner_qualification' => 'nullable|array',
-        'partner_working_with' => 'nullable|array',
-        'partner_profession' => 'nullable|array',
-        'partner_professional_details' => 'nullable|string',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 400);
-    }
-
-    // Filter out null values from the request data
-    $data = array_filter($request->only([
-        'name',
-        'email',
-        'role',
-        'role_id',
-        'profile_for',
-        'mobile_number',
-        'date_of_birth',
-        'gender',
-        'first_name',
-        'last_name',
-        'father_name',
-        'mother_name',
-        'marital_status',
-        'religion',
-        'nationality',
-        'highest_qualification',
-        'college_name',
-        'working_sector',
-        'profession',
-        'profession_details',
-        'monthly_income',
-        'father_occupation',
-        'mother_occupation',
-        'living_country',
-        'currently_living_in',
-        'city_living_in',
-        'family_details',
-        'height',
-        'weight',
-        'bodyType',
-        'race',
-        'blood_group',
-        'mother_status',
-        'birth_place',
-        'personal_values',
-        'disability',
-        'posted_by',
-        'profile_created_by',
-        'whatsapp',
-        'community',
-        'mother_tongue',
-        'sub_community',
-        'family_values',
-        'family_location',
-        'family_type',
-        'family_native_place',
-        'total_siblings',
-        'siblings_married',
-        'siblings_not_married',
-        'state',
-        'about_myself',
-        'partner_age',
-        'partner_marital_status',
-        'partner_religion',
-        'partner_community',
-        'partner_mother_tongue',
-        'partner_qualification',
-        'partner_working_with',
-        'partner_profession',
-        'partner_professional_details',
-    ]));
-
-    // Update the user with the filtered data
-    $user->update($data);
-
-    return response()->json(['message' => 'User updated successfully'], 200);
-}
+    
 
 
     // User delete

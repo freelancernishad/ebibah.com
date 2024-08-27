@@ -83,6 +83,9 @@ class User extends Authenticatable implements JWTSubject
         'partner_working_with',
         'partner_profession',
         'partner_professional_details',
+        'partner_country',
+        'partner_state',
+        'partner_city',
     ];
 
     /**
