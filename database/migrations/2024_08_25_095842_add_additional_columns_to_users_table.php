@@ -31,9 +31,9 @@ return new class extends Migration
             $table->string('partner_religion')->nullable()->after('partner_marital_status');
             $table->string('partner_community')->nullable()->after('partner_religion');
             $table->string('partner_mother_tongue')->nullable()->after('partner_community');
-            $table->json('partner_qualification')->nullable()->after('partner_mother_tongue');
-            $table->json('partner_working_with')->nullable()->after('partner_qualification');
-            $table->json('partner_profession')->nullable()->after('partner_working_with');
+            $table->text('partner_qualification')->nullable()->after('partner_mother_tongue');
+            $table->text('partner_working_with')->nullable()->after('partner_qualification');
+            $table->text('partner_profession')->nullable()->after('partner_working_with');
             $table->text('partner_professional_details')->nullable()->after('partner_profession');
         });
     }
