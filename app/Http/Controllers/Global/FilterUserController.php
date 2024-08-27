@@ -44,15 +44,16 @@ class FilterUserController extends Controller
             $query->whereIn('highest_qualification', $qualifications);
         }
 
-        // Add sorting by popularity
-        $query->with('popularity')
-            ->leftJoin('popularities', 'users.id', '=', 'popularities.user_id')
-            ->orderByDesc('popularities.views')
-            ->orderByDesc('popularities.likes');
+        // Add sorting by popularity and select specific columns
+        $query->leftJoin('popularities', 'users.id', '=', 'popularities.user_id')
+              ->select('users.*', 'popularities.views', 'popularities.likes')
+              ->orderByDesc('popularities.views')
+              ->orderByDesc('popularities.likes');
 
         // Pagination
         $users = $query->paginate(10); // 10 users per page
 
         return response()->json($users);
     }
+
 }
