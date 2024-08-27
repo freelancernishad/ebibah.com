@@ -74,7 +74,7 @@ class UserSeeder extends Seeder
                 'partner_community' => $faker->word,
                 'partner_mother_tongue' => $faker->languageCode,
                 'partner_qualification' => json_encode($faker->randomElement(['Bachelor', 'Master', 'PhD'])),
-                'partner_working_with' => $faker->randomElement(['Private', 'Government', 'Self-employed']),
+                'partner_working_with' => json_encode($faker->randomElement(['Private', 'Government', 'Self-employed'])),
                 'partner_profession' => $faker->jobTitle,
                 'partner_professional_details' => $faker->sentence,
             ]);
