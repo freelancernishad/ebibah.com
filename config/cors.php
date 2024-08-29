@@ -23,7 +23,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000'),'http://localhost:5173','https://blood-suyel.netlify.app'],
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000'),'http://localhost:5173','https://blood-suyel.netlify.app','https://ebibah.com','https://usamarry.com'],
 
     'allowed_origins_patterns' => [],
 
