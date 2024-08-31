@@ -13,6 +13,7 @@ class IpAddressProtectionMiddleware
         'http://test.localhost:8000',
         'http://localhost:5173',
         'https://usamarry.com',
+        'https://www.usamarry.com',
         'https://ebibah.com',
         'https://www.ebibah.com',
 
