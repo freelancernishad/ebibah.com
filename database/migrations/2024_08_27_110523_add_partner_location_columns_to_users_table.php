@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('partner_country')->after('partner_professional_details');
-            $table->string('partner_state')->after('partner_country');
-            $table->string('partner_city')->after('partner_state');
+            $table->string('partner_country')->nullable()->after('partner_professional_details');
+            $table->string('partner_state')->nullable()->after('partner_country');
+            $table->string('partner_city')->nullable()->after('partner_state');
         });
     }
 
