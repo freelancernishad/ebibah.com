@@ -14,6 +14,7 @@ class IpAddressProtectionMiddleware
         'http://localhost:5173',
         'https://usamarry.com',
         'https://ebibah.com',
+        'https://www.ebibah.com',
 
 
 
