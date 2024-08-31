@@ -128,93 +128,36 @@ public function checkToken(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-
             'email' => 'nullable|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-            'role' => 'nullable|string|max:255',
-            'role_id' => 'nullable|integer',
-            'profile_for' => 'nullable|string|max:255',
-            'mobile_number' => 'nullable|string|max:15',
+            'password' => 'required|string|min:6|confirmed', // This validates both password and re_password
             'date_of_birth' => 'nullable|date',
-            'gender' => 'nullable|string|max:10',
-            'first_name' => 'nullable|string|max:255',
-            'last_name' => 'nullable|string|max:255',
-            'father_name' => 'nullable|string|max:255',
-            'mother_name' => 'nullable|string|max:255',
-            'marital_status' => 'nullable|string|max:255',
             'religion' => 'nullable|string|max:255',
-            'nationality' => 'nullable|string|max:255',
-            'highest_qualification' => 'nullable|string|max:255',
-            'college_name' => 'nullable|string|max:255',
-            'working_sector' => 'nullable|string|max:255',
-            'profession' => 'nullable|string|max:255',
-            'profession_details' => 'nullable|string|max:255',
-            'monthly_income' => 'nullable|string|max:255',
-            'father_occupation' => 'nullable|string|max:255',
-            'mother_occupation' => 'nullable|string|max:255',
-            'living_country' => 'nullable|string|max:255',
-            'currently_living_in' => 'nullable|string|max:255',
-            'city_living_in' => 'nullable|string|max:255',
-            'family_details' => 'nullable|string',
-            'height' => 'nullable|string|max:255',
-            'weight' => 'nullable|string|max:255',
-            'bodyType' => 'nullable|string|max:255',
-            'race' => 'nullable|string|max:255',
-            'blood_group' => 'nullable|string|max:255',
-            'mother_status' => 'nullable|string|max:255',
+            'gender' => 'nullable|string|max:10',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
-
+    
         $user = User::create([
             'name' => $request->name,
-
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
-            'role_id' => $request->role_id,
-            'profile_for' => $request->profile_for,
-            'mobile_number' => $request->mobile_number,
             'date_of_birth' => $request->date_of_birth,
-            'gender' => $request->gender,
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'father_name' => $request->father_name,
-            'mother_name' => $request->mother_name,
-            'marital_status' => $request->marital_status,
             'religion' => $request->religion,
-            'nationality' => $request->nationality,
-            'highest_qualification' => $request->highest_qualification,
-            'college_name' => $request->college_name,
-            'working_sector' => $request->working_sector,
-            'profession' => $request->profession,
-            'profession_details' => $request->profession_details,
-            'monthly_income' => $request->monthly_income,
-            'father_occupation' => $request->father_occupation,
-            'mother_occupation' => $request->mother_occupation,
-            'living_country' => $request->living_country,
-            'currently_living_in' => $request->currently_living_in,
-            'city_living_in' => $request->city_living_in,
-            'family_details' => $request->family_details,
-            'height' => $request->height,
-            'weight' => $request->weight,
-            'bodyType' => $request->bodyType,
-            'race' => $request->race,
-            'blood_group' => $request->blood_group,
-            'mother_status' => $request->mother_status,
+            'gender' => $request->gender,
         ]);
-
+    
         // Generate JWT token for the registered user
         $token = JWTAuth::fromUser($user);
-
+    
         return response()->json([
             'message' => 'User registered successfully',
             'user' => $user,
             'token' => $token // Return JWT token
         ], 201);
     }
+    
 
 
 
