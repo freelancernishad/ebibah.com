@@ -109,12 +109,12 @@ class UserController extends Controller
     public function update(Request $request)
     {
         $user = auth()->user();
-    
+
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-    
-        // Validation rules for all fields including new fields
+
+        // Validation rules for all fields including new fields and step
         $validator = Validator::make($request->all(), [
             'date_of_birth' => 'nullable|date',
             'gender' => 'nullable|string|max:10',
@@ -170,15 +170,20 @@ class UserController extends Controller
             'partner_working_with' => 'nullable|array',
             'partner_profession' => 'nullable|array',
             'partner_professional_details' => 'nullable|string',
-            'partner_country' => 'nullable|string|max:255', // New validation rule
-            'partner_state' => 'nullable|string|max:255',   // New validation rule
-            'partner_city' => 'nullable|string|max:255',    // New validation rule
+            'partner_country' => 'nullable|string|max:255',
+            'partner_state' => 'nullable|string|max:255',
+            'partner_city' => 'nullable|string|max:255',
+            'diet' => 'nullable|string|max:255', // New field validation
+            'drinking' => 'nullable|string|max:255', // New field validation
+            'other_lifestyle_preferences' => 'nullable|string|max:255', // New field validation
+            'smoking' => 'nullable|string|max:255', // New field validation
+          
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
-    
+
         // Filter out null values from the request data including new fields
         $data = array_filter($request->only([
             'name',
@@ -241,17 +246,26 @@ class UserController extends Controller
             'partner_working_with',
             'partner_profession',
             'partner_professional_details',
-            'partner_country',   // New field
-            'partner_state',    // New field
-            'partner_city',     // New field
+            'partner_country',
+            'partner_state',
+            'partner_city',
+            'diet', // New field
+            'drinking', // New field
+            'other_lifestyle_preferences', // New field
+            'smoking', // New field
+            'step', // Step field
         ]));
-    
+
+        // Ensure step is set to 2 if it was not provided in the request
+        $data['step'] = 2;
+
         // Update the user with the filtered data
         $user->update($data);
-    
+
         return response()->json(['message' => 'User updated successfully'], 200);
     }
-    
+
+
 
 
     // User delete
