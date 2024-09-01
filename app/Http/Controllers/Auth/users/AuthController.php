@@ -38,7 +38,7 @@ class AuthController extends Controller
                 return response()->json(['error' => 'Invalid access token'], 400);
             }
 
-            $userData = $response->json();
+           return $userData = $response->json();
 
             // Check if the email exists in your database
             $user = User::where('email', $userData['email'])->first();
