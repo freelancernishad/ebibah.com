@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\PackageController;
 use App\Http\Controllers\api\PackagePurchaseController;
+use App\Http\Controllers\Backed\SettingBackedController;
 use App\Http\Controllers\Auth\admins\AdminAuthController;
 
 // Admin auth routes
@@ -17,6 +18,20 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('/admin-access', function () {
         return 'admin access';
     });
+
+
+    Route::post('/settings', [SettingBackedController::class, 'store']);
+    Route::put('/settings/{id}', [SettingBackedController::class, 'update']);
+    Route::delete('/settings/{id}', [SettingBackedController::class, 'destroy']);
+
+
+    Route::post('/settings/{setting_id}/values', [SettingBackedController::class, 'storeValue']);
+    Route::put('/settings/{setting_id}/values/{value_id}', [SettingBackedController::class, 'updateValue']);
+    Route::delete('/settings/{setting_id}/values/{value_id}', [SettingBackedController::class, 'destroyValue']);
+
+
+
+
 
 
 
