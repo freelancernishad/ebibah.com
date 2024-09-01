@@ -16,7 +16,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
-    
+
     public function login(Request $request)
     {
         if ($request->has('access_token')) {
@@ -24,22 +24,22 @@ class AuthController extends Controller
             $validator = Validator::make($request->all(), [
                 'access_token' => 'required|string',
             ]);
-    
+
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
-    
+
             // Verify the access token using Google's tokeninfo endpoint
             $response = Http::get('https://oauth2.googleapis.com/tokeninfo', [
                 'access_token' => $request->access_token,
             ]);
-    
+
             if ($response->failed()) {
                 return response()->json(['error' => 'Invalid access token'], 400);
             }
-    
+
             $userData = $response->json();
-    
+
             // Check if the email exists in your database
             $user = User::where('email', $userData['email'])->first();
             if (!$user) {
@@ -53,10 +53,10 @@ class AuthController extends Controller
                     'step' => 1, // Set step value to 1
                 ]);
             }
-    
+
             // Login the user
             Auth::login($user);
-    
+
             // Build the payload including the username and step
             $payload = [
                 'email' => $user->email,
@@ -64,7 +64,7 @@ class AuthController extends Controller
                 'name' => $user->name, // Include name here
                 'step' => $user->step, // Include step here
             ];
-    
+
             $token = JWTAuth::fromUser($user); // Generate JWT token for the user
             return response()->json(['token' => $token, 'user' => $payload], 200);
         } else {
@@ -73,19 +73,19 @@ class AuthController extends Controller
                 'email' => 'required|email',
                 'password' => 'required|string',
             ]);
-    
+
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
-    
+
             $credentials = [
                 'email' => $request->email,
                 'password' => $request->password,
             ];
-    
+
             if (Auth::attempt($credentials)) {
                 $user = Auth::user();
-    
+
                 // Build the payload including the username and step
                 $payload = [
                     'email' => $user->email,
@@ -93,15 +93,15 @@ class AuthController extends Controller
                     'name' => $user->name, // Include name here
                     'step' => $user->step, // Include step here
                 ];
-    
+
                 $token = JWTAuth::fromUser($user); // Generate JWT token for the user
                 return response()->json(['token' => $token, 'user' => $payload], 200);
             }
-    
+
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
     }
-    
+
 
 
 
@@ -259,6 +259,7 @@ public function checkToken(Request $request)
 
         // Build the payload including the username and step
         $payload = [
+            'name' => $user->name,
             'email' => $user->email,
             'username' => $user->username ?? $user->name, // Include username or name here
             'step' => $user->step, // Include step here
