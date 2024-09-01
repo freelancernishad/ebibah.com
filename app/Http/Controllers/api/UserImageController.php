@@ -63,4 +63,40 @@ class UserImageController extends Controller
 
         return response()->file(storage_path('app/public/' . $userImage->image_path));
     }
+
+
+
+    public function delete(Request $request)
+{
+    // Validate request
+    $validator = Validator::make($request->all(), [
+        'user_id' => 'required|exists:users,id',
+        'image_id' => 'required|exists:user_images,id', // Assuming `user_images` is the table name
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 400);
+    }
+
+    // Find the image record
+    $userImage = UserImage::where('user_id', $request->user_id)
+                          ->where('id', $request->image_id)
+                          ->first();
+
+    if (!$userImage) {
+        return response()->json(['error' => 'Image not found.'], 404);
+    }
+
+    // Delete the image file from storage
+    if (Storage::disk('protected')->exists($userImage->image_path)) {
+        Storage::disk('protected')->delete($userImage->image_path);
+    }
+
+    // Delete the image record from the database
+    $userImage->delete();
+
+    return response()->json(['message' => 'Image deleted successfully.'], 200);
+}
+
+
 }
