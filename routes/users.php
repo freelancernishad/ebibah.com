@@ -85,8 +85,8 @@ Route::middleware(['auth:api'])->group(function () {
 
         // Retrieve an image by ID
         Route::get('/{userImage}', [UserImageController::class, 'show'])->name('user-images.show');
-        Route::delete('single/delete', [UserImageController::class, 'deleteImage']);
     });
+    Route::delete('single/image/delete', [UserImageController::class, 'deleteImage']);
 
 
 
