@@ -30,7 +30,7 @@ class AuthController extends Controller
             }
 
             // Verify the access token using Google's tokeninfo endpoint
-            $response = Http::get('https://oauth2.googleapis.com/tokeninfo', [
+            $response = Http::get('https://www.googleapis.com/oauth2/v3/userinfo', [
                 'access_token' => $request->access_token,
             ]);
 
