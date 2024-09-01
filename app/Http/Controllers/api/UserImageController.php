@@ -66,7 +66,7 @@ class UserImageController extends Controller
 
 
 
-    public function delete(Request $request)
+    public function deleteImage(Request $request)
 {
     // Validate request
     $validator = Validator::make($request->all(), [
