@@ -38,7 +38,7 @@ class AuthController extends Controller
                 return response()->json(['error' => 'Invalid access token'], 400);
             }
 
-           return $userData = $response->json();
+            $userData = $response->json();
 
             // Check if the email exists in your database
             $user = User::where('email', $userData['email'])->first();
@@ -48,7 +48,11 @@ class AuthController extends Controller
                 $user = User::create([
                     'username' => $username,
                     'email' => $userData['email'],
-                    'name' => $userData['name'], // Store the name from Google
+
+                    'first_name' => $userData['given_name'],
+                    'last_name' => $userData['family_name'],
+
+                    'name' => $userData['name'],
                     'password' => Hash::make(Str::random(16)), // Generate a random password
                     'step' => 1, // Set step value to 1
                 ]);
