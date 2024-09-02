@@ -39,7 +39,7 @@ Route::post('/user/register', [AuthController::class, 'register']);
 // Email verification route
 Route::get('/email/verify/{hash}', [VerificationController::class, 'verifyEmail']);
 
-Route::post('/resend-verification-link', [AuthController::class, 'resendVerificationLink']);
+Route::post('/resend/verification-link', [AuthController::class, 'resendVerificationLink']);
 
 
 // Register a new user
