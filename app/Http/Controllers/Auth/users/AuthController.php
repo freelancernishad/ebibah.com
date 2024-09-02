@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Notifications\VerifyEmail;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -48,10 +49,8 @@ class AuthController extends Controller
                 $user = User::create([
                     'username' => $username,
                     'email' => $userData['email'],
-
                     'first_name' => $userData['given_name'],
                     'last_name' => $userData['family_name'],
-
                     'name' => $userData['name'],
                     'password' => Hash::make(Str::random(16)), // Generate a random password
                     'step' => 1, // Set step value to 1
@@ -61,12 +60,13 @@ class AuthController extends Controller
             // Login the user
             Auth::login($user);
 
-            // Build the payload including the username and step
+            // Build the payload including the username, step, and email verification status
             $payload = [
                 'email' => $user->email,
                 'username' => $user->username, // Include username here
                 'name' => $user->name, // Include name here
                 'step' => $user->step, // Include step here
+                'verified' => $user->hasVerifiedEmail(), // Add email verification status
             ];
 
             $token = JWTAuth::fromUser($user); // Generate JWT token for the user
@@ -90,12 +90,13 @@ class AuthController extends Controller
             if (Auth::attempt($credentials)) {
                 $user = Auth::user();
 
-                // Build the payload including the username and step
+                // Build the payload including the username, step, and email verification status
                 $payload = [
                     'email' => $user->email,
                     'username' => $user->username, // Include username here
                     'name' => $user->name, // Include name here
                     'step' => $user->step, // Include step here
+                    'verified' => $user->hasVerifiedEmail(), // Add email verification status
                 ];
 
                 $token = JWTAuth::fromUser($user); // Generate JWT token for the user
@@ -106,7 +107,40 @@ class AuthController extends Controller
         }
     }
 
+    public function resendVerificationLink(Request $request)
+    {
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            // Optionally validate verify_url if it's part of the request
+            'verify_url' => 'nullable|url',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Find the user by email
+        $user = User::where('email', $request->email)->first();
+
+        // Check if the user exists and if the email is not already verified
+        if (!$user || $user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email is either already verified or user does not exist.'], 400);
+        }
+
+        // Generate a new verification token
+        $verificationToken = Str::random(60); // Generate a unique token
+        $user->email_verification_hash = $verificationToken;
+        $user->save();
+
+        // Build the new verification URL
+        $verify_url = $request->verify_url;
+
+        // Resend the verification email
+        $user->notify(new VerifyEmail($user, $verify_url));
+
+        return response()->json(['message' => 'Verification link has been sent.'], 200);
+    }
 
 
 
@@ -187,6 +221,7 @@ public function checkToken(Request $request)
 
     public function register(Request $request)
     {
+        // Check if access_token is present
         if ($request->has('access_token')) {
             // Validate access_token
             $validator = Validator::make($request->all(), [
@@ -195,6 +230,7 @@ public function checkToken(Request $request)
                 'date_of_birth' => 'nullable|date',
                 'religion' => 'nullable|string|max:255',
                 'gender' => 'nullable|string|max:10',
+                'verify_url' => 'required|url', // Ensure verify_url is a valid URL
             ]);
 
             if ($validator->fails()) {
@@ -243,6 +279,7 @@ public function checkToken(Request $request)
                 'date_of_birth' => 'nullable|date',
                 'religion' => 'nullable|string|max:255',
                 'gender' => 'nullable|string|max:10',
+                'verify_url' => 'required|url', // Ensure verify_url is a valid URL
             ]);
 
             if ($validator->fails()) {
@@ -258,15 +295,23 @@ public function checkToken(Request $request)
                 'religion' => $request->religion,
                 'gender' => $request->gender,
                 'step' => 1, // Set step value to 1
+                'email_verification_hash' => Str::random(60),
             ]);
         }
 
-        // Build the payload including the username and step
+        // Generate verification URL
+        $verify_url = $request->verify_url;
+
+        // Send email verification
+        $user->notify(new VerifyEmail($user, $verify_url));
+
+        // Build the payload including the username, step, and email verification status
         $payload = [
             'name' => $user->name,
             'email' => $user->email,
             'username' => $user->username ?? $user->name, // Include username or name here
             'step' => $user->step, // Include step here
+            'verified' => $user->hasVerifiedEmail(), // Add email verification status
         ];
 
         // Generate JWT token
@@ -279,7 +324,6 @@ public function checkToken(Request $request)
             'token' => $token // Return JWT token
         ], 201);
     }
-
 
 
 

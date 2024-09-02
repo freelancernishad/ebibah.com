@@ -13,6 +13,7 @@ use App\Http\Controllers\api\ProfileViewController;
 use App\Http\Controllers\Auth\users\AuthController;
 use App\Http\Controllers\api\NotificationController;
 use App\Http\Controllers\api\PackagePurchaseController;
+use App\Http\Controllers\Auth\users\VerificationController;
 use App\Http\Controllers\Auth\users\PasswordResetController;
 
 Route::post('store/permissions', [RolePermissionController::class, 'storePermissions']);
@@ -34,6 +35,12 @@ Route::post('/user/login', [AuthController::class, 'login'])->name('login');
 Route::post('/user/check/login', [AuthController::class, 'checkTokenExpiration'])->name('checklogin');
 Route::post('/user/check-token', [AuthController::class, 'checkToken']);
 Route::post('/user/register', [AuthController::class, 'register']);
+
+// Email verification route
+Route::get('/email/verify/{hash}', [VerificationController::class, 'verifyEmail']);
+
+Route::post('/resend-verification-link', [AuthController::class, 'resendVerificationLink']);
+
 
 // Register a new user
 // Route::post('users/register', [UserController::class, 'register']);
