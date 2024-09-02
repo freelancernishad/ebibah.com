@@ -13,6 +13,7 @@ use App\Http\Controllers\api\ProfileViewController;
 use App\Http\Controllers\Auth\users\AuthController;
 use App\Http\Controllers\api\NotificationController;
 use App\Http\Controllers\api\PackagePurchaseController;
+use App\Http\Controllers\Auth\users\PasswordResetController;
 
 Route::post('store/permissions', [RolePermissionController::class, 'storePermissions']);
 
@@ -155,5 +156,6 @@ Route::middleware(['auth:api'])->group(function () {
 Route::post('/ipnresponse', [PackagePurchaseController::class, 'ipnresponse']);
 
 
-
+Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail']);
+Route::post('password/reset', [PasswordResetController::class, 'reset']);
 
