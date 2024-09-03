@@ -49,10 +49,10 @@ class VerificationController extends Controller
             'message' => 'Email verified successfully.',
             'user' => [
                 'email' => $user->email,
-                'role' => $user->role,
+                'name' => $user->name,
                 'username' => $user->username,
                 'step' => $user->step,
-                'verified' => true, // Email is now verified
+                'verified' => true, // Email was already verified
             ],
             'token' => $token // Return the new token
         ], 200);
