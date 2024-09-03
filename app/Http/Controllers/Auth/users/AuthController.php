@@ -230,7 +230,6 @@ public function checkToken(Request $request)
                 'date_of_birth' => 'nullable|date',
                 'religion' => 'nullable|string|max:255',
                 'gender' => 'nullable|string|max:10',
-                'verify_url' => 'required|url', // Ensure verify_url is a valid URL
             ]);
 
             if ($validator->fails()) {
@@ -297,13 +296,17 @@ public function checkToken(Request $request)
                 'step' => 1, // Set step value to 1
                 'email_verification_hash' => Str::random(60),
             ]);
-        }
 
-        // Generate verification URL
+
+                // Generate verification URL
         $verify_url = $request->verify_url;
 
         // Send email verification
         $user->notify(new VerifyEmail($user, $verify_url));
+
+        }
+
+
 
         // Build the payload including the username, step, and email verification status
         $payload = [
