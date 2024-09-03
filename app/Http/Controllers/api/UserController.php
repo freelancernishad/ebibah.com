@@ -38,12 +38,12 @@ class UserController extends Controller
         ]);
 
 
-           // Calculate age
-    $age = calculateAge($user->date_of_birth);
+        // Calculate age
+        $age = calculateAge($user->date_of_birth);
 
-    // Convert user to array and include age
-    $userArray = $user->toArray();
-    $userArray['age'] = $age;
+        // Convert user to array and include age
+        $userArray = $user->toArray();
+        $userArray['age'] = $age;
 
         // Return the authenticated user's profile
         return response()->json(['user' => $userArray], 200);
@@ -177,7 +177,7 @@ class UserController extends Controller
             'drinking' => 'nullable|string|max:255', // New field validation
             'other_lifestyle_preferences' => 'nullable|string|max:255', // New field validation
             'smoking' => 'nullable|string|max:255', // New field validation
-          
+
         ]);
 
         if ($validator->fails()) {
@@ -292,60 +292,80 @@ class UserController extends Controller
     // Show user details
     public function show($id)
     {
+        // Find the user by ID
+        $user = User::find($id);
+
+        // Check if the user is found
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Load the necessary relationships
+        $user->load([
+            'sentInvitations',
+            'receivedInvitations',
+            'profileViews',
+            'viewedProfiles',
+            'payments',
+            'userImages',
+        ]);
+
+        // Calculate age
+        $age = calculateAge($user->date_of_birth);
+
+        // Convert user to array and include age
+        $userArray = $user->toArray();
+        $userArray['age'] = $age;
+
+        // Return the user profile
+        return response()->json(['user' => $userArray], 200);
+    }
+
+
+
+    public function updateBasicsAndLifestyle(Request $request, $id)
+    {
         $user = User::find($id);
 
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        return response()->json(['user' => $user], 200);
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            'date_of_birth' => 'required|date',
+            'marital_status' => 'required|string|max:255',
+            'religion' => 'required|string|max:255',
+            'height' => 'required|string|max:10',
+            'currently_living_in' => 'required|string|max:255', // Replaced location with currently_living_in
+            'birth_place' => 'nullable|string|max:255',
+            'personal_values' => 'nullable|string|max:255',
+            'blood_group' => 'nullable|string|max:10',
+            'disability' => 'nullable|string|max:255',
+            'posted_by' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        // Update user basics and lifestyle information
+        $user->date_of_birth = $request->date_of_birth;
+        $user->marital_status = $request->marital_status;
+        $user->religion = $request->religion;
+        $user->height = $request->height;
+        $user->currently_living_in = $request->currently_living_in;
+        $user->birth_place = $request->birth_place;
+        $user->personal_values = $request->personal_values;
+        $user->blood_group = $request->blood_group;
+        $user->disability = $request->disability;
+        $user->posted_by = $request->posted_by;
+
+        // Save the updated information
+        $user->save();
+
+        return response()->json(['message' => 'Basics & Lifestyle updated successfully', 'user' => $user], 200);
     }
-
-
-
-    public function updateBasicsAndLifestyle(Request $request, $id)
-{
-    $user = User::find($id);
-
-    if (!$user) {
-        return response()->json(['message' => 'User not found'], 404);
-    }
-
-    // Validate the request data
-    $validator = Validator::make($request->all(), [
-        'date_of_birth' => 'required|date',
-        'marital_status' => 'required|string|max:255',
-        'religion' => 'required|string|max:255',
-        'height' => 'required|string|max:10',
-        'currently_living_in' => 'required|string|max:255', // Replaced location with currently_living_in
-        'birth_place' => 'nullable|string|max:255',
-        'personal_values' => 'nullable|string|max:255',
-        'blood_group' => 'nullable|string|max:10',
-        'disability' => 'nullable|string|max:255',
-        'posted_by' => 'nullable|string|max:255',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 400);
-    }
-
-    // Update user basics and lifestyle information
-    $user->date_of_birth = $request->date_of_birth;
-    $user->marital_status = $request->marital_status;
-    $user->religion = $request->religion;
-    $user->height = $request->height;
-    $user->currently_living_in = $request->currently_living_in;
-    $user->birth_place = $request->birth_place;
-    $user->personal_values = $request->personal_values;
-    $user->blood_group = $request->blood_group;
-    $user->disability = $request->disability;
-    $user->posted_by = $request->posted_by;
-
-    // Save the updated information
-    $user->save();
-
-    return response()->json(['message' => 'Basics & Lifestyle updated successfully', 'user' => $user], 200);
-}
 
 
     // Update Religious Background
@@ -477,100 +497,96 @@ class UserController extends Controller
     }
 
     // Update Partner Preferences: Basics & Lifestyle
-public function updatePartnerBasicsAndLifestyle(Request $request, $id)
-{
-    $user = User::find($id);
+    public function updatePartnerBasicsAndLifestyle(Request $request, $id)
+    {
+        $user = User::find($id);
 
-    if (!$user) {
-        return response()->json(['message' => 'User not found'], 404);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'partner_age' => 'required|integer',
+            'partner_religion' => 'required|string|max:255',
+            'partner_community' => 'required|string|max:255',
+            'partner_height' => 'required|string|max:50',
+            'partner_location' => 'required|string|max:255',
+            'partner_mother_tongue' => 'required|string|max:255',
+            'partner_marital_status' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $user->partner_age = $request->partner_age;
+        $user->partner_religion = $request->partner_religion;
+        $user->partner_community = $request->partner_community;
+        $user->partner_height = $request->partner_height;
+        $user->partner_location = $request->partner_location;
+        $user->partner_mother_tongue = $request->partner_mother_tongue;
+        $user->partner_marital_status = $request->partner_marital_status;
+
+        $user->save();
+
+        return response()->json(['message' => 'Partner Basics & Lifestyle updated successfully'], 200);
     }
 
-    $validator = Validator::make($request->all(), [
-        'partner_age' => 'required|integer',
-        'partner_religion' => 'required|string|max:255',
-        'partner_community' => 'required|string|max:255',
-        'partner_height' => 'required|string|max:50',
-        'partner_location' => 'required|string|max:255',
-        'partner_mother_tongue' => 'required|string|max:255',
-        'partner_marital_status' => 'required|string|max:255',
-    ]);
+    // Update Partner Preferences: Location Details
+    public function updatePartnerLocationDetails(Request $request, $id)
+    {
+        $user = User::find($id);
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 400);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'partner_country_living_in' => 'required|string|max:255',
+            'partner_state_living_in' => 'required|string|max:255',
+            'partner_city_district' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $user->partner_country_living_in = $request->partner_country_living_in;
+        $user->partner_state_living_in = $request->partner_state_living_in;
+        $user->partner_city_district = $request->partner_city_district;
+
+        $user->save();
+
+        return response()->json(['message' => 'Partner Location Details updated successfully'], 200);
     }
 
-    $user->partner_age = $request->partner_age;
-    $user->partner_religion = $request->partner_religion;
-    $user->partner_community = $request->partner_community;
-    $user->partner_height = $request->partner_height;
-    $user->partner_location = $request->partner_location;
-    $user->partner_mother_tongue = $request->partner_mother_tongue;
-    $user->partner_marital_status = $request->partner_marital_status;
+    // Update Partner Preferences: Education & Career
+    public function updatePartnerEducationAndCareer(Request $request, $id)
+    {
+        $user = User::find($id);
 
-    $user->save();
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
 
-    return response()->json(['message' => 'Partner Basics & Lifestyle updated successfully'], 200);
-}
+        $validator = Validator::make($request->all(), [
+            'partner_qualification' => 'required|string|max:255',
+            'partner_working_with' => 'required|string|max:255',
+            'partner_profession' => 'required|string|max:255',
+            'partner_professional_details' => 'nullable|string|max:255',
+        ]);
 
-// Update Partner Preferences: Location Details
-public function updatePartnerLocationDetails(Request $request, $id)
-{
-    $user = User::find($id);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
 
-    if (!$user) {
-        return response()->json(['message' => 'User not found'], 404);
+        $user->partner_qualification = $request->partner_qualification;
+        $user->partner_working_with = $request->partner_working_with;
+        $user->partner_profession = $request->partner_profession;
+        $user->partner_professional_details = $request->partner_professional_details;
+
+        $user->save();
+
+        return response()->json(['message' => 'Partner Education & Career updated successfully'], 200);
     }
-
-    $validator = Validator::make($request->all(), [
-        'partner_country_living_in' => 'required|string|max:255',
-        'partner_state_living_in' => 'required|string|max:255',
-        'partner_city_district' => 'required|string|max:255',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 400);
-    }
-
-    $user->partner_country_living_in = $request->partner_country_living_in;
-    $user->partner_state_living_in = $request->partner_state_living_in;
-    $user->partner_city_district = $request->partner_city_district;
-
-    $user->save();
-
-    return response()->json(['message' => 'Partner Location Details updated successfully'], 200);
-}
-
-// Update Partner Preferences: Education & Career
-public function updatePartnerEducationAndCareer(Request $request, $id)
-{
-    $user = User::find($id);
-
-    if (!$user) {
-        return response()->json(['message' => 'User not found'], 404);
-    }
-
-    $validator = Validator::make($request->all(), [
-        'partner_qualification' => 'required|string|max:255',
-        'partner_working_with' => 'required|string|max:255',
-        'partner_profession' => 'required|string|max:255',
-        'partner_professional_details' => 'nullable|string|max:255',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 400);
-    }
-
-    $user->partner_qualification = $request->partner_qualification;
-    $user->partner_working_with = $request->partner_working_with;
-    $user->partner_profession = $request->partner_profession;
-    $user->partner_professional_details = $request->partner_professional_details;
-
-    $user->save();
-
-    return response()->json(['message' => 'Partner Education & Career updated successfully'], 200);
-}
-
-
-
-
 }

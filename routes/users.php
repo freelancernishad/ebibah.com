@@ -56,6 +56,8 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::get('user/my/profile', [UserController::class, 'myProfile']);
 
+    Route::get('user/profile/{id}', [UserController::class, 'show']);
+
 
 
 
