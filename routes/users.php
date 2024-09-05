@@ -141,10 +141,7 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 
-    Route::get('packages', [PackageController::class, 'index']);
-    Route::get('packages/{id}', [PackageController::class, 'show']);
-    Route::get('packages/{packageId}/services', [PackageController::class, 'getPackageServices']);
-    Route::get('package-services', [PackageController::class, 'getAllPackageServices']);
+
 
 
     Route::post('purchase', [PackagePurchaseController::class, 'purchase']);

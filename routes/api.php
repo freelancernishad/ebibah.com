@@ -8,6 +8,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\SocialLinkController;
+use App\Http\Controllers\api\PackageController;
 use App\Http\Controllers\AdvertisementController;
 use App\Http\Controllers\Global\FilterUserController;
 
@@ -51,3 +52,9 @@ Route::get('/visitors/reports', [VisitorController::class, 'generateReports']);
 
 
 Route::get('/search/partner', [FilterUserController::class, 'filter']);
+
+
+Route::get('packages', [PackageController::class, 'index']);
+Route::get('packages/{id}', [PackageController::class, 'show']);
+Route::get('packages/{packageId}/services', [PackageController::class, 'getPackageServices']);
+Route::get('package-services', [PackageController::class, 'getAllPackageServices']);
