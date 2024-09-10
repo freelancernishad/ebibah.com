@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Storage;
+
 function int_en_to_bn($number)
 {
 
@@ -61,4 +63,15 @@ function routeUsesMiddleware($route, $middlewareName)
     }
 
     return false;
+}
+
+function generateCustomS3Url($path)
+{
+    // Generate the URL to the file on S3
+    $url = Storage::disk('s3')->url($path);
+
+    // Replace the default S3 URL with your custom domain
+    $url = str_replace('usa-marry-bucket.s3.us-west-1.amazonaws.com', 'media.usamarry.com', $url);
+
+    return $url;
 }

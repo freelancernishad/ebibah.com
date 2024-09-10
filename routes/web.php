@@ -37,3 +37,18 @@ Route::get('/files/{path}', function ($path) {
     // Serve the file from the protected disk
     return response()->file(Storage::disk('protected')->path($path));
 })->where('path', '.*');
+
+
+
+Route::get('/s3/{path}', function ($path) {
+    // Generate the URL to the file on S3
+    $url = Storage::disk('s3')->url($path);
+
+    // Replace the default S3 URL with your custom domain
+    $url = str_replace('usa-marry-bucket.s3.us-west-1.amazonaws.com', 'media.usamarry.com', $url);
+
+    // Redirect to the custom domain URL
+    return $url;
+
+})->where('path', '.*');
+

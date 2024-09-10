@@ -32,12 +32,13 @@ class UserImageController extends Controller
         if ($request->hasFile('image_path')) {
             $file = $request->file('image_path');
             $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('users/images/'.$request->user_id, $fileName, 'protected');
+            // $filePath = $file->storeAs('users/images/'.$request->user_id, $fileName, 'protected');
+            $filePath = $file->storeAs('users/images/'.$request->user_id, $fileName, 's3');
 
             // Save image path to the database
             $userImage = UserImage::create([
                 'user_id' => $request->user_id,
-                'image_path' => $filePath,
+                'image_path' => generateCustomS3Url($filePath),
             ]);
 
             return response()->json([
