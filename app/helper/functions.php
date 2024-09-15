@@ -71,7 +71,7 @@ function generateCustomS3Url($path)
     $url = Storage::disk('s3')->url($path);
 
     // Replace the default S3 URL with your custom domain
-    $url = str_replace('usa-marry-bucket.s3.us-west-1.amazonaws.com', 'media.usamarry.com', $url);
+    // $url = str_replace('usa-marry-bucket.s3.us-west-1.amazonaws.com', 'media.usamarry.com', $url);
 
     return $url;
 }
