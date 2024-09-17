@@ -1,4 +1,5 @@
 <?php
+// php artisan db:seed --class=UserSeeder
 
 namespace Database\Seeders;
 
@@ -84,4 +85,4 @@ class UserSeeder extends Seeder
 
 
 
-// php artisan db:seed --class=UserSeeder
+

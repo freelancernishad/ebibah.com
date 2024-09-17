@@ -6,6 +6,7 @@ use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\RoleUserController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\api\PackageController;
+use App\Http\Controllers\api\UserProfileController;
 use App\Http\Controllers\api\UserImageController;
 use App\Http\Controllers\api\InvitationController;
 use App\Http\Controllers\RolePermissionController;
@@ -148,6 +149,9 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('user-purchases', [PackagePurchaseController::class, 'userPurchases']);
 
 
+
+
+    Route::get('/user/matches', [UserProfileController::class, 'getMatchingUsers']);
 
 
 
