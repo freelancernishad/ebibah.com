@@ -23,6 +23,9 @@ class UserProfileController extends Controller
         // Start the query with the User model
         $query = User::query();
 
+        // Filter based on requested type
+        $matchType = $request->input('type'); // e.g., 'new', 'today', 'my', 'near'
+
         // Only match users of the opposite gender
         $query->where('gender', '!=', $user->gender);
 
@@ -80,21 +83,67 @@ class UserProfileController extends Controller
         // Filter users who have a match score of 20% or higher
         $query->having('match_score', '>=', $matchThreshold);
 
-        // Order the results by the highest match score first
-        $query->orderByDesc('match_score');
+        // Additional filters based on the type of match requested
+        switch ($matchType) {
+            case 'new':
+                // Filter for new matches (assuming there's a 'created_at' or similar column)
+                $query->whereDate('created_at', '=', now()->toDateString());
+                break;
 
-        // Execute the query and get the results
-        $matchingUsers = $query->get();
+            case 'today':
+                // Filter for today's matches (assuming there's amatched_at or similar column)
+                $query->whereDate('matched_at', '=', now()->toDateString()); break;
+                case 'my':
+                    // Filter for matches the user has already matched with (assuming a pivot table or similar)
+                    $query->whereIn('id', function ($subQuery) use ($user) {
+                        $subQuery->select('matched_user_id')
+                            ->from('matches')
+                            ->where('user_id', $user->id);
+                    });
+                    break;
 
-        // Calculate and include the percentage for each user
-        $matchingUsers = $matchingUsers->map(function ($user) use ($totalCriteria) {
-            $user->match_percentage = ($user->match_score / $totalCriteria) * 100;
-            return $user;
-        });
+                case 'near':
+                    // Filter based on location attributes of the user and the potential matches
+                    $partnerCountry = $user->partner_country;
+                    $partnerState = $user->partner_state;
+                    $partnerCity = $user->partner_city;
 
-        // Return the matching users as a JSON response, including the match_percentage
-        return response()->json($matchingUsers);
-    }
+                    $query->where(function ($subQuery) use ($partnerCountry, $partnerState, $partnerCity) {
+                        $subQuery->where(function ($q) use ($partnerCountry) {
+                            if (!empty($partnerCountry)) {
+                                $q->where('living_country', $partnerCountry);
+                            }
+                        })
+                        ->where(function ($q) use ($partnerState) {
+                            if (!empty($partnerState)) {
+                                $q->where('state', $partnerState);
+                            }
+                        })
+                        ->where(function ($q) use ($partnerCity) {
+                            if (!empty($partnerCity)) {
+                                $q->where('city_living_in', $partnerCity);
+                            }
+                        });
+                    });
+                    break;
+            }
+
+            // Order the results by the highest match score first
+            $query->orderByDesc('match_score');
+
+            // Execute the query and get the results
+            $matchingUsers = $query->get();
+
+            // Calculate and include the percentage for each user
+            $matchingUsers = $matchingUsers->map(function ($user) use ($totalCriteria) {
+                $user->match_percentage = ($user->match_score / $totalCriteria) * 100;
+                return $user;
+            });
+
+            // Return the matching users as a JSON response, including the match_percentage
+            return response()->json($matchingUsers);
+        }
+
 
 
 
