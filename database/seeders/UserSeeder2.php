@@ -1,5 +1,5 @@
 <?php
-
+// php artisan db:seed --class=UserSeeder2
 namespace Database\Seeders;
 
 use App\Models\User;

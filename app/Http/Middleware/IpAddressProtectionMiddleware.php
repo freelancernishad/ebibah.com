@@ -16,11 +16,7 @@ class IpAddressProtectionMiddleware
         'https://www.usamarry.com',
         'https://ebibah.com',
         'https://www.ebibah.com',
-
-
-
-
-
+        'https://ebibah-dashboard.vercel.app',
 
     ];
 
