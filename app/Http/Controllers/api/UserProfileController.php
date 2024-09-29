@@ -146,10 +146,120 @@ class UserProfileController extends Controller
 
 
 
+    /**
+     * Get a single user by username and check if they match the authenticated user's partner preferences.
+     *
+     * @param  string $username
+     * @return \Illuminate\Http\Response
+     */
+    public function getSingleUserWithAuthUserMatch($username)
+    {
+        // Get the authenticated user
+        $authUser = Auth::user();
+
+        // Find the user by username
+        $user = User::where('username', $username)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Define the authenticated user's partner preferences
+        $partnerPreferences = [
+            'marital_status' => $authUser->partner_marital_status,
+            'religion' => $authUser->partner_religion,
+            'community' => $authUser->partner_community,
+            'mother_tongue' => $authUser->partner_mother_tongue,
+            'highest_qualification' => $authUser->partner_qualification,
+            'working_sector' => $authUser->partner_working_with,
+            'profession' => $authUser->partner_profession,
+            'living_country' => $authUser->partner_country,
+            'state' => $authUser->partner_state,
+            'city_living_in' => $authUser->partner_city,
+        ];
+
+        // Initialize arrays for SQL CASE statements and bindings
+        $scoreConditions = [];
+        $bindings = [];
+        $matches = [];  // This will store details of which criteria matched and which didn't
+
+        foreach ($partnerPreferences as $column => $value) {
+            if (is_array($value) && !empty($value)) {
+                // Use an IN clause if the value is an array
+                $placeholders = implode(',', array_fill(0, count($value), '?'));
+                $scoreConditions[] = "(CASE WHEN $column IN ($placeholders) THEN 1 ELSE 0 END)";
+                $bindings = array_merge($bindings, $value);
+            } elseif (!empty($value)) {
+                // Use a simple comparison if the value is a single value
+                $scoreConditions[] = "(CASE WHEN $column = ? THEN 1 ELSE 0 END)";
+                $bindings[] = $value;
+            }
+        }
+
+        // If no preferences are defined, return early
+        if (empty($scoreConditions)) {
+            return response()->json(['message' => 'No preferences found for the authenticated user'], 400);
+        }
+
+        // Add match score calculations for the single user
+        $totalCriteria = count($scoreConditions);
+        $matchScoreQuery = DB::table('users')
+            ->selectRaw(
+                'users.*,
+                (
+                    ' . implode(' + ', $scoreConditions) . '
+                ) as match_score',
+                $bindings
+            )
+            ->where('users.id', $user->id) // Match only the user with the given username
+            ->first();
+
+        // Calculate the match score threshold as 20% of the total number of scoring criteria
+        $matchThreshold = ceil($totalCriteria * 0.2);
+
+        // Calculate match percentage
+        $matchPercentage = ($matchScoreQuery->match_score / $totalCriteria) * 100;
+
+        // Check if the single user meets the match threshold
+        $isMatch = $matchScoreQuery->match_score >= $matchThreshold;
+
+        // Now determine which criteria matched and which did not
+        foreach ($partnerPreferences as $column => $value) {
+            if (is_array($value)) {
+                // Handle array preference values
+                $matches[] = [
+                    'preference' => $column,
+                    'required' => $value,
+                    'user_value' => $user->{$column},
+                    'match' => in_array($user->{$column}, $value)
+                ];
+            } else {
+                // Handle single value preferences
+                $matches[] = [
+                    'preference' => $column,
+                    'required' => $value,
+                    'user_value' => $user->{$column},
+                    'match' => ($user->{$column} == $value)
+                ];
+            }
+        }
+
+        // Return the user and match details as a JSON response
+        return response()->json([
+            'user' => $user,
+            'is_match' => $isMatch,
+            'match_percentage' => $matchPercentage,
+            'match_score' => $matchScoreQuery->match_score,
+            'criteria_matches' => $matches  // Return detailed matching info
+        ]);
+    }
 
 
 
 
 
 
-}
+
+
+
+    }
