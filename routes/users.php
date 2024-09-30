@@ -152,7 +152,7 @@ Route::middleware(['auth:api'])->group(function () {
 
 
     Route::get('/user/matches', [UserProfileController::class, 'getMatchingUsers']);
-    Route::get('/user/{username}/matches', [UserProfileController::class, 'getSingleUserWithAuthUserMatch']);
+    Route::get('/user/{id}/matches', [UserProfileController::class, 'getSingleUserWithAuthUserMatch']);
 
 
 

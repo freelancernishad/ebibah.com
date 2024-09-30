@@ -152,13 +152,13 @@ class UserProfileController extends Controller
      * @param  string $username
      * @return \Illuminate\Http\Response
      */
-    public function getSingleUserWithAuthUserMatch($username)
+    public function getSingleUserWithAuthUserMatch($id)
     {
         // Get the authenticated user
         $authUser = Auth::user();
 
         // Find the user by username
-        $user = User::where('username', $username)->first();
+        $user = User::find($id);
 
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
