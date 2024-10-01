@@ -118,6 +118,14 @@ Route::middleware(['auth:api'])->group(function () {
         // Get all received invitations
         Route::get('/invitations/received', [InvitationController::class, 'receivedInvitations'])->name('invitations.received');
 
+// Routes for Invitations
+Route::get('invitations/sent/accepted', [InvitationController::class, 'acceptedSentInvitations']);
+Route::get('invitations/sent/rejected', [InvitationController::class, 'rejectedSentInvitations']);
+Route::get('invitations/received/accepted', [InvitationController::class, 'acceptedReceivedInvitations']);
+Route::get('invitations/received/rejected', [InvitationController::class, 'rejectedReceivedInvitations']);
+
+
+
 
 
 

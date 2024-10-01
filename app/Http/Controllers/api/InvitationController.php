@@ -78,14 +78,99 @@ class InvitationController extends Controller
     // Get all invitations sent by the authenticated user
     public function sentInvitations()
     {
-        $invitations = Invitation::where('sender_id', Auth::id())->get();
+        $invitations = Invitation::with([
+            'sender' => [$this, 'selectUserColumns'],
+            'receiver' => [$this, 'selectUserColumns']
+        ])->where(['sender_id'=> Auth::id(),'status'=>'sent'])->get();
         return response()->json(['invitations' => $invitations], 200);
     }
 
     // Get all invitations received by the authenticated user
     public function receivedInvitations()
     {
-        $invitations = Invitation::where('receiver_id', Auth::id())->get();
+        $invitations = Invitation::with([
+            'sender' => [$this, 'selectUserColumns'],
+            'receiver' => [$this, 'selectUserColumns']
+        ])->where(['receiver_id'=> Auth::id(),'status'=>'sent'])
+          ->get(['*']); // You can also select specific columns for the Invitation model here if needed.
+
         return response()->json(['invitations' => $invitations], 200);
     }
+
+
+
+ // Private method to select user fields
+ private function selectUserFields($query)
+ {
+     $query->select('id', 'name', 'email');
+ }
+
+ // Get all accepted invitations sent by the authenticated user
+ public function acceptedSentInvitations()
+ {
+     $invitations = Invitation::with([
+         'sender' => function($query) {
+             $this->selectUserFields($query);
+         },
+         'receiver' => function($query) {
+             $this->selectUserFields($query);
+         }
+     ])
+     ->where(['sender_id' => Auth::id(), 'status' => 'accepted'])
+     ->get();
+
+     return response()->json(['invitations' => $invitations], 200);
+ }
+
+ // Get all accepted invitations received by the authenticated user
+ public function acceptedReceivedInvitations()
+ {
+     $invitations = Invitation::with([
+         'sender' => function($query) {
+             $this->selectUserFields($query);
+         },
+         'receiver' => function($query) {
+             $this->selectUserFields($query);
+         }
+     ])
+     ->where(['receiver_id' => Auth::id(), 'status' => 'accepted'])
+     ->get();
+
+     return response()->json(['invitations' => $invitations], 200);
+ }
+
+ // Get all rejected invitations sent by the authenticated user
+ public function rejectedSentInvitations()
+ {
+     $invitations = Invitation::with([
+         'sender' => function($query) {
+             $this->selectUserFields($query);
+         },
+         'receiver' => function($query) {
+             $this->selectUserFields($query);
+         }
+     ])
+     ->where(['sender_id' => Auth::id(), 'status' => 'rejected'])
+     ->get();
+
+     return response()->json(['invitations' => $invitations], 200);
+ }
+
+ // Get all rejected invitations received by the authenticated user
+ public function rejectedReceivedInvitations()
+ {
+     $invitations = Invitation::with([
+         'sender' => function($query) {
+             $this->selectUserFields($query);
+         },
+         'receiver' => function($query) {
+             $this->selectUserFields($query);
+         }
+     ])
+     ->where(['receiver_id' => Auth::id(), 'status' => 'rejected'])
+     ->get();
+
+     return response()->json(['invitations' => $invitations], 200);
+ }
+
 }
