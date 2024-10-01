@@ -3,14 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\api\UserController;
+use App\Http\Controllers\api\FavoriteController;
 use App\Http\Controllers\RoleUserController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\api\PackageController;
-use App\Http\Controllers\api\UserProfileController;
 use App\Http\Controllers\api\UserImageController;
 use App\Http\Controllers\api\InvitationController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\api\ProfileViewController;
+use App\Http\Controllers\api\UserProfileController;
 use App\Http\Controllers\Auth\users\AuthController;
 use App\Http\Controllers\api\NotificationController;
 use App\Http\Controllers\api\PackagePurchaseController;
@@ -154,7 +155,8 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/user/matches', [UserProfileController::class, 'getMatchingUsers']);
     Route::get('/user/{id}/matches', [UserProfileController::class, 'getSingleUserWithAuthUserMatch']);
 
-
+    Route::post('/favorites', [FavoriteController::class, 'store']);
+    Route::delete('/favorites', [FavoriteController::class, 'destroy']);
 
 
     Route::get('/user-access', function () {

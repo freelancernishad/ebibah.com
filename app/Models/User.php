@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -249,5 +250,45 @@ public function permissions()
     {
         return $this->hasOne(Popularity::class);
     }
+
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+     // Automatically append 'is_favorited' to the user instance
+     protected $appends = ['is_favorited'];
+
+     // Map of favoritable types to their corresponding models
+     protected $modelMap = [
+         'user' => \App\Models\User::class,
+         // Add more mappings here if needed
+         // 'post' => \App\Models\Post::class,
+     ];
+
+     // Accessor for is_favorited attribute
+     public function getIsFavoritedAttribute()
+     {
+         // Check if there is an authenticated user
+         if (Auth::check()) {
+             $authUser = Auth::user();
+
+             // Get the favoritable type from the model map (default to 'user')
+             $favoritableType = 'user';
+             $modelClass = $this->modelMap[$favoritableType] ?? null;
+
+             // If the model exists in the map, proceed with the favorite check
+             if ($modelClass && $modelClass === get_class($this)) {
+                 return Favorite::where('user_id', $authUser->id)
+                     ->where('favoritable_id', $this->id)
+                    //  ->where('favoritable_type', $favoritableType) // 'user' as default favoritable type
+                     ->exists();
+             }
+         }
+
+         // If no authenticated user or invalid model, return false
+         return false;
+     }
 
 }
