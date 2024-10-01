@@ -159,7 +159,7 @@ class UserProfileController extends Controller
         // Get the authenticated user
         $authUser = Auth::user();
 
-        // Find the user by username
+        // Find the user by id
         $user = User::find($id);
 
         if (!$user) {
@@ -186,44 +186,52 @@ class UserProfileController extends Controller
         $matches = [];  // This will store details of which criteria matched and which didn't
 
         foreach ($partnerPreferences as $column => $value) {
-            if (is_array($value) && !empty($value)) {
+            // Skip the condition if the value is null or an empty array
+            if (!isset($value) || (is_array($value) && empty($value))) {
+                continue; // Skip to the next iteration if the value is null or an empty array
+            }
+
+            if (is_array($value)) {
                 // Use an IN clause if the value is an array
                 $placeholders = implode(',', array_fill(0, count($value), '?'));
                 $scoreConditions[] = "(CASE WHEN $column IN ($placeholders) THEN 1 ELSE 0 END)";
                 $bindings = array_merge($bindings, $value);
-            } elseif (!empty($value)) {
+            } else {
                 // Use a simple comparison if the value is a single value
                 $scoreConditions[] = "(CASE WHEN $column = ? THEN 1 ELSE 0 END)";
                 $bindings[] = $value;
             }
         }
 
-        // If no preferences are defined, return early
+        // If no score conditions are generated, set match score to 0
         if (empty($scoreConditions)) {
-            return response()->json(['message' => 'No preferences found for the authenticated user'], 400);
+            $matchScore = 0;
+            $matchPercentage = 0;
+            $isMatch = false;
+        } else {
+            // Add match score calculations for the single user
+            $totalCriteria = count($scoreConditions);
+            $matchScoreQuery = DB::table('users')
+                ->selectRaw(
+                    'users.*,
+                    (
+                        ' . implode(' + ', $scoreConditions) . '
+                    ) as match_score',
+                    $bindings
+                )
+                ->where('users.id', $user->id) // Match only the user with the given username
+                ->first();
+
+            // Calculate the match score threshold as 20% of the total number of scoring criteria
+            $matchThreshold = ceil($totalCriteria * 0.2);
+
+            // Calculate match percentage
+            $matchScore = $matchScoreQuery->match_score;
+            $matchPercentage = ($matchScore / $totalCriteria) * 100;
+
+            // Check if the single user meets the match threshold
+            $isMatch = $matchScore >= $matchThreshold;
         }
-
-        // Add match score calculations for the single user
-        $totalCriteria = count($scoreConditions);
-        $matchScoreQuery = DB::table('users')
-            ->selectRaw(
-                'users.*,
-                (
-                    ' . implode(' + ', $scoreConditions) . '
-                ) as match_score',
-                $bindings
-            )
-            ->where('users.id', $user->id) // Match only the user with the given username
-            ->first();
-
-        // Calculate the match score threshold as 20% of the total number of scoring criteria
-        $matchThreshold = ceil($totalCriteria * 0.2);
-
-        // Calculate match percentage
-        $matchPercentage = ($matchScoreQuery->match_score / $totalCriteria) * 100;
-
-        // Check if the single user meets the match threshold
-        $isMatch = $matchScoreQuery->match_score >= $matchThreshold;
 
         // Now determine which criteria matched and which did not
         foreach ($partnerPreferences as $column => $value) {
@@ -251,10 +259,11 @@ class UserProfileController extends Controller
             'user' => $user,
             'is_match' => $isMatch,
             'match_percentage' => $matchPercentage,
-            'match_score' => $matchScoreQuery->match_score,
+            'match_score' => $matchScore,
             'criteria_matches' => $matches  // Return detailed matching info
         ]);
     }
+
 
 
 
