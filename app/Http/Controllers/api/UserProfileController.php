@@ -114,13 +114,13 @@ class UserProfileController extends Controller
     {
         switch ($matchType) {
             case 'new':
-                // Filter for new matches (assuming there's a 'created_at' column)
-                $query->whereDate('created_at', now()->toDateString());
+                // Filter for new matches by sorting by created_at descending and limit the results
+                $query->orderBy('created_at', 'desc');
                 break;
 
             case 'today':
                 // Filter for today's matches (assuming there's a 'matched_at' column)
-                $query->whereDate('matched_at', now()->toDateString());
+                $query->whereDate('created_at', now()->toDateString());
                 break;
 
             case 'my':
