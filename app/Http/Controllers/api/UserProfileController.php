@@ -26,13 +26,11 @@ class UserProfileController extends Controller
         // Filter based on requested type
         $matchType = $request->input('type'); // e.g., 'new', 'today', 'my', 'near'
 
-        // Only match users of the opposite gender
-        $query->where('gender', '!=', $user->gender);
+        // Only match users of the opposite gender and exclude the authenticated user
+        $query->where('gender', '!=', $user->gender)
+              ->where('id', '!=', $user->id);
 
-        // Exclude the authenticated user from the result set
-        $query->where('id', '!=', $user->id);
-
-        // Define partner preferences with possible multiple values
+        // Define partner preferences
         $partnerPreferences = [
             'marital_status' => $user->partner_marital_status,
             'religion' => $user->partner_religion,
@@ -46,7 +44,7 @@ class UserProfileController extends Controller
             'city_living_in' => $user->partner_city,
         ];
 
-        // Initialize arrays for the SQL CASE statement and bindings
+        // Initialize conditions for the SQL CASE statement
         $scoreConditions = [];
         $bindings = [];
 
@@ -63,88 +61,97 @@ class UserProfileController extends Controller
             }
         }
 
-
         // Check if score conditions are available
         if (empty($scoreConditions)) {
-            return response()->json(['message' => 'No valid matching criteria'], 400);
+            // Return early if there are no valid matching criteria
+            return response()->json([
+                'status' => 'success',
+                'data' => [], // No matches found
+            ]);
         }
-
 
         // Add matching conditions based on user's partner preferences
         $totalCriteria = count($scoreConditions);
         $query->selectRaw('
             users.*,
-            (
-                ' . implode(' + ', $scoreConditions) . '
-            ) as match_score
+            (' . implode(' + ', $scoreConditions) . ') as match_score
         ', $bindings);
 
         // Calculate the match score threshold as 20% of the total number of scoring criteria
         $matchThreshold = ceil($totalCriteria * 0.2);
-
-        // Filter users who have a match score of 20% or higher
         $query->having('match_score', '>=', $matchThreshold);
 
-        // Additional filters based on the type of match requested
+        // Apply additional filters based on the type of match requested
+        $this->applyMatchTypeFilters($query, $matchType, $user);
+
+        // Order the results by the highest match score first
+        $query->orderByDesc('match_score');
+
+        // Execute the query and get the results
+        $matchingUsers = $query->get();
+
+        // Calculate and include the percentage for each user
+        $matchingUsers->transform(function ($user) use ($totalCriteria) {
+            $user->match_percentage = ($user->match_score / $totalCriteria) * 100;
+            return $user;
+        });
+
+        // Return the matching users as a JSON response, including the match_percentage
+        return response()->json([
+            'status' => 'success',
+            'data' => $matchingUsers,
+        ]);
+    }
+
+    /**
+     * Apply additional filters based on the type of match requested.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string|null $matchType
+     * @param \App\Models\User $user
+     */
+    private function applyMatchTypeFilters($query, $matchType, $user)
+    {
         switch ($matchType) {
             case 'new':
-                // Filter for new matches (assuming there's a 'created_at' or similar column)
-                $query->whereDate('created_at', '=', now()->toDateString());
+                // Filter for new matches (assuming there's a 'created_at' column)
+                $query->whereDate('created_at', now()->toDateString());
                 break;
 
             case 'today':
-                // Filter for today's matches (assuming there's amatched_at or similar column)
-                $query->whereDate('matched_at', '=', now()->toDateString()); break;
-                case 'my':
-                    // Filter for matches the user has already matched with (assuming a pivot table or similar)
-                    $query->whereIn('id', function ($subQuery) use ($user) {
-                        $subQuery->select('matched_user_id')
-                            ->from('matches')
-                            ->where('user_id', $user->id);
-                    });
-                    break;
+                // Filter for today's matches (assuming there's a 'matched_at' column)
+                $query->whereDate('matched_at', now()->toDateString());
+                break;
 
-                case 'near':
-                    // Filter based on location attributes of the user and the potential matches
-                    $partnerCountry = $user->partner_country;
-                    $partnerState = $user->partner_state;
-                    $partnerCity = $user->partner_city;
+            case 'my':
+                // Filter for matches the user has already matched with
+                $query->whereIn('id', function ($subQuery) use ($user) {
+                    $subQuery->select('matched_user_id')
+                        ->from('matches')
+                        ->where('user_id', $user->id);
+                });
+                break;
 
-                    $query->where(function ($subQuery) use ($partnerCountry, $partnerState, $partnerCity) {
-                        $subQuery->where(function ($q) use ($partnerCountry) {
-                            if (!empty($partnerCountry)) {
-                                $q->where('living_country', $partnerCountry);
-                            }
-                        })
-                        ->where(function ($q) use ($partnerState) {
-                            if (!empty($partnerState)) {
-                                $q->where('state', $partnerState);
-                            }
-                        })
-                        ->where(function ($q) use ($partnerCity) {
-                            if (!empty($partnerCity)) {
-                                $q->where('city_living_in', $partnerCity);
-                            }
-                        });
-                    });
-                    break;
-            }
+            case 'near':
+                // Filter based on location attributes of the user and the potential matches
+                $partnerCountry = $user->partner_country;
+                $partnerState = $user->partner_state;
+                $partnerCity = $user->partner_city;
 
-            // Order the results by the highest match score first
-            $query->orderByDesc('match_score');
-
-            // Execute the query and get the results
-            $matchingUsers = $query->get();
-
-            // Calculate and include the percentage for each user
-            $matchingUsers = $matchingUsers->map(function ($user) use ($totalCriteria) {
-                $user->match_percentage = ($user->match_score / $totalCriteria) * 100;
-                return $user;
-            });
-
-            // Return the matching users as a JSON response, including the match_percentage
-            return response()->json($matchingUsers);
+                $query->where(function ($subQuery) use ($partnerCountry, $partnerState, $partnerCity) {
+                    if (!empty($partnerCountry)) {
+                        $subQuery->where('living_country', $partnerCountry);
+                    }
+                    if (!empty($partnerState)) {
+                        $subQuery->where('state', $partnerState);
+                    }
+                    if (!empty($partnerCity)) {
+                        $subQuery->where('city_living_in', $partnerCity);
+                    }
+                });
+                break;
         }
+    }
 
 
 
