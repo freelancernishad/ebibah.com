@@ -158,14 +158,14 @@ class UserProfileController extends Controller
     {
         // Get the authenticated user
         $authUser = Auth::user();
-
+    
         // Find the user by username
         $user = User::find($id);
-
+    
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-
+    
         // Define the authenticated user's partner preferences
         $partnerPreferences = [
             'marital_status' => $authUser->partner_marital_status,
@@ -179,12 +179,13 @@ class UserProfileController extends Controller
             'state' => $authUser->partner_state,
             'city_living_in' => $authUser->partner_city,
         ];
-
+    
         // Initialize arrays for SQL CASE statements and bindings
         $scoreConditions = [];
         $bindings = [];
         $matches = [];  // This will store details of which criteria matched and which didn't
-
+        $nonMatches = [];  // To store criteria that did not match
+    
         foreach ($partnerPreferences as $column => $value) {
             if (is_array($value) && !empty($value)) {
                 // Use an IN clause if the value is an array
@@ -197,12 +198,7 @@ class UserProfileController extends Controller
                 $bindings[] = $value;
             }
         }
-
-        // If no preferences are defined, return early
-        if (empty($scoreConditions)) {
-            return response()->json(['message' => 'No preferences found for the authenticated user'], 400);
-        }
-
+    
         // Add match score calculations for the single user
         $totalCriteria = count($scoreConditions);
         $matchScoreQuery = DB::table('users')
@@ -215,46 +211,56 @@ class UserProfileController extends Controller
             )
             ->where('users.id', $user->id) // Match only the user with the given username
             ->first();
-
+    
         // Calculate the match score threshold as 20% of the total number of scoring criteria
         $matchThreshold = ceil($totalCriteria * 0.2);
-
+    
         // Calculate match percentage
         $matchPercentage = ($matchScoreQuery->match_score / $totalCriteria) * 100;
-
+    
         // Check if the single user meets the match threshold
         $isMatch = $matchScoreQuery->match_score >= $matchThreshold;
-
+    
         // Now determine which criteria matched and which did not
         foreach ($partnerPreferences as $column => $value) {
             if (is_array($value)) {
                 // Handle array preference values
+                $match = in_array($user->{$column}, $value);
                 $matches[] = [
                     'preference' => $column,
                     'required' => $value,
                     'user_value' => $user->{$column},
-                    'match' => in_array($user->{$column}, $value)
+                    'match' => $match
                 ];
+                if (!$match) {
+                    $nonMatches[] = $column; // Add to non-match list if criteria didn't match
+                }
             } else {
                 // Handle single value preferences
+                $match = ($user->{$column} == $value);
                 $matches[] = [
                     'preference' => $column,
                     'required' => $value,
                     'user_value' => $user->{$column},
-                    'match' => ($user->{$column} == $value)
+                    'match' => $match
                 ];
+                if (!$match) {
+                    $nonMatches[] = $column; // Add to non-match list if criteria didn't match
+                }
             }
         }
-
+    
         // Return the user and match details as a JSON response
         return response()->json([
             'user' => $user,
             'is_match' => $isMatch,
             'match_percentage' => $matchPercentage,
             'match_score' => $matchScoreQuery->match_score,
-            'criteria_matches' => $matches  // Return detailed matching info
+            'criteria_matches' => $matches,  // Return detailed matching info
+            'non_matching_criteria' => $nonMatches // Return non-matching criteria
         ]);
     }
+    
 
 
 
