@@ -158,14 +158,14 @@ class UserProfileController extends Controller
     {
         // Get the authenticated user
         $authUser = Auth::user();
-
+    
         // Find the user by id
-        $user = User::find($id);
-
+        $user = User::with('userImages')->find($id);
+    
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-
+    
         // Define the authenticated user's partner preferences
         $partnerPreferences = [
             'marital_status' => $authUser->partner_marital_status,
@@ -179,18 +179,18 @@ class UserProfileController extends Controller
             'state' => $authUser->partner_state,
             'city_living_in' => $authUser->partner_city,
         ];
-
+    
         // Initialize arrays for SQL CASE statements and bindings
         $scoreConditions = [];
         $bindings = [];
         $matches = [];  // This will store details of which criteria matched and which didn't
-
+    
         foreach ($partnerPreferences as $column => $value) {
             // Skip the condition if the value is null or an empty array
             if (!isset($value) || (is_array($value) && empty($value))) {
                 continue; // Skip to the next iteration if the value is null or an empty array
             }
-
+    
             if (is_array($value)) {
                 // Use an IN clause if the value is an array
                 $placeholders = implode(',', array_fill(0, count($value), '?'));
@@ -202,7 +202,7 @@ class UserProfileController extends Controller
                 $bindings[] = $value;
             }
         }
-
+    
         // If no score conditions are generated, set match score to 0
         if (empty($scoreConditions)) {
             $matchScore = 0;
@@ -221,18 +221,18 @@ class UserProfileController extends Controller
                 )
                 ->where('users.id', $user->id) // Match only the user with the given username
                 ->first();
-
+    
             // Calculate the match score threshold as 20% of the total number of scoring criteria
             $matchThreshold = ceil($totalCriteria * 0.2);
-
+    
             // Calculate match percentage
             $matchScore = $matchScoreQuery->match_score;
             $matchPercentage = ($matchScore / $totalCriteria) * 100;
-
+    
             // Check if the single user meets the match threshold
             $isMatch = $matchScore >= $matchThreshold;
         }
-
+    
         // Now determine which criteria matched and which did not
         foreach ($partnerPreferences as $column => $value) {
             if (is_array($value)) {
@@ -253,7 +253,13 @@ class UserProfileController extends Controller
                 ];
             }
         }
-
+    
+        // Hide specific relations by unsetting them
+        $user->unsetRelation('sentInvitations');
+        $user->unsetRelation('receivedInvitations');
+        $user->unsetRelation('profileViews');
+        $user->unsetRelation('payments');
+    
         // Return the user and match details as a JSON response
         return response()->json([
             'user' => $user,
@@ -263,6 +269,7 @@ class UserProfileController extends Controller
             'criteria_matches' => $matches  // Return detailed matching info
         ]);
     }
+    
 
 
 

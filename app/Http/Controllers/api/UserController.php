@@ -302,11 +302,11 @@ class UserController extends Controller
 
         // Load the necessary relationships
         $user->load([
-            'sentInvitations',
-            'receivedInvitations',
-            'profileViews',
-            'viewedProfiles',
-            'payments',
+            // 'sentInvitations',
+            // 'receivedInvitations',
+            // 'profileViews',
+            // 'viewedProfiles',
+            // 'payments',
             'userImages',
         ]);
 
