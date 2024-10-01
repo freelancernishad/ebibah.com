@@ -65,9 +65,9 @@ class UserProfileController extends Controller
 
 
         // Check if score conditions are available
-        // if (empty($scoreConditions)) {
-        //     return response()->json(['message' => 'No valid matching criteria'], 400);
-        // }
+        if (empty($scoreConditions)) {
+            return response()->json(['message' => 'No valid matching criteria'], 400);
+        }
 
 
         // Add matching conditions based on user's partner preferences
@@ -199,9 +199,9 @@ class UserProfileController extends Controller
         }
 
         // If no preferences are defined, return early
-        if (empty($scoreConditions)) {
-            return response()->json(['message' => 'No preferences found for the authenticated user'], 400);
-        }
+        // if (empty($scoreConditions)) {
+        //     return response()->json(['message' => 'No preferences found for the authenticated user'], 400);
+        // }
 
         // Add match score calculations for the single user
         $totalCriteria = count($scoreConditions);
