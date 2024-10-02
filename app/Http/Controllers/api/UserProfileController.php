@@ -36,9 +36,9 @@ class UserProfileController extends Controller
             'religion' => $user->partner_religion,
             'community' => $user->partner_community,
             'mother_tongue' => $user->partner_mother_tongue,
-            'highest_qualification' => $user->partner_qualification,
-            'working_sector' => $user->partner_working_with,
-            'profession' => $user->partner_profession,
+            'highest_qualification' => json_decode($user->partner_qualification, true),
+            'working_sector' => json_decode($user->partner_working_with, true),
+            'profession' => json_decode($user->partner_profession, true),
             'living_country' => $user->partner_country,
             'state' => $user->partner_state,
             'city_living_in' => $user->partner_city,
@@ -79,7 +79,7 @@ class UserProfileController extends Controller
         ', $bindings);
 
         // Calculate the match score threshold as 20% of the total number of scoring criteria
-        $matchThreshold = ceil($totalCriteria * 0.2);
+        $matchThreshold = ceil($totalCriteria * 0.1);
         $query->having('match_score', '>=', $matchThreshold);
 
         // Apply additional filters based on the type of match requested
@@ -94,6 +94,7 @@ class UserProfileController extends Controller
         // Calculate and include the percentage for each user
         $matchingUsers->transform(function ($matchingUser) use ($totalCriteria) {
             // Match percentage calculation (ensure division by the correct totalCriteria)
+
             $matchingUser->match_percentage = ($matchingUser->match_score / $totalCriteria) * 100;
             return $matchingUser;
         });
@@ -104,6 +105,7 @@ class UserProfileController extends Controller
             'data' => $matchingUsers,
         ]);
     }
+
 
 
 
