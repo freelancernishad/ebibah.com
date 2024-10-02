@@ -335,7 +335,7 @@ public function permissions()
         }
 
         // Add accessor to include active_package details
-        public function getActivePackageDetailsWithServicesAttribute()
+        public function getActivePackageDetailsAttribute()
         {
             $activePackage = $this->activePackage;
 
