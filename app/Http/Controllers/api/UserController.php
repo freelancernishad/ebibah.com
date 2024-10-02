@@ -292,6 +292,14 @@ class UserController extends Controller
     // Show user details
     public function show($id)
     {
+        // Get the authenticated user's ID
+        $authenticatedUserId = auth()->id();
+
+        // Check if the requested ID is the same as the authenticated user's ID
+        if ($id == $authenticatedUserId) {
+            return response()->json(['message' => 'You cannot view your own profile.'], 403);
+        }
+
         // Find the user by ID
         $user = User::find($id);
 
@@ -310,16 +318,18 @@ class UserController extends Controller
             'userImages',
         ]);
 
-        // Calculate age
-        $age = calculateAge($user->date_of_birth);
+        // Calculate age if applicable
+        // Uncomment if date_of_birth exists in the User model
+        // $age = calculateAge($user->date_of_birth);
 
-        // Convert user to array and include age
+        // Convert user to array and include age if applicable
         $userArray = $user->toArray();
-        $userArray['age'] = $age;
+        // $userArray['age'] = $age; // Uncomment to include age in response
 
         // Return the user profile
         return response()->json(['user' => $userArray], 200);
     }
+
 
 
 

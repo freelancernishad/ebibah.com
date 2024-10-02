@@ -10,6 +10,7 @@ class FilterUserController extends Controller
 {
     public function filter(Request $request)
     {
+        $authUserId = Auth::id(); // Get the authenticated user's ID
         $query = User::query();
 
         // Apply filters
@@ -44,6 +45,11 @@ class FilterUserController extends Controller
             $query->whereIn('highest_qualification', $qualifications);
         }
 
+        // Exclude the authenticated user from the results if they are logged in
+        if ($authUserId) {
+            $query->where('id', '!=', $authUserId);
+        }
+
         // Add sorting by popularity and select specific columns
         $query->leftJoin('popularities', 'users.id', '=', 'popularities.user_id')
               ->select('users.*', 'popularities.views', 'popularities.likes')
@@ -61,5 +67,6 @@ class FilterUserController extends Controller
 
         return response()->json($users);
     }
+
 
 }

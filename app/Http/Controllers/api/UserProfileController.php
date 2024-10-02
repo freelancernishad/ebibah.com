@@ -20,6 +20,11 @@ class UserProfileController extends Controller
         // Get the authenticated user
         $user = Auth::user();
 
+        // Check if the user is authenticated
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
         // Start the query with the User model
         $query = User::query();
 
@@ -52,13 +57,12 @@ class UserProfileController extends Controller
         foreach ($partnerPreferences as $column => $value) {
             if (is_array($value) && !empty($value)) {
                 // Use an IN clause if the value is an array
-                $placeholders = implode(',', array_fill(0, count($value), '?'));
-                $scoreConditions[] = "(CASE WHEN $column IN ($placeholders) THEN 1 ELSE 0 END)";
-                $bindings = array_merge($bindings, $value);
+                $query->whereIn($column, $value);
+                $scoreConditions[] = "1"; // Assigning 1 for score if condition matches
             } elseif (!empty($value)) {
                 // Use a simple comparison if the value is a single value
-                $scoreConditions[] = "(CASE WHEN $column = ? THEN 1 ELSE 0 END)";
-                $bindings[] = $value;
+                $query->where($column, $value);
+                $scoreConditions[] = "1"; // Assigning 1 for score if condition matches
             }
         }
 
@@ -76,7 +80,7 @@ class UserProfileController extends Controller
         $query->selectRaw('
             users.*,
             (' . implode(' + ', $scoreConditions) . ') as match_score
-        ', $bindings);
+        ');
 
         // Calculate the match score threshold as 20% of the total number of scoring criteria
         $matchThreshold = ceil($totalCriteria * 0.2);
