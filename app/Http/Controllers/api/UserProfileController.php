@@ -114,22 +114,19 @@ class UserProfileController extends Controller
     {
         switch ($matchType) {
             case 'new':
-                // Filter for new matches by sorting by created_at descending and limit the results
+                // Filter for new users based on their creation date
                 $query->orderBy('created_at', 'desc');
                 break;
 
             case 'today':
-                // Filter for today's matches (assuming there's a 'matched_at' column)
+                // Filter for users who were created today
                 $query->whereDate('created_at', now()->toDateString());
                 break;
 
             case 'my':
-                // Filter for matches the user has already matched with
-                $query->whereIn('id', function ($subQuery) use ($user) {
-                    $subQuery->select('matched_user_id')
-                        ->from('matches')
-                        ->where('user_id', $user->id);
-                });
+                // For 'my', we will not use previously matched users or an ID check,
+                // but instead rely entirely on the calculated match score from the preferences.
+                // No additional filters are needed, the match score logic is already in place.
                 break;
 
             case 'near':
@@ -152,6 +149,7 @@ class UserProfileController extends Controller
                 break;
         }
     }
+
 
 
 
