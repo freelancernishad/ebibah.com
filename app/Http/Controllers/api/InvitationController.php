@@ -75,12 +75,26 @@ class InvitationController extends Controller
         return response()->json(['message' => 'Invitation rejected successfully', 'invitation' => $invitation], 200);
     }
 
+
+
+    
+ // Private method to select user fields
+ private function selectUserFields($query)
+ {
+     $query->select('id', 'name', 'email');
+ }
+
+
     // Get all invitations sent by the authenticated user
     public function sentInvitations()
     {
         $invitations = Invitation::with([
-            'sender' => [$this, 'selectUserColumns'],
-            'receiver' => [$this, 'selectUserColumns']
+            'sender' => function($query) {
+                $this->selectUserFields($query);
+            },
+            'receiver' => function($query) {
+                $this->selectUserFields($query);
+            }
         ])->where(['sender_id'=> Auth::id(),'status'=>'sent'])->get();
         return response()->json(['invitations' => $invitations], 200);
     }
@@ -89,8 +103,12 @@ class InvitationController extends Controller
     public function receivedInvitations()
     {
         $invitations = Invitation::with([
-            'sender' => [$this, 'selectUserColumns'],
-            'receiver' => [$this, 'selectUserColumns']
+            'sender' => function($query) {
+                $this->selectUserFields($query);
+            },
+            'receiver' => function($query) {
+                $this->selectUserFields($query);
+            }
         ])->where(['receiver_id'=> Auth::id(),'status'=>'sent'])
           ->get(['*']); // You can also select specific columns for the Invitation model here if needed.
 
@@ -99,11 +117,6 @@ class InvitationController extends Controller
 
 
 
- // Private method to select user fields
- private function selectUserFields($query)
- {
-     $query->select('id', 'name', 'email');
- }
 
  // Get all accepted invitations sent by the authenticated user
  public function acceptedSentInvitations()
