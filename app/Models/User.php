@@ -210,7 +210,7 @@ public function permissions()
      */
     public function profileViews(): HasMany
     {
-        return $this->hasMany(ProfileView::class, 'profile_id');
+        return $this->hasMany(ProfileView::class, 'profile_id')->latest()->take(10);
     }
 
     /**
@@ -218,23 +218,23 @@ public function permissions()
      */
     public function viewedProfiles(): HasMany
     {
-        return $this->hasMany(ProfileView::class, 'viewer_id');
+        return $this->hasMany(ProfileView::class, 'viewer_id')->latest()->take(10);
     }
 
     // Other relationships...
     public function sentInvitations(): HasMany
     {
-        return $this->hasMany(Invitation::class, 'sender_id');
+        return $this->hasMany(Invitation::class, 'sender_id')->latest()->take(10);
     }
+
 
     public function receivedInvitations(): HasMany
     {
-        return $this->hasMany(Invitation::class, 'receiver_id');
+        return $this->hasMany(Invitation::class, 'receiver_id')->latest()->take(10);
     }
-
-    public function payments()
+    public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Payment::class)->latest()->take(10);
     }
 
     public function userImages(): HasMany
@@ -259,7 +259,7 @@ public function permissions()
     }
 
      // Automatically append 'is_favorited' to the user instance
-     protected $appends = ['is_favorited','age','profile_picture_url'];
+     protected $appends = ['is_favorited','age','profile_picture_url','active_package_details'];
 
      // Map of favoritable types to their corresponding models
      protected $modelMap = [
@@ -325,6 +325,22 @@ public function permissions()
             return 'https://cdn.icon-icons.com/icons2/2643/PNG/512/male_boy_person_people_avatar_white_tone_icon_159368.png';
         }
     }
+
+
+
+        // Define the relationship between User and Package
+        public function activePackage()
+        {
+            return $this->belongsTo(Package::class, 'active_package_id');
+        }
+
+        // Add accessor to include active_package details
+        public function getActivePackageDetailsAttribute()
+        {
+            return $this->activePackage;
+        }
+
+
 
 
 }

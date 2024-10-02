@@ -15,6 +15,43 @@ class FavoriteController extends Controller
         // 'post' => \App\Models\Post::class, etc.
     ];
 
+
+
+    public function index(Request $request)
+    {
+        // Set default favoritable_type to 'user' if not provided
+        $request->merge([
+            'favoritable_type' => $request->input('favoritable_type', 'user')
+        ]);
+
+        // Validate the favoritable_type (e.g., 'user', 'post', etc.)
+        $request->validate([
+            'favoritable_type' => 'required|string|in:user,post', // Add more types as needed
+        ]);
+
+        // Convert favoritable_type to full model class name
+        $favoritableType = $this->modelMap[$request->favoritable_type] ?? null;
+
+        if (!$favoritableType) {
+            return response()->json(['message' => 'Invalid favoritable type'], 400);
+        }
+
+        // Retrieve the authenticated user's favorites of the specified type
+        $favorites = Favorite::where('user_id', Auth::id())
+            ->where('favoritable_type', $favoritableType)
+            ->with('favoritable') // Load related favoritable model
+            ->get();
+
+        return response()->json([
+            'message' => 'Favorites retrieved successfully',
+            'favorites' => $favorites
+        ], 200);
+    }
+
+
+
+
+
     /**
      * Add a favorite.
      */
