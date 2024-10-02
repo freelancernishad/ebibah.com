@@ -51,14 +51,18 @@ class UserProfileController extends Controller
         // Loop through each preference and build conditions (case-insensitive comparison)
         foreach ($partnerPreferences as $column => $value) {
             if (is_array($value) && !empty($value)) {
+                // Normalize values for comparison
+                $normalizedValues = array_map('strtolower', $value);
                 // Use an IN clause if the value is an array (case-insensitive comparison)
-                $placeholders = implode(',', array_fill(0, count($value), '?'));
+                $placeholders = implode(',', array_fill(0, count($normalizedValues), '?'));
                 $scoreConditions[] = "(CASE WHEN LOWER($column) IN ($placeholders) THEN 1 ELSE 0 END)";
-                $bindings = array_merge($bindings, array_map('strtolower', $value));
+                $bindings = array_merge($bindings, $normalizedValues);
             } elseif (!empty($value)) {
+                // Normalize value for comparison
+                $normalizedValue = strtolower($value);
                 // Use a simple comparison if the value is a single value (case-insensitive comparison)
-                $scoreConditions[] = "(CASE WHEN LOWER($column) = LOWER(?) THEN 1 ELSE 0 END)";
-                $bindings[] = strtolower($value);
+                $scoreConditions[] = "(CASE WHEN LOWER($column) = ? THEN 1 ELSE 0 END)";
+                $bindings[] = $normalizedValue;
             }
         }
 
@@ -104,6 +108,7 @@ class UserProfileController extends Controller
             'data' => $matchingUsers,
         ]);
     }
+
 
 
 
