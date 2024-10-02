@@ -77,11 +77,11 @@ class InvitationController extends Controller
 
 
 
-    
+
  // Private method to select user fields
  private function selectUserFields($query)
  {
-     $query->select('id', 'name', 'email');
+     $query->select('id','name','marital_status','religion','date_of_birth','profession','living_country','working_sector','height');
  }
 
 
