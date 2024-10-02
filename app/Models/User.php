@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Carbon\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -258,7 +259,7 @@ public function permissions()
     }
 
      // Automatically append 'is_favorited' to the user instance
-     protected $appends = ['is_favorited'];
+     protected $appends = ['is_favorited','age','profile_picture_url'];
 
      // Map of favoritable types to their corresponding models
      protected $modelMap = [
@@ -290,5 +291,40 @@ public function permissions()
          // If no authenticated user or invalid model, return false
          return false;
      }
+
+    // Method to calculate age
+    protected function calculateAge($dateOfBirth)
+    {
+        if (!$dateOfBirth) {
+            return null;
+        }
+
+        $birthDate = new \DateTime($dateOfBirth);
+        $today = new \DateTime();
+        return $today->diff($birthDate)->y; // Return the age in years
+    }
+
+    // Accessor for age attribute
+    public function getAgeAttribute()
+    {
+        return $this->calculateAge($this->date_of_birth);
+    }
+
+
+    public function getProfilePictureUrlAttribute()
+    {
+        // Check if there are user images and get a random one if available
+        if ($this->userImages()->exists()) {
+            return $this->userImages()->inRandomOrder()->first()->image_path; // Assuming the UserImage model has a 'url' field
+        }
+
+        // Default images based on gender
+        if ($this->gender === 'female') {
+            return 'https://cdn-icons-png.freepik.com/512/9193/9193915.png';
+        } else {
+            return 'https://cdn.icon-icons.com/icons2/2643/PNG/512/male_boy_person_people_avatar_white_tone_icon_159368.png';
+        }
+    }
+
 
 }
