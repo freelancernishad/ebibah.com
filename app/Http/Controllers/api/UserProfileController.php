@@ -19,35 +19,35 @@ class UserProfileController extends Controller
     {
         // Get the authenticated user
         $user = Auth::user();
-
+    
         // Start the query with the User model
         $query = User::query();
-
+    
         // Filter based on requested type
         $matchType = $request->input('type'); // e.g., 'new', 'today', 'my', 'near'
-
+    
         // Only match users of the opposite gender and exclude the authenticated user
         $query->where('gender', '!=', $user->gender)
               ->where('id', '!=', $user->id);
-
+    
         // Define partner preferences
         $partnerPreferences = [
             'marital_status' => $user->partner_marital_status,
             'religion' => $user->partner_religion,
             'community' => $user->partner_community,
             'mother_tongue' => $user->partner_mother_tongue,
-            'highest_qualification' => $user->partner_qualification,
-            'working_sector' => $user->partner_working_with,
-            'profession' => $user->partner_profession,
+            'highest_qualification' => json_decode($user->partner_qualification, true),
+            'working_sector' => json_decode($user->partner_working_with, true),
+            'profession' => json_decode($user->partner_profession, true),
             'living_country' => $user->partner_country,
             'state' => $user->partner_state,
             'city_living_in' => $user->partner_city,
         ];
-
+    
         // Initialize conditions for the SQL CASE statement
         $scoreConditions = [];
         $bindings = [];
-
+    
         // Loop through each preference and build conditions
         foreach ($partnerPreferences as $column => $value) {
             if (is_array($value) && !empty($value)) {
@@ -61,7 +61,7 @@ class UserProfileController extends Controller
                 $bindings[] = $value;
             }
         }
-
+    
         // Check if score conditions are available
         if (empty($scoreConditions)) {
             // Return early if there are no valid matching criteria
@@ -70,36 +70,41 @@ class UserProfileController extends Controller
                 'data' => [], // No matches found
             ]);
         }
-
+    
         // Add matching conditions based on user's partner preferences
-        $totalCriteria = count($scoreConditions);
+        $totalCriteria = count($scoreConditions); // This should reflect the actual number of conditions
         $query->selectRaw('
             users.*,
             (' . implode(' + ', $scoreConditions) . ') as match_score
         ', $bindings);
-
+    
         // Calculate the match score threshold as 20% of the total number of scoring criteria
         $matchThreshold = ceil($totalCriteria * 0.2);
         $query->having('match_score', '>=', $matchThreshold);
-
+    
         // Apply additional filters based on the type of match requested
         $this->applyMatchTypeFilters($query, $matchType, $user);
-
+    
         // Order the results by the highest match score first
         $query->orderByDesc('match_score');
-
+    
         // Execute the query and get the results
         $matchingUsers = $query->get();
-
+    
         // Calculate and include the percentage for each user
         $matchingUsers->transform(function ($matchingUser) use ($totalCriteria) {
-            // Match percentage calculation
+            // Match percentage calculation (ensure division by the correct totalCriteria)
             $matchingUser->match_percentage = ($matchingUser->match_score / $totalCriteria) * 100;
             return $matchingUser;
         });
-
-
-
+    
+        // Return the matching users as a JSON response, including the match_percentage
+        return response()->json([
+            'status' => 'success',
+            'data' => $matchingUsers,
+        ]);
+    }
+    
 
 
     /**
