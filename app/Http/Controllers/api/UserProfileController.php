@@ -19,17 +19,17 @@ class UserProfileController extends Controller
     {
         // Get the authenticated user
         $user = Auth::user();
-
+    
         // Start the query with the User model
         $query = User::query();
-
+    
         // Filter based on requested type
         $matchType = $request->input('type'); // e.g., 'new', 'today', 'my', 'near'
-
+    
         // Only match users of the opposite gender and exclude the authenticated user
         $query->where('gender', '!=', $user->gender)
               ->where('id', '!=', $user->id);
-
+    
         // Define partner preferences
         $partnerPreferences = [
             'marital_status' => $user->partner_marital_status,
@@ -43,25 +43,25 @@ class UserProfileController extends Controller
             'state' => $user->partner_state,
             'city_living_in' => $user->partner_city,
         ];
-
+    
         // Initialize conditions for the SQL CASE statement
         $scoreConditions = [];
         $bindings = [];
-
-        // Loop through each preference and build conditions
+    
+        // Loop through each preference and build conditions (case-insensitive comparison)
         foreach ($partnerPreferences as $column => $value) {
             if (is_array($value) && !empty($value)) {
-                // Use an IN clause if the value is an array
+                // Use an IN clause if the value is an array (case-insensitive comparison)
                 $placeholders = implode(',', array_fill(0, count($value), '?'));
-                $scoreConditions[] = "(CASE WHEN $column IN ($placeholders) THEN 1 ELSE 0 END)";
-                $bindings = array_merge($bindings, $value);
+                $scoreConditions[] = "(CASE WHEN LOWER($column) IN (LOWER($placeholders)) THEN 1 ELSE 0 END)";
+                $bindings = array_merge($bindings, array_map('strtolower', $value));
             } elseif (!empty($value)) {
-                // Use a simple comparison if the value is a single value
-                $scoreConditions[] = "(CASE WHEN $column = ? THEN 1 ELSE 0 END)";
-                $bindings[] = $value;
+                // Use a simple comparison if the value is a single value (case-insensitive comparison)
+                $scoreConditions[] = "(CASE WHEN LOWER($column) = LOWER(?) THEN 1 ELSE 0 END)";
+                $bindings[] = strtolower($value);
             }
         }
-
+    
         // Check if score conditions are available
         if (empty($scoreConditions)) {
             // Return early if there are no valid matching criteria
@@ -70,41 +70,41 @@ class UserProfileController extends Controller
                 'data' => [], // No matches found
             ]);
         }
-
+    
         // Add matching conditions based on user's partner preferences
         $totalCriteria = count($scoreConditions); // This should reflect the actual number of conditions
         $query->selectRaw('
             users.*,
             (' . implode(' + ', $scoreConditions) . ') as match_score
         ', $bindings);
-
+    
         // Calculate the match score threshold as 20% of the total number of scoring criteria
         $matchThreshold = ceil($totalCriteria * 0.1);
         $query->having('match_score', '>=', $matchThreshold);
-
+    
         // Apply additional filters based on the type of match requested
         $this->applyMatchTypeFilters($query, $matchType, $user);
-
+    
         // Order the results by the highest match score first
         $query->orderByDesc('match_score');
-
+    
         // Execute the query and get the results
         $matchingUsers = $query->get();
-
+    
         // Calculate and include the percentage for each user
         $matchingUsers->transform(function ($matchingUser) use ($totalCriteria) {
-            // Match percentage calculation (ensure division by the correct totalCriteria)
-
+            // Match percentage calculation
             $matchingUser->match_percentage = ($matchingUser->match_score / $totalCriteria) * 100;
             return $matchingUser;
         });
-
+    
         // Return the matching users as a JSON response, including the match_percentage
         return response()->json([
             'status' => 'success',
             'data' => $matchingUsers,
         ]);
     }
+    
 
 
 
