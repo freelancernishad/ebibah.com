@@ -19,17 +19,17 @@ class UserProfileController extends Controller
     {
         // Get the authenticated user
         $user = Auth::user();
-    
+
         // Start the query with the User model
         $query = User::query();
-    
+
         // Filter based on requested type
         $matchType = $request->input('type'); // e.g., 'new', 'today', 'my', 'near'
-    
+
         // Only match users of the opposite gender and exclude the authenticated user
         $query->where('gender', '!=', $user->gender)
               ->where('id', '!=', $user->id);
-    
+
         // Define partner preferences
         $partnerPreferences = [
             'marital_status' => $user->partner_marital_status,
@@ -43,11 +43,11 @@ class UserProfileController extends Controller
             'state' => $user->partner_state,
             'city_living_in' => $user->partner_city,
         ];
-    
+
         // Initialize conditions for the SQL CASE statement
         $scoreConditions = [];
         $bindings = [];
-    
+
         // Loop through each preference and build conditions
         foreach ($partnerPreferences as $column => $value) {
             if (is_array($value) && !empty($value)) {
@@ -61,7 +61,7 @@ class UserProfileController extends Controller
                 $bindings[] = $value;
             }
         }
-    
+
         // Check if score conditions are available
         if (empty($scoreConditions)) {
             // Return early if there are no valid matching criteria
@@ -70,41 +70,41 @@ class UserProfileController extends Controller
                 'data' => [], // No matches found
             ]);
         }
-    
+
         // Add matching conditions based on user's partner preferences
         $totalCriteria = count($scoreConditions); // This should reflect the actual number of conditions
         $query->selectRaw('
             users.*,
             (' . implode(' + ', $scoreConditions) . ') as match_score
         ', $bindings);
-    
+
         // Calculate the match score threshold as 20% of the total number of scoring criteria
         $matchThreshold = ceil($totalCriteria * 0.2);
         $query->having('match_score', '>=', $matchThreshold);
-    
+
         // Apply additional filters based on the type of match requested
         $this->applyMatchTypeFilters($query, $matchType, $user);
-    
+
         // Order the results by the highest match score first
         $query->orderByDesc('match_score');
-    
+
         // Execute the query and get the results
         $matchingUsers = $query->get();
-    
+
         // Calculate and include the percentage for each user
         $matchingUsers->transform(function ($matchingUser) use ($totalCriteria) {
             // Match percentage calculation (ensure division by the correct totalCriteria)
             $matchingUser->match_percentage = ($matchingUser->match_score / $totalCriteria) * 100;
             return $matchingUser;
         });
-    
+
         // Return the matching users as a JSON response, including the match_percentage
         return response()->json([
             'status' => 'success',
             'data' => $matchingUsers,
         ]);
     }
-    
+
 
 
     /**
@@ -203,12 +203,12 @@ class UserProfileController extends Controller
             if (is_array($value)) {
                 // Use an IN clause if the value is an array
                 $placeholders = implode(',', array_fill(0, count($value), '?'));
-                $scoreConditions[] = "(CASE WHEN $column IN ($placeholders) THEN 1 ELSE 0 END)";
-                $bindings = array_merge($bindings, $value);
+                $scoreConditions[] = "(CASE WHEN LOWER($column) IN (" . $placeholders . ") THEN 1 ELSE 0 END)";
+                $bindings = array_merge($bindings, array_map('strtolower', $value)); // Convert to lowercase for binding
             } else {
                 // Use a simple comparison if the value is a single value
-                $scoreConditions[] = "(CASE WHEN $column = ? THEN 1 ELSE 0 END)";
-                $bindings[] = $value;
+                $scoreConditions[] = "(CASE WHEN LOWER($column) = LOWER(?) THEN 1 ELSE 0 END)";
+                $bindings[] = strtolower($value); // Convert to lowercase for binding
             }
         }
 
@@ -223,9 +223,7 @@ class UserProfileController extends Controller
             $matchScoreQuery = DB::table('users')
                 ->selectRaw(
                     'users.*,
-                    (
-                        ' . implode(' + ', $scoreConditions) . '
-                    ) as match_score',
+                    (' . implode(' + ', $scoreConditions) . ') as match_score',
                     $bindings
                 )
                 ->where('users.id', $user->id) // Match only the user with the given username
@@ -242,43 +240,42 @@ class UserProfileController extends Controller
             $isMatch = $matchScore >= $matchThreshold;
         }
 
-// Define a mapping of column names to meaningful display names
-$displayNames = [
-    'marital_status' => 'Marital Status',
-    'religion' => 'Religion',
-    'community' => 'Community',
-    'mother_tongue' => 'Mother Tongue',
-    'highest_qualification' => 'Highest Qualification',
-    'working_sector' => 'Working Sector',
-    'profession' => 'Profession',
-    'living_country' => 'Living Country',
-    'state' => 'State',
-    'city_living_in' => 'City Living In',
-];
-
-// Now determine which criteria matched and which did not
-foreach ($partnerPreferences as $preferenceCriteria => $preferenceValue) {
-    $displayName = $displayNames[$preferenceCriteria] ?? $preferenceCriteria; // Default to the original key if not found
-
-    if (is_array($preferenceValue)) {
-        // Handle array preference values
-        $matches[] = [
-            'preference' => $displayName, // Use the display name
-            'required' => $preferenceValue,
-            'user_value' => $user->{$preferenceCriteria},
-            'match' => in_array($user->{$preferenceCriteria}, $preferenceValue)
+        // Define a mapping of column names to meaningful display names
+        $displayNames = [
+            'marital_status' => 'Marital Status',
+            'religion' => 'Religion',
+            'community' => 'Community',
+            'mother_tongue' => 'Mother Tongue',
+            'highest_qualification' => 'Highest Qualification',
+            'working_sector' => 'Working Sector',
+            'profession' => 'Profession',
+            'living_country' => 'Living Country',
+            'state' => 'State',
+            'city_living_in' => 'City Living In',
         ];
-    } else {
-        // Handle single value preferences
-        $matches[] = [
-            'preference' => $displayName, // Use the display name
-            'required' => $preferenceValue,
-            'user_value' => $user->{$preferenceCriteria},
-            'match' => ($user->{$preferenceCriteria} == $preferenceValue)
-        ];
-    }
-}
 
+        // Now determine which criteria matched and which did not
+        foreach ($partnerPreferences as $preferenceCriteria => $preferenceValue) {
+            $displayName = $displayNames[$preferenceCriteria] ?? $preferenceCriteria; // Default to the original key if not found
+
+            if (is_array($preferenceValue)) {
+                // Handle array preference values
+                $matches[] = [
+                    'preference' => $displayName, // Use the display name
+                    'required' => $preferenceValue,
+                    'user_value' => $user->{$preferenceCriteria},
+                    'match' => in_array(strtolower($user->{$preferenceCriteria}), array_map('strtolower', $preferenceValue)) // Case-insensitive check
+                ];
+            } else {
+                // Handle single value preferences
+                $matches[] = [
+                    'preference' => $displayName, // Use the display name
+                    'required' => $preferenceValue,
+                    'user_value' => $user->{$preferenceCriteria},
+                    'match' => (strtolower($user->{$preferenceCriteria}) === strtolower($preferenceValue)) // Case-insensitive check
+                ];
+            }
+        }
 
         // Hide specific relations by unsetting them
         $user->unsetRelation('sentInvitations');
@@ -295,6 +292,7 @@ foreach ($partnerPreferences as $preferenceCriteria => $preferenceValue) {
             'criteria_matches' => $matches  // Return detailed matching info
         ]);
     }
+
 
 
 
