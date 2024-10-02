@@ -210,7 +210,7 @@ public function permissions()
      */
     public function profileViews(): HasMany
     {
-        return $this->hasMany(ProfileView::class, 'profile_id');
+        return $this->hasMany(ProfileView::class, 'profile_id')->latest()->take(10);
     }
 
     /**
@@ -218,23 +218,23 @@ public function permissions()
      */
     public function viewedProfiles(): HasMany
     {
-        return $this->hasMany(ProfileView::class, 'viewer_id');
+        return $this->hasMany(ProfileView::class, 'viewer_id')->latest()->take(10);
     }
 
     // Other relationships...
     public function sentInvitations(): HasMany
     {
-        return $this->hasMany(Invitation::class, 'sender_id');
+        return $this->hasMany(Invitation::class, 'sender_id')->latest()->take(10);
     }
+
 
     public function receivedInvitations(): HasMany
     {
-        return $this->hasMany(Invitation::class, 'receiver_id');
+        return $this->hasMany(Invitation::class, 'receiver_id')->latest()->take(10);
     }
-
-    public function payments()
+    public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Payment::class)->latest()->take(10);
     }
 
     public function userImages(): HasMany
