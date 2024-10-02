@@ -48,6 +48,7 @@ class UserProfileController extends Controller
         $scoreConditions = [];
         $bindings = [];
 
+        // Loop through each preference and build conditions
         foreach ($partnerPreferences as $column => $value) {
             if (is_array($value) && !empty($value)) {
                 // Use an IN clause if the value is an array
@@ -71,7 +72,7 @@ class UserProfileController extends Controller
         }
 
         // Add matching conditions based on user's partner preferences
-        $totalCriteria = count($scoreConditions);
+        $totalCriteria = count($scoreConditions); // This should reflect the actual number of conditions
         $query->selectRaw('
             users.*,
             (' . implode(' + ', $scoreConditions) . ') as match_score
@@ -91,9 +92,10 @@ class UserProfileController extends Controller
         $matchingUsers = $query->get();
 
         // Calculate and include the percentage for each user
-        $matchingUsers->transform(function ($user) use ($totalCriteria) {
-            $user->match_percentage = ($user->match_score / $totalCriteria) * 100;
-            return $user;
+        $matchingUsers->transform(function ($matchingUser) use ($totalCriteria) {
+            // Match percentage calculation (ensure division by the correct totalCriteria)
+            $matchingUser->match_percentage = ($matchingUser->match_score / $totalCriteria) * 100;
+            return $matchingUser;
         });
 
         // Return the matching users as a JSON response, including the match_percentage
@@ -102,6 +104,8 @@ class UserProfileController extends Controller
             'data' => $matchingUsers,
         ]);
     }
+
+
 
     /**
      * Apply additional filters based on the type of match requested.
