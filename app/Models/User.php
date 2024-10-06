@@ -99,6 +99,14 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email_verification_hash',
     ];
 
+    public function setGenderAttribute($value)
+    {
+        $this->attributes['gender'] = strtolower($value);
+    }
+    public static function updateGenderToLowercase()
+    {
+        self::query()->update(['gender' => \DB::raw('LOWER(gender)')]);
+    }
     /**
      * The attributes that should be hidden for serialization.
      *
