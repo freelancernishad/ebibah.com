@@ -287,13 +287,18 @@ class UserProfileController extends Controller
         $user->unsetRelation('profileViews');
         $user->unsetRelation('payments');
 
+        $similar_profiles = $user->getSimilarProfiles(10);
+
+
+
         // Return the user and match details as a JSON response
         return response()->json([
             'user' => $user,
             'is_match' => $isMatch,
             'match_percentage' => $matchPercentage,
             'match_score' => $matchScore,
-            'criteria_matches' => $matches  // Return detailed matching info
+            'criteria_matches' => $matches,  // Return detailed matching info
+            'similar_profiles' => $similar_profiles
         ]);
     }
 

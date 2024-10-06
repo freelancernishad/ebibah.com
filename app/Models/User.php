@@ -366,6 +366,146 @@ public function permissions()
 
 
 
+           /**
+     * Get a list of similar profiles based on all key attributes.
+     *
+     * @param int $limit Number of similar profiles to retrieve
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getSimilarProfiles($limit = 10)
+    {
+        // Get the user's current attributes
+        $gender = $this->gender;
+        $ageRange = $this->getAgeRange(); // Method to get a flexible age range
+        $religion = $this->religion;
+        $community = $this->community;
+        $subCommunity = $this->sub_community;
+        $motherTongue = $this->mother_tongue;
+        $maritalStatus = $this->marital_status;
+        $cityLivingIn = $this->city_living_in;
+        $profession = $this->profession;
+        $heightRange = $this->getHeightRange(); // Method to calculate flexible height range
+        $personalValues = $this->personal_values;
+
+        // Base query to find similar profiles
+        $query = self::where('id', '!=', $this->id); // Exclude the current user
+
+        // Initialize an array to hold matched attributes for each profile
+        $matchedProfiles = [];
+
+        // Find profiles and check for matches
+        $profiles = $query->limit($limit)->get();
+
+        foreach ($profiles as $profile) {
+            $matches = [];
+
+            if ($gender && $profile->gender == $gender) {
+                $matches[] = 'gender';
+            }
+            if ($ageRange && $profile->date_of_birth >= $ageRange[0] && $profile->date_of_birth <= $ageRange[1]) {
+                $matches[] = 'age';
+            }
+            if ($religion && stripos($profile->religion, $religion) !== false) {
+                $matches[] = 'religion';
+            }
+            if ($community && stripos($profile->community, $community) !== false) {
+                $matches[] = 'community';
+            }
+            if ($subCommunity && stripos($profile->sub_community, $subCommunity) !== false) {
+                $matches[] = 'sub_community';
+            }
+            if ($motherTongue && stripos($profile->mother_tongue, $motherTongue) !== false) {
+                $matches[] = 'mother_tongue';
+            }
+            if ($maritalStatus && stripos($profile->marital_status, $maritalStatus) !== false) {
+                $matches[] = 'marital_status';
+            }
+            if ($cityLivingIn && stripos($profile->city_living_in, $cityLivingIn) !== false) {
+                $matches[] = 'city_living_in';
+            }
+            if ($profession && stripos($profile->profession, $profession) !== false) {
+                $matches[] = 'profession';
+            }
+            if ($heightRange && $profile->height >= $heightRange[0] && $profile->height <= $heightRange[1]) {
+                $matches[] = 'height';
+            }
+            if ($personalValues && stripos($profile->personal_values, $personalValues) !== false) {
+                $matches[] = 'personal_values';
+            }
+
+
+
+
+
+            // Add matched profile and its matching attributes to the result
+            if (!empty($matches)) {
+                $profile->matchedAttributes = $matches;
+                $matchedProfiles = [ $profile];
+            }
+        }
+
+        return $matchedProfiles;
+    }
+
+
+
+
+
+    /**
+     * Get an age range for searching similar profiles.
+     *
+     * @return array Date range (start and end)
+     */
+    protected function getAgeRange()
+    {
+        $age = $this->getAge(); // Assume a method to calculate age from date_of_birth
+        $minAge = $age - 5; // Flexible range, 5 years younger
+        $maxAge = $age + 5; // Flexible range, 5 years older
+
+        $minDateOfBirth = Carbon::now()->subYears($maxAge)->toDateString();
+        $maxDateOfBirth = Carbon::now()->subYears($minAge)->toDateString();
+
+        return [$minDateOfBirth, $maxDateOfBirth];
+    }
+
+    /**
+     * Get height range for searching similar profiles.
+     *
+     * @return array Height range (min, max)
+     */
+
+
+
+
+     protected function getHeightRange()
+     {
+         // Convert the height to a float
+         $height = floatval($this->height);
+
+         // Check if height is numeric after conversion
+         if (!is_numeric($height)) {
+             // Handle the case where height is not numeric
+             return [null, null]; // or set default values, e.g., [0, 0]
+         }
+
+         $minHeight = $height - 10; // Flexible range, 10 cm shorter
+         $maxHeight = $height + 10; // Flexible range, 10 cm taller
+
+         return [$minHeight, $maxHeight];
+     }
+
+    /**
+     * Get the user's current age from the date of birth.
+     *
+     * @return int Age of the user
+     */
+    public function getAge()
+    {
+        return Carbon::parse($this->date_of_birth)->age;
+    }
+
+
+
 
 
 }
