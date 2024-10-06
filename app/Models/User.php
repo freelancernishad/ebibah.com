@@ -270,7 +270,41 @@ public function permissions()
     }
 
      // Automatically append 'is_favorited' to the user instance
-     protected $appends = ['is_favorited','age','profile_picture_url','active_package_details'];
+
+
+
+     protected $appends = ['is_favorited','age','profile_picture_url','active_package_details','invitation_received_statuses','invitation_send_statuses'];
+
+
+     public function getInvitationReceivedStatusesAttribute()
+    {
+        // Assuming you want to get the invitation statuses for the authenticated user
+        $authUserId = auth()->id(); // Get the authenticated user's ID
+
+        // Fetch invitations sent to this user
+        $invitations = Invitation::where('receiver_id', $this->id)
+            ->where('sender_id', $authUserId)
+            ->get();
+
+        return $invitations->pluck('status'); // Return an array of statuses or an empty array if none found
+    }
+
+     public function getInvitationSendStatusesAttribute()
+    {
+        // Assuming you want to get the invitation statuses for the authenticated user
+        $authUserId = auth()->id(); // Get the authenticated user's ID
+
+        // Fetch invitations sent to this user
+        $invitations = Invitation::where('sender_id', $this->id)
+            ->where('receiver_id', $authUserId)
+            ->get();
+
+        return $invitations->pluck('status'); // Return an array of statuses or an empty array if none found
+    }
+
+
+
+
 
      // Map of favoritable types to their corresponding models
      protected $modelMap = [
