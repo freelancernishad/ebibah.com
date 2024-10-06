@@ -41,9 +41,6 @@ class UserProfileController extends Controller
             'religion' => $user->partner_religion,
             'community' => $user->partner_community,
             'mother_tongue' => $user->partner_mother_tongue,
-            'highest_qualification' => json_decode($user->partner_qualification, true),
-            'working_sector' => json_decode($user->partner_working_with, true),
-            'profession' => json_decode($user->partner_profession, true),
             'living_country' => $user->partner_country,
             'state' => $user->partner_state,
             'city_living_in' => $user->partner_city,
@@ -55,14 +52,34 @@ class UserProfileController extends Controller
 
         // Loop through each preference and build conditions
         foreach ($partnerPreferences as $column => $value) {
-            if (is_array($value) && !empty($value)) {
-                // Use an IN clause if the value is an array
-                $query->whereIn($column, $value);
-                $scoreConditions[] = "1"; // Assigning 1 for score if condition matches
-            } elseif (!empty($value)) {
-                // Use a simple comparison if the value is a single value
+            if (!empty($value)) {
                 $query->where($column, $value);
                 $scoreConditions[] = "1"; // Assigning 1 for score if condition matches
+            }
+        }
+
+        // Include preferences from the relationships
+        if ($user->partnerQualifications) {
+            $qualifications = $user->partnerQualifications->pluck('qualification')->toArray();
+            if (!empty($qualifications)) {
+                $query->whereIn('partner_qualifications.qualification', $qualifications);
+                $scoreConditions[] = "1"; // Score for matching qualifications
+            }
+        }
+
+        if ($user->partnerWorkingWith) {
+            $workingSectors = $user->partnerWorkingWith->pluck('working_with')->toArray();
+            if (!empty($workingSectors)) {
+                $query->whereIn('partner_working_with.working_with', $workingSectors);
+                $scoreConditions[] = "1"; // Score for matching working sectors
+            }
+        }
+
+        if ($user->partnerProfessions) {
+            $professions = $user->partnerProfessions->pluck('profession')->toArray();
+            if (!empty($professions)) {
+                $query->whereIn('partner_professions.profession', $professions);
+                $scoreConditions[] = "1"; // Score for matching professions
             }
         }
 
@@ -92,6 +109,9 @@ class UserProfileController extends Controller
         // Order the results by the highest match score first
         $query->orderByDesc('match_score');
 
+        // Include the relationships to load the necessary data
+        $query->with(['partnerQualifications', 'partnerWorkingWith', 'partnerProfessions']);
+
         // Execute the query and get the results
         $matchingUsers = $query->get();
 
@@ -108,6 +128,7 @@ class UserProfileController extends Controller
             'data' => $matchingUsers,
         ]);
     }
+
 
 
 
@@ -172,7 +193,7 @@ class UserProfileController extends Controller
         // Get the authenticated user
         $authUser = Auth::user();
 
-        // Find the user by id
+        // Find the user by id with the related images
         $user = User::with('userImages')->find($id);
 
         if (!$user) {
@@ -185,9 +206,9 @@ class UserProfileController extends Controller
             'religion' => $authUser->partner_religion,
             'community' => $authUser->partner_community,
             'mother_tongue' => $authUser->partner_mother_tongue,
-            'highest_qualification' => $authUser->partner_qualification,
-            'working_sector' => $authUser->partner_working_with,
-            'profession' => $authUser->partner_profession,
+            'highest_qualification' => $authUser->partnerQualification->pluck('qualification')->toArray(),
+            'working_sector' => $authUser->partnerWorkingWith->pluck('sector')->toArray(),
+            'profession' => $authUser->partnerProfession->pluck('profession')->toArray(),
             'living_country' => $authUser->partner_country,
             'state' => $authUser->partner_state,
             'city_living_in' => $authUser->partner_city,
@@ -196,7 +217,7 @@ class UserProfileController extends Controller
         // Initialize arrays for SQL CASE statements and bindings
         $scoreConditions = [];
         $bindings = [];
-        $matches = [];  // This will store details of which criteria matched and which didn't
+        $matches = []; // This will store details of which criteria matched and which didn't
 
         foreach ($partnerPreferences as $column => $value) {
             // Skip the condition if the value is null or an empty array
@@ -218,33 +239,35 @@ class UserProfileController extends Controller
 
         // If no score conditions are generated, set match score to 0
         if (empty($scoreConditions)) {
-            $matchScore = 0;
-            $matchPercentage = 0;
-            $isMatch = false;
-        } else {
-            // Add match score calculations for the single user
-            $totalCriteria = count($scoreConditions);
-            $matchScoreQuery = DB::table('users')
-                ->selectRaw(
-                    'users.*,
-                    (' . implode(' + ', $scoreConditions) . ') as match_score',
-                    $bindings
-                )
-                ->where('users.id', $user->id) // Match only the user with the given username
-                ->first();
-
-            // Calculate the match score threshold as 20% of the total number of scoring criteria
-            $matchThreshold = ceil($totalCriteria * 0.2);
-
-            // Calculate match percentage
-            $matchScore = $matchScoreQuery->match_score;
-            $matchPercentage = ($matchScore / $totalCriteria) * 100;
-
-            // Check if the single user meets the match threshold
-            $isMatch = $matchScore >= $matchThreshold;
+            return response()->json([
+                'user' => $user,
+                'is_match' => false,
+                'match_percentage' => 0,
+                'match_score' => 0,
+                'criteria_matches' => [],  // No matches found
+                'similar_profiles' => [],
+            ]);
         }
 
-        // Define a mapping of column names to meaningful display names
+        // Add match score calculations for the single user
+        $totalCriteria = count($scoreConditions);
+        $matchScoreQuery = DB::table('users')
+            ->selectRaw(
+                'users.*, (' . implode(' + ', $scoreConditions) . ') as match_score',
+                $bindings
+            )
+            ->where('users.id', $user->id) // Match only the user with the given ID
+            ->first();
+
+        // Calculate match percentage
+        $matchScore = $matchScoreQuery->match_score;
+        $matchPercentage = ($matchScore / $totalCriteria) * 100;
+
+        // Define a threshold for matching
+        $matchThreshold = ceil($totalCriteria * 0.2);
+        $isMatch = $matchScore >= $matchThreshold;
+
+        // Prepare display names for the preferences
         $displayNames = [
             'marital_status' => 'Marital Status',
             'religion' => 'Religion',
@@ -258,14 +281,14 @@ class UserProfileController extends Controller
             'city_living_in' => 'City Living In',
         ];
 
-        // Now determine which criteria matched and which did not
+        // Determine which criteria matched and which did not
         foreach ($partnerPreferences as $preferenceCriteria => $preferenceValue) {
             $displayName = $displayNames[$preferenceCriteria] ?? $preferenceCriteria; // Default to the original key if not found
 
             if (is_array($preferenceValue)) {
                 // Handle array preference values
                 $matches[] = [
-                    'preference' => $displayName, // Use the display name
+                    'preference' => $displayName,
                     'required' => $preferenceValue,
                     'user_value' => $user->{$preferenceCriteria},
                     'match' => in_array(strtolower($user->{$preferenceCriteria}), array_map('strtolower', $preferenceValue)) // Case-insensitive check
@@ -273,7 +296,7 @@ class UserProfileController extends Controller
             } else {
                 // Handle single value preferences
                 $matches[] = [
-                    'preference' => $displayName, // Use the display name
+                    'preference' => $displayName,
                     'required' => $preferenceValue,
                     'user_value' => $user->{$preferenceCriteria},
                     'match' => (strtolower($user->{$preferenceCriteria}) === strtolower($preferenceValue)) // Case-insensitive check
@@ -287,9 +310,8 @@ class UserProfileController extends Controller
         $user->unsetRelation('profileViews');
         $user->unsetRelation('payments');
 
+        // Get similar profiles
         $similar_profiles = $user->getSimilarProfiles(10);
-
-
 
         // Return the user and match details as a JSON response
         return response()->json([
@@ -298,9 +320,10 @@ class UserProfileController extends Controller
             'match_percentage' => $matchPercentage,
             'match_score' => $matchScore,
             'criteria_matches' => $matches,  // Return detailed matching info
-            'similar_profiles' => $similar_profiles
+            'similar_profiles' => $similar_profiles,
         ]);
     }
+
 
 
 

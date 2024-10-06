@@ -13,6 +13,7 @@ class Payment extends Model
         'package_purchase_id',
         'union',
         'trxId',
+        'checkout_session_id',
         'user_id',
         'type',
         'amount',
@@ -27,6 +28,7 @@ class Payment extends Model
         'method',
         'payment_type',
         'balance',
+
     ];
 
 

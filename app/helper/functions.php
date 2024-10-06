@@ -75,3 +75,22 @@ function generateCustomS3Url($path)
 
     return $url;
 }
+
+
+function jsonResponse($success, $message, $data = null, $statusCode = 200, array $extraFields = [])
+{
+    // Build the base response structure
+    $response = [
+        'success' => $success,
+        'message' => $message,
+        'data' => $data
+    ];
+
+    // Merge any extra fields into the response
+    if (!empty($extraFields)) {
+        $response = array_merge($response, $extraFields);
+    }
+
+    // Return the JSON response with the given status code
+    return response()->json($response, $statusCode);
+}

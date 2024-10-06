@@ -14,6 +14,7 @@ class InvitationController extends Controller
     // Send an invitation
     public function sendInvitation(Request $request)
     {
+        // Validate request
         $validator = Validator::make($request->all(), [
             'receiver_id' => 'required|exists:users,id',
         ]);
@@ -34,11 +35,18 @@ class InvitationController extends Controller
             return response()->json(['message' => 'Invitation already sent'], 400);
         }
 
+        // Create the invitation
         $invitation = Invitation::create([
             'sender_id' => $sender_id,
             'receiver_id' => $receiver_id,
             'status' => 'sent',
         ]);
+
+        // Send notification to the receiver that they received an invitation
+        notificationCreate($receiver_id, 'invitation_received', $sender_id);
+
+        // Send notification to the sender that they have sent an invitation
+        notificationCreate($sender_id, 'invitation_send', $receiver_id);
 
         return response()->json(['message' => 'Invitation sent successfully', 'invitation' => $invitation], 201);
     }
@@ -56,24 +64,39 @@ class InvitationController extends Controller
             'status' => 'accepted',
         ]);
 
+    // Send notification to the sender that their invitation has been accepted
+    notificationCreate($invitation->sender_id, 'invitation_accept', $invitation->receiver_id);
+
+    // Send notification to the receiver that they accepted the invitation
+    notificationCreate($invitation->receiver_id, 'received_invitation_accept', $invitation->sender_id);
+
+
         return response()->json(['message' => 'Invitation accepted successfully', 'invitation' => $invitation], 200);
     }
 
-    // Reject an invitation
-    public function rejectInvitation($id)
-    {
-        $invitation = Invitation::find($id);
+// Reject an invitation
+public function rejectInvitation($id)
+{
+    $invitation = Invitation::find($id);
 
-        if (!$invitation || $invitation->receiver_id !== Auth::id()) {
-            return response()->json(['message' => 'Invitation not found or you are not authorized'], 404);
-        }
-
-        $invitation->update([
-            'status' => 'rejected',
-        ]);
-
-        return response()->json(['message' => 'Invitation rejected successfully', 'invitation' => $invitation], 200);
+    // Check if the invitation exists and if the authenticated user is the receiver
+    if (!$invitation || $invitation->receiver_id !== Auth::id()) {
+        return response()->json(['message' => 'Invitation not found or you are not authorized'], 404);
     }
+
+    // Update the status of the invitation to 'rejected'
+    $invitation->update([
+        'status' => 'rejected',
+    ]);
+
+    // Send notification to the sender that their invitation has been rejected
+    notificationCreate($invitation->sender_id, 'invitation_reject', $invitation->receiver_id);
+
+    // Send notification to the receiver that they rejected the invitation
+    notificationCreate($invitation->receiver_id, 'received_invitation_reject', $invitation->sender_id);
+
+    return response()->json(['message' => 'Invitation rejected successfully', 'invitation' => $invitation], 200);
+}
 
 
 

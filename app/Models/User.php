@@ -99,6 +99,23 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email_verification_hash',
     ];
 
+
+    public function partnerQualifications()
+    {
+        return $this->hasMany(PartnerQualification::class);
+    }
+
+    public function partnerWorkingWith()
+    {
+        return $this->hasMany(PartnerWorkingWith::class);
+    }
+
+    public function partnerProfessions()
+    {
+        return $this->hasMany(PartnerProfession::class);
+    }
+
+
     public function setGenderAttribute($value)
     {
         // Capitalize the first letter of the gender
@@ -273,35 +290,46 @@ public function permissions()
 
 
 
-     protected $appends = ['is_favorited','age','profile_picture_url','active_package_details','invitation_received_statuses','invitation_send_statuses'];
+     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package_details', 'invitation_send_status'];
+
+     public function getInvitationReceivedStatusAttribute()
+     {
+         // Assuming you want to get the invitation statuses for the authenticated user
+         $authUserId = auth()->id(); // Get the authenticated user's ID
+
+         // Fetch invitations received by the authenticated user
+         $invitations = Invitation::where('receiver_id', $authUserId)
+         ->where('sender_id', $this->id)
+             ->first();
+             if(!$invitations){
+                return 'not received';
+             }
+
+             $status = $invitations->status;
+             if($status=='sent'){
+                $status = 'received';
+             }
 
 
-     public function getInvitationReceivedStatusesAttribute()
-    {
-        // Assuming you want to get the invitation statuses for the authenticated user
-        $authUserId = auth()->id(); // Get the authenticated user's ID
+         return $status; // Return an array of statuses or an empty array if none found
+     }
 
-        // Fetch invitations sent to this user
-        $invitations = Invitation::where('receiver_id', $this->id)
-            ->where('sender_id', $authUserId)
-            ->get();
+     public function getInvitationSendStatusAttribute()
+     {
+         // Assuming you want to get the invitation statuses for the authenticated user
+         $authUserId = auth()->id(); // Get the authenticated user's ID
 
-        return $invitations->pluck('status'); // Return an array of statuses or an empty array if none found
-    }
+         // Fetch invitations sent by the authenticated user
+         $invitations = Invitation::where('sender_id', $authUserId)
+         ->where('receiver_id', $this->id)
+             ->first();
 
-     public function getInvitationSendStatusesAttribute()
-    {
-        // Assuming you want to get the invitation statuses for the authenticated user
-        $authUserId = auth()->id(); // Get the authenticated user's ID
+             if(!$invitations){
+                return 'not sent';
+             }
 
-        // Fetch invitations sent to this user
-        $invitations = Invitation::where('sender_id', $this->id)
-            ->where('receiver_id', $authUserId)
-            ->get();
-
-        return $invitations->pluck('status'); // Return an array of statuses or an empty array if none found
-    }
-
+         return $invitations->status; // Return an array of statuses or an empty array if none found
+     }
 
 
 

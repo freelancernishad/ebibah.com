@@ -3,12 +3,15 @@
 use App\Models\User;
 use App\Models\Notification;
 
-
- function notificationCreate($userId, $type)
+function notificationCreate($userId, $type, $extraUserId = null)
 {
     // Fetch the user's name
     $user = User::find($userId);
     $userName = $user ? $user->name : 'User';
+
+    // Fetch the extra user's name if provided (for invitation scenarios)
+    $extraUser = $extraUserId ? User::find($extraUserId) : null;
+    $extraUserName = $extraUser ? $extraUser->name : '';
 
     // Define the message based on the notification type
     $message = '';
@@ -18,8 +21,28 @@ use App\Models\Notification;
             $message = "{$userName} has viewed your profile.";
             break;
 
-        case 'invitation':
+        case 'invitation_send':
+            $message = "You have sent an invitation to {$userName}.";
+            break;
+
+        case 'invitation_received':
             $message = "You have received an invitation from {$userName}. Click here to view and respond.";
+            break;
+
+        case 'invitation_accept':
+            $message = "{$extraUserName} has accepted your invitation.";
+            break;
+
+        case 'invitation_reject':
+            $message = "{$extraUserName} has rejected your invitation.";
+            break;
+
+        case 'received_invitation_accept':
+            $message = "You have accepted the invitation from {$extraUserName}.";
+            break;
+
+        case 'received_invitation_reject':
+            $message = "You have rejected the invitation from {$extraUserName}.";
             break;
 
         case 'payment':
@@ -67,3 +90,4 @@ use App\Models\Notification;
         'read' => false,
     ]);
 }
+

@@ -39,6 +39,7 @@
             "app/helper/ekpay.php",
             "app/helper/notificaions.php",
             "app/helper/purchase.php",
+            "app/helper/stripe.php",
             "app/helper/imgur.php"
         ]
     },

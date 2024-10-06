@@ -5,57 +5,50 @@ use App\Models\Payment;
 use App\Models\PackagePurchase;
 use Illuminate\Support\Facades\Auth;
 
-     function purchaseCreate($package_id,$method='normal')
-    {
+function purchaseCreate($package_id, $request, $method = 'normal')
+{
+    $user = Auth::guard('web')->user();
 
+    // Fetch Package details
+    $package = Package::findOrFail($package_id);
 
-        $user = Auth::guard('web')->user();
+    // Extract package details
+    $amount = $package->price;
+    $currency = $package->currency;
 
-        // Fetch Package details
-        $package = Package::findOrFail($package_id);
+    // Create Package Purchase record
+    $purchase = PackagePurchase::create([
+        'package_id' => $package->id,
+        'user_id' => $user->id,
+        'price' => $amount,
+        'currency' => $currency,
+        'status' => 'pending',
+        'purchase_date' => now(),
+    ]);
 
-        // Extract package details
-        $amount = $package->price;
-        $currency = $package->currency;
+    // Generate Transaction ID
+    $trxId = generateTrxId();
 
-        // Create Package Purchase record
-        $purchase = PackagePurchase::create([
-            'package_id' => $package->id,
-            'user_id' => $user->id,
-            'price' => $amount,
-            'currency' => $currency,
-            'status' => 'pending',
-            'purchase_date' => now(),
-        ]);
+    // Prepare Payment data
+    $paymentData = [
+        'name' => $package->package_name,
+        'userid' => $user->id,
+        'amount' => $amount,
+        'applicant_mobile' => $user->mobile_number, // Use employer's data
+        'success_url' => $request->success_url,
+        'cancel_url' => $request->cancel_url,
+        'package_purchase_id' => $purchase->id, // Add the hiring_request_id if available
+        'type' => "package",
+    ];
 
-        // Generate Transaction ID
-        $trxId = generateTrxId();
-
-        // Create a new Payment record
-        $payment = Payment::create([
-            'package_purchase_id' => $purchase->id,
-            'trxId' => $trxId,
-            'user_id' => $user->id,
-            'type' => 'package',
-            'amount' => $amount,
-            'currency' => $currency,
-            'applicant_mobile' => $user->mobile_number,
-            'status' => 'pending',
-            'date' => now()->toDateString(),
-            'month' => now()->format('F'),
-            'year' => now()->year,
-            'paymentUrl' => 'url',
-            'ipnResponse' => 'ipn',
-            'method' => $method,
-            'payment_type' => 'payment_type',
-            'balance' => 0,
-        ]);
+    // Trigger the Stripe payment and get the redirect URL
+    $paymentUrl = stripe($paymentData); // Ensure stripe function is defined elsewhere
 
 
 
-        return response()->json([
-            'message' => 'Purchase processed successfully',
-            'purchase' => $purchase,
-            'payment' => $payment,
-        ], 201);
-    }
+    return [
+        'purchase' => $purchase,
+        'payment_url' => $paymentUrl, // Return the payment URL
+    ];
+}
+

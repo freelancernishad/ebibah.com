@@ -10,6 +10,7 @@ use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\SocialLinkController;
 use App\Http\Controllers\api\PackageController;
 use App\Http\Controllers\AdvertisementController;
+use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\Global\FilterUserController;
 
 /*
@@ -58,3 +59,7 @@ Route::get('packages', [PackageController::class, 'index']);
 Route::get('packages/{id}', [PackageController::class, 'show']);
 Route::get('packages/{packageId}/services', [PackageController::class, 'getPackageServices']);
 Route::get('package-services', [PackageController::class, 'getAllPackageServices']);
+
+
+
+Route::post('stripe/webhook', [StripePaymentController::class, 'handleWebhook']);

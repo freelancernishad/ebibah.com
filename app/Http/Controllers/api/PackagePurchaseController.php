@@ -23,15 +23,26 @@ class PackagePurchaseController extends Controller
         // Validate request
         $validator = Validator::make($request->all(), [
             'package_id' => 'required|exists:packages,id',
+            'success_url' => 'required|url',
+            'cancel_url' => 'required|url',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-       return  purchaseCreate($request->package_id);
+        // Process the purchase and get the package purchase details
+        $purchaseResponse = purchaseCreate($request->package_id,$request);
 
 
+        $paymentUrl = $purchaseResponse['payment_url'];
+
+
+        return response()->json([
+            'message' => 'Purchase processed successfully',
+            'purchase' => $purchaseResponse['purchase'],
+            'payment_url' => $paymentUrl, // Include the payment URL in the response
+        ], 201);
     }
 
 

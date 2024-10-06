@@ -72,9 +72,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::delete('/{id}', [RoleUserController::class, 'destroy']);
     });
 
-    Route::post('users/change-password', [UserController::class, 'changePassword'])
-        ->name('users.change_password')
-        ->middleware('checkPermission:users.change_password');
+    Route::post('/change-password', [UserController::class, 'changePassword']);
 
 
     Route::post('/users/{id}/basics-lifestyle', [UserController::class, 'updateBasicsAndLifestyle']);
