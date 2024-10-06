@@ -18,9 +18,11 @@ class UserImageController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate request
+        // Get the authenticated user from the JWT token
+        $user = auth()->user();
+
+        // Validate the request (no need for user_id validation)
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
             'image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -32,12 +34,13 @@ class UserImageController extends Controller
         if ($request->hasFile('image_path')) {
             $file = $request->file('image_path');
             $fileName = time() . '_' . $file->getClientOriginalName();
-            // $filePath = $file->storeAs('users/images/'.$request->user_id, $fileName, 'protected');
-            $filePath = $file->storeAs('users/images/'.$request->user_id, $fileName, 's3');
+
+            // Store the file in the S3 disk
+            $filePath = $file->storeAs('users/images/' . $user->id, $fileName, 's3');
 
             // Save image path to the database
             $userImage = UserImage::create([
-                'user_id' => $request->user_id,
+                'user_id' => $user->id,
                 'image_path' => generateCustomS3Url($filePath),
             ]);
 
@@ -58,47 +61,65 @@ class UserImageController extends Controller
      */
     public function show(UserImage $userImage)
     {
-        if (!Storage::exists($userImage->image_path)) {
+        // Load the user relationship (if it's not eager loaded by default)
+        $userImage->load('user');
+
+        // Extract relative path from the full URL
+        $relativePath = parse_url($userImage->image_path, PHP_URL_PATH);
+
+        // Check if the file exists using the relative path
+        if (!Storage::disk('s3')->exists($relativePath)) {
             return response()->json(['message' => 'Image not found'], 404);
         }
 
-        return response()->file(storage_path('app/public/' . $userImage->image_path));
+        // Return the full URL for S3 or cloud storage
+        // $url = Storage::disk('s3')->url($relativePath);
+
+        // Include the full URL in the response
+        // $userImage->image_url = $url;
+
+        return response()->json($userImage, 200);
     }
+
+
+
+
 
 
 
     public function deleteImage(Request $request)
-{
-    return $request->all();
-    // Validate request
-    $validator = Validator::make($request->all(), [
-        'user_id' => 'required|exists:users,id',
-        'image_id' => 'required|exists:user_images,id', // Assuming `user_images` is the table name
-    ]);
+    {
+        // Get the authenticated user from the JWT token
+        $user = auth()->user();
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 400);
+        // Validate request (no need for user_id validation as we get it from the token)
+        $validator = Validator::make($request->all(), [
+            'image_id' => 'required|exists:user_images,id', // Assuming `user_images` is the table name
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        // Find the image record for the authenticated user
+        $userImage = UserImage::where('user_id', $user->id)
+                              ->where('id', $request->image_id)
+                              ->first();
+
+        if (!$userImage) {
+            return response()->json(['error' => 'Image not found.'], 404);
+        }
+
+        // Delete the image file from storage
+        if (Storage::disk('protected')->exists($userImage->image_path)) {
+            Storage::disk('protected')->delete($userImage->image_path);
+        }
+
+        // Delete the image record from the database
+        $userImage->delete();
+
+        return response()->json(['message' => 'Image deleted successfully.'], 200);
     }
-
-    // Find the image record
-    $userImage = UserImage::where('user_id', $request->user_id)
-                          ->where('id', $request->image_id)
-                          ->first();
-
-    if (!$userImage) {
-        return response()->json(['error' => 'Image not found.'], 404);
-    }
-
-    // Delete the image file from storage
-    if (Storage::disk('protected')->exists($userImage->image_path)) {
-        Storage::disk('protected')->delete($userImage->image_path);
-    }
-
-    // Delete the image record from the database
-    $userImage->delete();
-
-    return response()->json(['message' => 'Image deleted successfully.'], 200);
-}
 
 
 }
