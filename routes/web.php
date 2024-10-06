@@ -20,7 +20,7 @@ use App\Http\Controllers\InvoiceController;
 */
 
 Route::get('/', function () {
-    User::updateGenderToLowercase();
+    User::updateGenderToCapitalized();
 
     return ['Laravel' => app()->version()];
 });
