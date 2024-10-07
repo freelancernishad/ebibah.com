@@ -19,8 +19,18 @@ class Favorite extends Model
     /**
      * Get the user that added the favorite.
      */
+
+
     public function user()
+    {
+        return $this->belongsTo(User::class,'favoritable_id');
+    }
+
+    public function senderuser()
     {
         return $this->belongsTo(User::class);
     }
+
+
+
 }

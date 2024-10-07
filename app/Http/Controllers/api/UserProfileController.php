@@ -51,6 +51,7 @@ class UserProfileController extends Controller
      * @param  string $username
      * @return \Illuminate\Http\Response
      */
+
     public function getSingleUserWithAuthUserMatch($id)
     {
         // Get the authenticated user
@@ -59,24 +60,23 @@ class UserProfileController extends Controller
         // Find the user by id with the related images
         $user = User::with('userImages')->find($id);
 
-
-
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        // Define the authenticated user's partner preferences
+        // Define the authenticated user's partner preferences using relations
         $partnerPreferences = [
-            'marital_status' => $authUser->partner_marital_status,
-            'religion' => $authUser->partner_religion,
-            'community' => $authUser->partner_community,
-            'mother_tongue' => $authUser->partner_mother_tongue,
-            'highest_qualification' => $authUser->partnerQualification ? $authUser->partnerQualification->pluck('qualification')->toArray() : [],
-            'working_sector' => $authUser->partnerWorkingWith ? $authUser->partnerWorkingWith->pluck('sector')->toArray() : [],
-            'profession' => $authUser->partnerProfession ? $authUser->partnerProfession->pluck('profession')->toArray() : [],
-            'living_country' => $authUser->partner_country,
-            'state' => $authUser->partner_state,
-            'city_living_in' => $authUser->partner_city,
+            'marital_status' => $authUser->partnerMaritalStatuses()->pluck('marital_status')->toArray(),
+            'religion' => $authUser->partnerReligions()->pluck('religion')->toArray(),
+            'community' => $authUser->partnerCommunities()->pluck('community')->toArray(),
+            'mother_tongue' => $authUser->partnerMotherTongues()->pluck('mother_tongue')->toArray(),
+            'highest_qualification' => $authUser->partnerQualification()->pluck('qualification')->toArray(),
+            'working_sector' => $authUser->partnerWorkingWith()->pluck('working_with')->toArray(),
+            'profession' => $authUser->partnerProfessions()->pluck('profession')->toArray(),
+            'profession_details' => $authUser->partnerProfessionalDetails()->pluck('profession')->toArray(), // Added this line
+            'living_country' => $authUser->partnerCountries()->pluck('country')->toArray(),
+            'state' => $authUser->partnerStates()->pluck('state')->toArray(),
+            'city_living_in' => $authUser->partnerCities()->pluck('city')->toArray(),
         ];
 
         // Initialize arrays for SQL CASE statements and bindings
@@ -133,6 +133,7 @@ class UserProfileController extends Controller
             'highest_qualification' => 'Highest Qualification',
             'working_sector' => 'Working Sector',
             'profession' => 'Profession',
+            'profession_details' => 'Professional Detail', // Added display name
             'living_country' => 'Living Country',
             'state' => 'State',
             'city_living_in' => 'City Living In',
@@ -158,11 +159,6 @@ class UserProfileController extends Controller
             }
         }
 
-        // Unset specific relationships
-
-
-        // Hide specific attributes
-
         // Get similar profiles
         $similar_profiles = $user->getSimilarProfiles(10);
 
@@ -175,6 +171,7 @@ class UserProfileController extends Controller
             'similar_profiles' => $similar_profiles,
         ]);
     }
+
 
 
 
