@@ -99,7 +99,6 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 
 
 
-
 function profile_matches($type = '', $limit = null)
 {
     // Get the authenticated user
@@ -114,205 +113,183 @@ function profile_matches($type = '', $limit = null)
     $query = User::query();
 
     // Filter based on requested type
-    $matchType = $type; // e.g., 'new', 'today', 'my', 'near'
+    $matchType = $type;
 
     // Only match users of the opposite gender and exclude the authenticated user
     $query->where('gender', '!=', $user->gender)
           ->where('id', '!=', $user->id);
 
-
-
-           // Age range from user input
-    $ageRange = explode('-', $user->partner_age); // Assuming it's in the format "25-35"
-    $minAge = (int)$ageRange[0];
-    $maxAge = (int)$ageRange[1];
-
-    // Calculate date range for age validation
-    $currentDate = now();
-    $minDateOfBirth = $currentDate->subYears($maxAge)->startOfDay();
-    $maxDateOfBirth = $currentDate->subYears($minAge)->endOfDay();
-
-    // Add age validation based on date_of_birth
-    $query->whereBetween('date_of_birth', [$minDateOfBirth, $maxDateOfBirth]);
-
-
-
-
-
-
-
-
-
     // Initialize conditions for the SQL CASE statement
     $scoreConditions = [];
+    $totalCriteria = 0;
 
-    // Check partner preferences using relationships
-    if ($user->partnerMaritalStatuses) {
-        $maritalStatuses = $user->partnerMaritalStatuses->pluck('status')->toArray();
-        if (!empty($maritalStatuses)) {
-            $query->whereIn('marital_status', $maritalStatuses);
-            $scoreConditions[] = "1"; // Score for matching marital statuses
-        }
+    // Initialize the array to store matched fields
+    $matchedUsersDetails = [];
+
+    // Add other matching criteria checks
+    addMatchingCriteria($query, $user, $scoreConditions, $totalCriteria, $matchedUsersDetails);
+
+
+
+
+    // Retrieve all users that match other criteria
+    $matchingUsers = $query->get();
+
+    // Log initial matching users count
+    \Log::info('Initial Matching Users Count: ', ['count' => $matchingUsers->count()]);
+
+    // Create a filtered collection for users that meet at least 2 matching criteria
+    $finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matchedUsersDetails) {
+        // Ensure that the user has at least 2 matching fields
+        return isset($matchedUsersDetails[$matchingUser->id]) && count($matchedUsersDetails[$matchingUser->id]) >= 2;
+    });
+
+    // Log matched users
+    \Log::info('Final Matching Users Count: ', ['count' => $finalMatchingUsers->count()]);
+
+    // Log details of matched users
+    foreach ($finalMatchingUsers as $matchingUser) {
+        \Log::info('Matched User:', ['user_id' => $matchingUser->id]);
     }
 
-    if ($user->partnerReligions) {
-        $religions = $user->partnerReligions->pluck('religion')->toArray();
-        if (!empty($religions)) {
-            $query->whereIn('religion', $religions);
-            $scoreConditions[] = "1"; // Score for matching religions
-        }
-    }
-
-    if ($user->partnerCommunities) {
-        $communities = $user->partnerCommunities->pluck('community')->toArray();
-        if (!empty($communities)) {
-            $query->whereIn('community', $communities);
-            $scoreConditions[] = "1"; // Score for matching communities
-        }
-    }
-
-    if ($user->partnerMotherTongues) {
-        $motherTongues = $user->partnerMotherTongues->pluck('mother_tongue')->toArray();
-        if (!empty($motherTongues)) {
-            $query->whereIn('mother_tongue', $motherTongues);
-            $scoreConditions[] = "1"; // Score for matching mother tongues
-        }
-    }
-
-    if ($user->partnerQualification) {
-        $qualifications = $user->partnerQualification->pluck('qualification')->toArray();
-        if (!empty($qualifications)) {
-            $query->whereIn('highest_qualification', $qualifications);
-            $scoreConditions[] = "1"; // Score for matching qualifications
-        }
-    }
-
-    if ($user->partnerWorkingWith) {
-        $workingSectors = $user->partnerWorkingWith->pluck('working_with')->toArray();
-        if (!empty($workingSectors)) {
-            $query->whereIn('working_sector', $workingSectors);
-            $scoreConditions[] = "1"; // Score for matching working sectors
-        }
-    }
-
-    if ($user->partnerProfessions) {
-        $professions = $user->partnerProfessions->pluck('profession')->toArray();
-        if (!empty($professions)) {
-            $query->whereIn('profession', $professions);
-            $scoreConditions[] = "1"; // Score for matching professions
-        }
-    }
-
-    if ($user->partnerProfessionalDetails) {
-        $professionalDetails = $user->partnerProfessionalDetails->pluck('detail')->toArray();
-        if (!empty($professionalDetails)) {
-            $query->whereIn('profession_details', $professionalDetails);
-            $scoreConditions[] = "1"; // Score for matching professional details
-        }
-    }
-
-    if ($user->partnerCountries) {
-        $countries = $user->partnerCountries->pluck('country')->toArray();
-        if (!empty($countries)) {
-            $query->whereIn('living_country', $countries);
-            $scoreConditions[] = "1"; // Score for matching countries
-        }
-    }
-
-    if ($user->partnerStates) {
-        $states = $user->partnerStates->pluck('state')->toArray();
-        if (!empty($states)) {
-            $query->whereIn('state', $states);
-            $scoreConditions[] = "1"; // Score for matching states
-        }
-    }
-
-    if ($user->partnerCities) {
-        $cities = $user->partnerCities->pluck('city')->toArray();
-        if (!empty($cities)) {
-            $query->whereIn('city_living_in', $cities);
-            $scoreConditions[] = "1"; // Score for matching cities
-        }
-    }
-
-    // Check if score conditions are available
-    if (empty($scoreConditions)) {
-        // Return early if there are no valid matching criteria
-        return []; // No matches found
-    }
-
-    // Add matching conditions based on user's partner preferences
-    $totalCriteria = count($scoreConditions); // This should reflect the actual number of conditions
-    $query->selectRaw('
-        users.*,
-        (' . implode(' + ', $scoreConditions) . ') as match_score
-    ');
-
-    // Calculate the match score threshold as 20% of the total number of scoring criteria
-    $matchThreshold = ceil($totalCriteria * 0.2);
-    $query->having('match_score', '>=', $matchThreshold);
+    // Attach matched fields to the final matching users and remove the "user" key
+    $result = $finalMatchingUsers->map(function ($user) use ($matchedUsersDetails) {
+        return array_merge(
+            $user->toArray(), // Merge the user's attributes directly
+            ['matched_fields' => $matchedUsersDetails[$user->id] ?? []] // Add matched fields
+        );
+    })->values(); // Use values() to remove numeric keys
 
     // Apply additional filters based on the type of match requested
-    applyMatchTypeFilters($query, $matchType, $user);
-
-    // Order the results by the highest match score first
-    $query->orderByDesc('match_score');
-
-    // Execute the query and get the results
-    $matchingUsers = $query->get();
+    applyMatchTypeFilters($result, $matchType, $user);
 
     // Apply the optional limit if provided
     if ($limit !== null) {
-        $matchingUsers = $matchingUsers->take($limit);
+        $result = $result->take($limit);
     }
 
-    // Calculate and include the percentage for each user
-    $matchingUsers->transform(function ($matchingUser) use ($totalCriteria) {
-        // Match percentage calculation (ensure division by the correct totalCriteria)
-        $matchingUser->match_percentage = ($matchingUser->match_score / $totalCriteria) * 100;
-        return $matchingUser;
-    });
-
-    // Return the matching users as a JSON response, including the match_percentage
-    return $matchingUsers;
+    // Return the final matching users as a JSON response
+    return $result;
 }
 
-function applyMatchTypeFilters($query, $matchType, $user)
+
+
+
+
+
+
+function addMatchingCriteria($query, $user, &$scoreConditions, &$totalCriteria, &$matchedUsersDetails)
 {
-    switch ($matchType) {
-        case 'new':
-            // Filter for new users based on their creation date
-            $query->orderBy('created_at', 'desc');
-            break;
+    // Map user relationships to corresponding columns in other users
+    $criteriaMappings = [
+        'partnerMaritalStatuses' => 'marital_status',
+        'partnerReligions' => 'religion',
+        'partnerCommunities' => 'community',
+        'partnerMotherTongues' => 'mother_tongue',
+        'partnerQualification' => 'qualification',
+        'partnerWorkingWith' => 'working_with',
+        'partnerProfessions' => 'profession',
+        'partnerProfessionalDetails' => 'profession',
+        'partnerCountries' => 'country',
+        'partnerStates' => 'currently_living_in',
+        'partnerCities' => 'city',
+    ];
 
-        case 'today':
-            // Filter for users who were created today
-            $query->whereDate('created_at', now()->toDateString());
-            break;
+    foreach ($criteriaMappings as $relation => $column) {
+        if ($user->$relation) {
+            // Retrieve the values from the authenticated user's relationship
+            $userValues = $user->$relation->pluck($column)->toArray();
 
-        case 'my':
-            // For 'my', we will not use previously matched users or an ID check,
-            // but instead rely entirely on the calculated match score from the preferences.
-            // No additional filters are needed, the match score logic is already in place.
-            break;
+            if (!empty($userValues)) {
 
-        case 'near':
-            // Filter based on location attributes of the user and the potential matches
-            $partnerCountries = $user->partnerCountries->pluck('country')->toArray();
-            $partnerStates = $user->partnerStates->pluck('state')->toArray();
-            $partnerCities = $user->partnerCities->pluck('city')->toArray();
 
-            $query->where(function ($subQuery) use ($partnerCountries, $partnerStates, $partnerCities) {
-                if (!empty($partnerCountries)) {
-                    $subQuery->whereIn('living_country', $partnerCountries);
-                }
-                if (!empty($partnerStates)) {
-                    $subQuery->whereIn('state', $partnerStates);
-                }
-                if (!empty($partnerCities)) {
-                    $subQuery->whereIn('city', $partnerCities);
-                }
-            });
-            break;
+                    // Initialize the user column mapping
+                    $userColumn = $column;
+
+                    // Adjust column names for specific mappings
+                    if ($column === 'qualification') {
+                        $userColumn = 'highest_qualification';
+                    } elseif ($column === 'working_with') {
+                        $userColumn = 'working_sector';
+                    } elseif ($column === 'country') {
+                        $userColumn = 'living_country';
+                    } elseif ($column === 'city') {
+                        $userColumn = 'city_living_in';
+                    } elseif ($column === 'profession') {
+                        if($relation=='partnerProfessionalDetails'){
+                            $userColumn = 'profession_details';
+                        }
+                    }
+
+
+                // Apply the query condition using where or orWhere for at least one match
+                $query->orWhere(function ($q) use ($userColumn, $userValues, &$matchedUsersDetails, $user) {
+                    foreach ($userValues as $value) {
+                        $q->orWhere($userColumn, $value);
+                    }
+                });
+
+                // Increment the total criteria count
+                $scoreConditions[] = "1"; // Score for matching criteria
+                $totalCriteria++; // Increment total criteria count
+
+                // Retrieve other users' values from the same column
+                $query->get()->each(function ($matchingUser) use ($userColumn, $userValues, &$matchedUsersDetails, $user, $relation) {
+                    // Check if the other user's value matches the authenticated user's preference
+                    $otherUserValue = $matchingUser->$userColumn;
+
+                    // Only add details if there's a match
+                    if (in_array($otherUserValue, $userValues)) {
+                        // Log the matched field and values
+                        $matchedUsersDetails[$matchingUser->id][] = [
+                            'field' => $userColumn,
+                            'auth_user_preference' => $userValues, // The values from the authenticated user's preferences
+                            'matched_user_value' => $otherUserValue, // The value from the other user's profile
+                            'matched' => true, // Indicate that it matched
+                        ];
+
+                        // Log the matched criteria
+                        \Log::info("Matched " . ucfirst($relation) . ":", [
+                            'auth_user_id' => $user->id,
+                            'auth_user_values' => $userValues, // Log the user's preference values
+                            'other_user_id' => $matchingUser->id,
+                            'other_user_value' => $otherUserValue, // Log the matched value
+                            'column' => $userColumn
+                        ]);
+                    }
+                });
+            } else {
+                // Log unmatched criteria with user values
+                \Log::info("No preferences set for " . ucfirst($relation) . ":", [
+                    'user_id' => $user->id,
+                    'column' => $column
+                ]);
+            }
+        }
     }
 }
+
+
+
+function applyMatchTypeFilters($finalMatchingUsers, $matchType, $user)
+{
+    // Additional filters based on match type can be added here
+    if ($matchType) {
+        // Example logic for match type filtering
+        switch ($matchType) {
+            case 'preferred':
+                // Apply preferred match type logic here
+                break;
+            case 'strict':
+                // Apply strict match type logic here
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+
+
+
+
