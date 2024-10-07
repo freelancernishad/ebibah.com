@@ -211,7 +211,7 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
     });
 
     // Return the matching users as a JSON response, including the match_percentage
-    return response()->json(['status' => 'success', 'data' => $matchingUsers], 200);
+    return $matchingUsers;
 }
 
 
