@@ -196,16 +196,7 @@ class UserProfileController extends Controller
         // Find the user by id with the related images
         $user = User::with('userImages')->find($id);
 
-        $user->unsetRelation('sentInvitations');
-        $user->unsetRelation('receivedInvitations');
-        $user->unsetRelation('profileViews');
-        $user->unsetRelation('payments');
-        $user->makeHidden([
-            'active_package_id',
-            'active_package',
-            'email',
-            'email_verification_hash',
-        ]);
+
 
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);

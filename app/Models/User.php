@@ -148,6 +148,33 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     ];
 
 
+    public function toArrayWithRelations()
+    {
+        return parent::toArray(); // Call the parent's toArray without any modifications
+    }
+
+    public function toArray()
+    {
+        // Unset the specified relations
+        $this->unsetRelation('sentInvitations');
+        $this->unsetRelation('receivedInvitations');
+        $this->unsetRelation('profileViews');
+        $this->unsetRelation('payments');
+
+        // Hide the specified attributes
+        $this->makeHidden([
+            'active_package_id',
+            'active_package',
+            'email',
+            'email_verification_hash',
+        ]);
+
+        return parent::toArray();
+    }
+
+
+
+
     public function organization()
     {
         return $this->belongsTo(Organization::class, 'org');

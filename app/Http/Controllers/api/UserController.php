@@ -42,7 +42,7 @@ class UserController extends Controller
         // $age = calculateAge($user->date_of_birth);
 
         // Convert user to array and include age
-        $userArray = $user->toArray();
+        $userArray = $user->toArrayWithRelations();
         // $userArray['age'] = $age;
 
         // Return the authenticated user's profile
