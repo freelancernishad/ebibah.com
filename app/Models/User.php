@@ -295,9 +295,9 @@ public function permissions()
     public function sentInvitations(): HasMany
     {
         return $this->hasMany(Invitation::class, 'sender_id')->with([
-                        'sender' => function($query) {
-                            $this->selectUserFields($query);
-                        },
+                        // 'sender' => function($query) {
+                        //     $this->selectUserFields($query);
+                        // },
                         'receiver' => function($query) {
                             $this->selectUserFields($query);
                         }
@@ -313,9 +313,9 @@ public function permissions()
                         'sender' => function($query) {
                             $this->selectUserFields($query);
                         },
-                        'receiver' => function($query) {
-                            $this->selectUserFields($query);
-                        }
+                        // 'receiver' => function($query) {
+                        //     $this->selectUserFields($query);
+                        // }
                     ])
                     ->where('status', 'sent') // Only include invitations with status 'received'
                     ->latest() // Order by latest
