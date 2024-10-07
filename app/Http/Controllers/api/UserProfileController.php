@@ -206,9 +206,10 @@ class UserProfileController extends Controller
             'religion' => $authUser->partner_religion,
             'community' => $authUser->partner_community,
             'mother_tongue' => $authUser->partner_mother_tongue,
-            'highest_qualification' => $authUser->partnerQualification->pluck('qualification')->toArray(),
-            'working_sector' => $authUser->partnerWorkingWith->pluck('sector')->toArray(),
-            'profession' => $authUser->partnerProfession->pluck('profession')->toArray(),
+            // Check if the relationship exists before calling pluck(), return an empty array if null
+            'highest_qualification' => $authUser->partnerQualification ? $authUser->partnerQualification->pluck('qualification')->toArray() : [],
+            'working_sector' => $authUser->partnerWorkingWith ? $authUser->partnerWorkingWith->pluck('sector')->toArray() : [],
+            'profession' => $authUser->partnerProfession ? $authUser->partnerProfession->pluck('profession')->toArray() : [],
             'living_country' => $authUser->partner_country,
             'state' => $authUser->partner_state,
             'city_living_in' => $authUser->partner_city,
@@ -323,6 +324,8 @@ class UserProfileController extends Controller
             'similar_profiles' => $similar_profiles,
         ]);
     }
+
+
 
 
 
