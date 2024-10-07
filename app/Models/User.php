@@ -335,6 +335,13 @@ public function permissions()
                     ->take(10); // Limit to the latest 10 payments
     }
 
+    public function favorites($limit = 4)
+    {
+        return $this->hasMany(Favorite::class)
+        ->latest() // Order by latest
+        ->limit($limit); // Limit to 4 records
+    }
+
 
     public function userImages(): HasMany
     {
@@ -352,10 +359,6 @@ public function permissions()
     }
 
 
-    public function favorites()
-    {
-        return $this->hasMany(Favorite::class);
-    }
 
      // Automatically append 'is_favorited' to the user instance
 
@@ -378,7 +381,7 @@ public function permissions()
                      ->where('status', 'accepted') // Only include invitations with status 'accepted'
                      ->count(); // Count the invitations
      }
-     
+
 
 
 
