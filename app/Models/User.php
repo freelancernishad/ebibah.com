@@ -317,7 +317,7 @@ public function permissions()
                             $this->selectUserFields($query);
                         }
                     ])
-                    ->where('status', 'received') // Only include invitations with status 'received'
+                    ->where('status', 'sent') // Only include invitations with status 'received'
                     ->latest() // Order by latest
                     ->take(10); // Limit to the latest 10 invitations
     }
