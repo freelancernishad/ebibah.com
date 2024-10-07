@@ -98,6 +98,9 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
     return response()->json($response, $statusCode);
 }
 
+
+
+
 function profile_matches($type = '', $limit = null)
 {
     // Get the authenticated user
@@ -114,7 +117,7 @@ function profile_matches($type = '', $limit = null)
     // Filter based on requested type
     $matchType = $type;
 
-    applyMatchTypeFilters($query, $matchType, $user);
+
 
     // Only match users of the opposite gender and exclude the authenticated user
     $query->where('gender', '!=', $user->gender)
@@ -157,9 +160,9 @@ function profile_matches($type = '', $limit = null)
 
     // Retrieve all users that match other criteria
     $matchingUsers = $query->get();
-// Log the SQL and bindings
-\Log::info($query->toSql());
-\Log::info($query->getBindings());
+    // Log the SQL and bindings
+    \Log::info($query->toSql());
+    \Log::info($query->getBindings());
       // Apply additional filters based on the type of match requested
 
 
@@ -216,6 +219,9 @@ function profile_matches($type = '', $limit = null)
     if ($limit !== null) {
         $result = $result->take($limit);
     }
+
+
+    $result = applyMatchTypeFilters($result, $matchType, $user);
 
     // Return the final matching users as a JSON response
     return $result;
@@ -316,25 +322,31 @@ function addMatchingCriteria($query, $user, &$scoreConditions, &$totalCriteria, 
 }
 
 
-function applyMatchTypeFilters($query, $matchType, $user)
+
+
+
+function applyMatchTypeFilters($users, $matchType, $user)
 {
+    // Convert the users collection to a Laravel Collection if it's not already
+    $users = collect($users);
+
     // Eager load the partner-related relationships to avoid N+1 problems
     $user->load(['partnerCountries', 'partnerStates', 'partnerCities']);
 
     switch ($matchType) {
         case 'new':
-            // Filter for new users based on their creation date
-            $query->orderBy('created_at', 'desc');
+            // Sort users by created_at in descending order, ensuring the items are models
+            $users = $users->sortByDesc(function ($user) {
+                return $user instanceof \Illuminate\Database\Eloquent\Model ? $user->created_at : null;
+            });
             break;
 
-            case 'today':
-                // Get the start and end of today in the specified timezone
-                $startOfDay = Carbon::today(); // Start of today
-                $endOfDay = Carbon::today()->endOfDay(); // End of today
-
-                // Apply the filter
-                $query->whereBetween('created_at', [$startOfDay, $endOfDay]);
-                break;
+        case 'today':
+            // Filter users created today
+            $users = $users->filter(function ($user) {
+                return $user instanceof \Illuminate\Database\Eloquent\Model && Carbon::today()->isSameDay($user->created_at);
+            });
+            break;
 
         case 'my':
             // For 'my', we will not use previously matched users or an ID check,
@@ -344,26 +356,21 @@ function applyMatchTypeFilters($query, $matchType, $user)
 
         case 'near':
             // Access partner's location attributes from related models
-            $partnerCountries = $user->partnerCountries->pluck('country')->toArray(); // Assuming 'country' is the column name
-            $partnerStates = $user->partnerStates->pluck('state')->toArray();       // Assuming 'state' is the column name
-            $partnerCities = $user->partnerCities->pluck('city')->toArray();        // Assuming 'city' is the column name
+            $partnerCountries = $user->partnerCountries->pluck('country')->toArray();
+            $partnerStates = $user->partnerStates->pluck('state')->toArray();
+            $partnerCities = $user->partnerCities->pluck('city')->toArray();
 
-            // Use a closure to apply location filters
-            $query->where(function ($subQuery) use ($partnerCountries, $partnerStates, $partnerCities) {
-                // Check if partner countries are provided and apply the filter
-                if (!empty($partnerCountries)) {
-                    $subQuery->whereIn('living_country', $partnerCountries);
+            // Filter users based on location
+            $users = $users->filter(function ($user) use ($partnerCountries, $partnerStates, $partnerCities) {
+                if (!($user instanceof \Illuminate\Database\Eloquent\Model)) {
+                    return false; // Ignore if not an Eloquent model
                 }
 
-                // Check if partner states are provided and apply the filter
-                if (!empty($partnerStates)) {
-                    $subQuery->whereIn('state', $partnerStates);
-                }
+                $matchesCountry = empty($partnerCountries) || in_array($user->living_country, $partnerCountries);
+                $matchesState = empty($partnerStates) || in_array($user->state, $partnerStates);
+                $matchesCity = empty($partnerCities) || in_array($user->city_living_in, $partnerCities);
 
-                // Check if partner cities are provided and apply the filter
-                if (!empty($partnerCities)) {
-                    $subQuery->whereIn('city_living_in', $partnerCities);
-                }
+                return $matchesCountry && $matchesState && $matchesCity;
             });
             break;
 
@@ -372,7 +379,12 @@ function applyMatchTypeFilters($query, $matchType, $user)
             \Log::warning('Unknown match type: ' . $matchType);
             break;
     }
+
+    // Return the filtered and sorted users
+    return $users->values(); // Reset the array keys after filtering
 }
+
+
 
 
 
