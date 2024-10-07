@@ -371,7 +371,7 @@ public function permissions()
 
 
 
-     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count'];
+     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count'];
 
 
 
@@ -387,6 +387,12 @@ public function permissions()
          return $this->hasMany(Invitation::class, 'receiver_id')
                      ->where('status', 'accepted') // Only include invitations with status 'accepted'
                      ->count(); // Count the invitations
+     }
+
+
+     public function getFavoritesCountAttribute(): int
+     {
+        return $this->hasMany(Favorite::class)->count();
      }
 
 
