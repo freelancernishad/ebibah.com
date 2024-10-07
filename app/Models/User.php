@@ -167,6 +167,15 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'active_package',
             'email',
             'email_verification_hash',
+            'step',
+            'email_verified_at',
+            'role',
+            'role_id',
+            'created_at',
+            'updated_at',
+            'views',
+            'likes',
+
         ]);
 
         return parent::toArray();
