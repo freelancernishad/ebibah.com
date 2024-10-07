@@ -26,13 +26,12 @@ function purchaseCreate($package_id, $request, $method = 'normal')
         'purchase_date' => now(),
     ]);
 
-    // Generate Transaction ID
-    $trxId = generateTrxId();
+
 
     // Prepare Payment data
     $paymentData = [
         'name' => $package->package_name,
-        'userid' => $user->id,
+        'user_id' => $user->id,
         'amount' => $amount,
         'applicant_mobile' => $user->mobile_number, // Use employer's data
         'success_url' => $request->success_url,
