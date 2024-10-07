@@ -285,10 +285,23 @@ public function permissions()
         return $this->hasMany(ProfileView::class, 'viewer_id')->latest()->take(10);
     }
 
+
+    private function selectUserFields($query)
+    {
+        $query->select('id','name','marital_status','religion','date_of_birth','profession','living_country','working_sector','height');
+    }
+
     // Other relationships...
     public function sentInvitations(): HasMany
     {
-        return $this->hasMany(Invitation::class, 'sender_id')
+        return $this->hasMany(Invitation::class, 'sender_id')->with([
+                        'sender' => function($query) {
+                            $this->selectUserFields($query);
+                        },
+                        'receiver' => function($query) {
+                            $this->selectUserFields($query);
+                        }
+                    ])
                     ->where('status', 'sent') // Only include invitations with status 'sent'
                     ->latest() // Order by latest
                     ->take(10); // Limit to the latest 10 invitations
@@ -296,7 +309,14 @@ public function permissions()
 
     public function receivedInvitations(): HasMany
     {
-        return $this->hasMany(Invitation::class, 'receiver_id')
+        return $this->hasMany(Invitation::class, 'receiver_id')->with([
+                        'sender' => function($query) {
+                            $this->selectUserFields($query);
+                        },
+                        'receiver' => function($query) {
+                            $this->selectUserFields($query);
+                        }
+                    ])
                     ->where('status', 'received') // Only include invitations with status 'received'
                     ->latest() // Order by latest
                     ->take(10); // Limit to the latest 10 invitations
@@ -305,8 +325,12 @@ public function permissions()
 
     public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class)->latest()->take(10);
+        return $this->hasMany(Payment::class)
+                    ->where('status', 'completed') // Only include payments with status 'completed'
+                    ->latest() // Order by latest
+                    ->take(10); // Limit to the latest 10 payments
     }
+
 
     public function userImages(): HasMany
     {
