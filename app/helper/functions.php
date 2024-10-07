@@ -100,8 +100,7 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 
 
 
-
- function profile_matches($type = '', $limit = null)
+function profile_matches($type = '', $limit = null)
 {
     // Get the authenticated user
     $user = Auth::user();
@@ -121,34 +120,69 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
     $query->where('gender', '!=', $user->gender)
           ->where('id', '!=', $user->id);
 
-    // Define partner preferences
-    $partnerPreferences = [
-        'marital_status' => $user->partner_marital_status,
-        'religion' => $user->partner_religion,
-        'community' => $user->partner_community,
-        'mother_tongue' => $user->partner_mother_tongue,
-        'living_country' => $user->partner_country,
-        'state' => $user->partner_state,
-        'city_living_in' => $user->partner_city,
-    ];
+
+
+           // Age range from user input
+    $ageRange = explode('-', $user->partner_age); // Assuming it's in the format "25-35"
+    $minAge = (int)$ageRange[0];
+    $maxAge = (int)$ageRange[1];
+
+    // Calculate date range for age validation
+    $currentDate = now();
+    $minDateOfBirth = $currentDate->subYears($maxAge)->startOfDay();
+    $maxDateOfBirth = $currentDate->subYears($minAge)->endOfDay();
+
+    // Add age validation based on date_of_birth
+    $query->whereBetween('date_of_birth', [$minDateOfBirth, $maxDateOfBirth]);
+
+
+
+
+
+
+
+
 
     // Initialize conditions for the SQL CASE statement
     $scoreConditions = [];
-    $bindings = [];
 
-    // Loop through each preference and build conditions
-    foreach ($partnerPreferences as $column => $value) {
-        if (!empty($value)) {
-            $query->where($column, $value);
-            $scoreConditions[] = "1"; // Assigning 1 for score if condition matches
+    // Check partner preferences using relationships
+    if ($user->partnerMaritalStatuses) {
+        $maritalStatuses = $user->partnerMaritalStatuses->pluck('status')->toArray();
+        if (!empty($maritalStatuses)) {
+            $query->whereIn('marital_status', $maritalStatuses);
+            $scoreConditions[] = "1"; // Score for matching marital statuses
         }
     }
 
-    // Include preferences from the relationships
-    if ($user->partnerQualifications) {
-        $qualifications = $user->partnerQualifications->pluck('qualification')->toArray();
+    if ($user->partnerReligions) {
+        $religions = $user->partnerReligions->pluck('religion')->toArray();
+        if (!empty($religions)) {
+            $query->whereIn('religion', $religions);
+            $scoreConditions[] = "1"; // Score for matching religions
+        }
+    }
+
+    if ($user->partnerCommunities) {
+        $communities = $user->partnerCommunities->pluck('community')->toArray();
+        if (!empty($communities)) {
+            $query->whereIn('community', $communities);
+            $scoreConditions[] = "1"; // Score for matching communities
+        }
+    }
+
+    if ($user->partnerMotherTongues) {
+        $motherTongues = $user->partnerMotherTongues->pluck('mother_tongue')->toArray();
+        if (!empty($motherTongues)) {
+            $query->whereIn('mother_tongue', $motherTongues);
+            $scoreConditions[] = "1"; // Score for matching mother tongues
+        }
+    }
+
+    if ($user->partnerQualification) {
+        $qualifications = $user->partnerQualification->pluck('qualification')->toArray();
         if (!empty($qualifications)) {
-            $query->whereIn('partner_qualifications.qualification', $qualifications);
+            $query->whereIn('highest_qualification', $qualifications);
             $scoreConditions[] = "1"; // Score for matching qualifications
         }
     }
@@ -156,7 +190,7 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
     if ($user->partnerWorkingWith) {
         $workingSectors = $user->partnerWorkingWith->pluck('working_with')->toArray();
         if (!empty($workingSectors)) {
-            $query->whereIn('partner_working_with.working_with', $workingSectors);
+            $query->whereIn('working_sector', $workingSectors);
             $scoreConditions[] = "1"; // Score for matching working sectors
         }
     }
@@ -164,8 +198,40 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
     if ($user->partnerProfessions) {
         $professions = $user->partnerProfessions->pluck('profession')->toArray();
         if (!empty($professions)) {
-            $query->whereIn('partner_professions.profession', $professions);
+            $query->whereIn('profession', $professions);
             $scoreConditions[] = "1"; // Score for matching professions
+        }
+    }
+
+    if ($user->partnerProfessionalDetails) {
+        $professionalDetails = $user->partnerProfessionalDetails->pluck('detail')->toArray();
+        if (!empty($professionalDetails)) {
+            $query->whereIn('profession_details', $professionalDetails);
+            $scoreConditions[] = "1"; // Score for matching professional details
+        }
+    }
+
+    if ($user->partnerCountries) {
+        $countries = $user->partnerCountries->pluck('country')->toArray();
+        if (!empty($countries)) {
+            $query->whereIn('living_country', $countries);
+            $scoreConditions[] = "1"; // Score for matching countries
+        }
+    }
+
+    if ($user->partnerStates) {
+        $states = $user->partnerStates->pluck('state')->toArray();
+        if (!empty($states)) {
+            $query->whereIn('state', $states);
+            $scoreConditions[] = "1"; // Score for matching states
+        }
+    }
+
+    if ($user->partnerCities) {
+        $cities = $user->partnerCities->pluck('city')->toArray();
+        if (!empty($cities)) {
+            $query->whereIn('city_living_in', $cities);
+            $scoreConditions[] = "1"; // Score for matching cities
         }
     }
 
@@ -192,9 +258,6 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
     // Order the results by the highest match score first
     $query->orderByDesc('match_score');
 
-    // Include the relationships to load the necessary data
-    $query->with(['partnerQualifications', 'partnerWorkingWith', 'partnerProfessions']);
-
     // Execute the query and get the results
     $matchingUsers = $query->get();
 
@@ -214,10 +277,7 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
     return $matchingUsers;
 }
 
-
-
-
- function applyMatchTypeFilters($query, $matchType, $user)
+function applyMatchTypeFilters($query, $matchType, $user)
 {
     switch ($matchType) {
         case 'new':
@@ -238,19 +298,19 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 
         case 'near':
             // Filter based on location attributes of the user and the potential matches
-            $partnerCountry = $user->partner_country;
-            $partnerState = $user->partner_state;
-            $partnerCity = $user->partner_city;
+            $partnerCountries = $user->partnerCountries->pluck('country')->toArray();
+            $partnerStates = $user->partnerStates->pluck('state')->toArray();
+            $partnerCities = $user->partnerCities->pluck('city')->toArray();
 
-            $query->where(function ($subQuery) use ($partnerCountry, $partnerState, $partnerCity) {
-                if (!empty($partnerCountry)) {
-                    $subQuery->where('living_country', $partnerCountry);
+            $query->where(function ($subQuery) use ($partnerCountries, $partnerStates, $partnerCities) {
+                if (!empty($partnerCountries)) {
+                    $subQuery->whereIn('living_country', $partnerCountries);
                 }
-                if (!empty($partnerState)) {
-                    $subQuery->where('state', $partnerState);
+                if (!empty($partnerStates)) {
+                    $subQuery->whereIn('state', $partnerStates);
                 }
-                if (!empty($partnerCity)) {
-                    $subQuery->where('city_living_in', $partnerCity);
+                if (!empty($partnerCities)) {
+                    $subQuery->whereIn('city', $partnerCities);
                 }
             });
             break;
