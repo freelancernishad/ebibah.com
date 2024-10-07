@@ -175,6 +175,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'updated_at',
             'views',
             'likes',
+            'received_invitations_count',
+            'accepted_invitations_count',
 
         ]);
 
@@ -292,6 +294,8 @@ public function permissions()
     }
 
     // Other relationships...
+
+
     public function sentInvitations(): HasMany
     {
         return $this->hasMany(Invitation::class, 'sender_id')->with([
@@ -357,7 +361,26 @@ public function permissions()
 
 
 
-     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status'];
+     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count'];
+
+
+
+     public function getReceivedInvitationsCountAttribute(): int
+     {
+         return $this->hasMany(Invitation::class, 'receiver_id')
+                     ->where('status', 'sent') // Only include invitations with status 'sent'
+                     ->count(); // Count the invitations
+     }
+
+     public function getAcceptedInvitationsCountAttribute(): int
+     {
+         return $this->hasMany(Invitation::class, 'receiver_id')
+                     ->where('status', 'accepted') // Only include invitations with status 'accepted'
+                     ->count(); // Count the invitations
+     }
+     
+
+
 
      public function getInvitationReceivedStatusAttribute()
      {
