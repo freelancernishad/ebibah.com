@@ -288,14 +288,21 @@ public function permissions()
     // Other relationships...
     public function sentInvitations(): HasMany
     {
-        return $this->hasMany(Invitation::class, 'sender_id')->latest()->take(10);
+        return $this->hasMany(Invitation::class, 'sender_id')
+                    ->where('status', 'sent') // Only include invitations with status 'sent'
+                    ->latest() // Order by latest
+                    ->take(10); // Limit to the latest 10 invitations
     }
-
 
     public function receivedInvitations(): HasMany
     {
-        return $this->hasMany(Invitation::class, 'receiver_id')->latest()->take(10);
+        return $this->hasMany(Invitation::class, 'receiver_id')
+                    ->where('status', 'received') // Only include invitations with status 'received'
+                    ->latest() // Order by latest
+                    ->take(10); // Limit to the latest 10 invitations
     }
+
+
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class)->latest()->take(10);
