@@ -290,7 +290,7 @@ public function permissions()
 
 
 
-     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package_details', 'invitation_send_status'];
+     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status'];
 
      public function getInvitationReceivedStatusAttribute()
      {
@@ -402,41 +402,41 @@ public function permissions()
 
 
         // Define the relationship between User and Package
-        public function activePackage()
-        {
-            return $this->belongsTo(Package::class, 'active_package_id');
-        }
+        // Define the relationship between User and Package
+     // Define the relationship between User and Package
+     public function activePackage()
+     {
+         return $this->belongsTo(Package::class, 'active_package_id');
+     }
 
-        // Add accessor to include active_package details
-        public function getActivePackageDetailsAttribute()
-        {
-            $activePackage = $this->activePackage;
+     // Add accessor to include active_package details
+     public function getActivePackageAttribute()
+     {
+        $activePackage = $this->getRelationValue('activePackage');
 
-            // Check if the active package exists
-            if ($activePackage) {
-                return [
-                    'id' => $activePackage->id,
-                    'package_name' => $activePackage->package_name,
-                    'price' => $activePackage->price,
-                    'discount_type' => $activePackage->discount_type,
-                    'discount' => $activePackage->discount,
-                    'sub_total_price' => $activePackage->sub_total_price,
-                    'currency' => $activePackage->currency,
-                    'duration' => $activePackage->duration,
-                    'created_at' => $activePackage->created_at,
-                    'updated_at' => $activePackage->updated_at,
-                    'allowed_services' => $activePackage->activeServices->map(function ($service) {
-                        return [
-                            'name' => $service->service->name, // Assuming you have a 'name' field in your PackageService model
-                            'status' => $service->status,
-                        ];
-                    }),
-                ];
-            }
+         if ($activePackage) {
+             return [
+                 'id' => $activePackage->id,
+                 'package_name' => $activePackage->package_name,
+                 'price' => $activePackage->price,
+                 'discount_type' => $activePackage->discount_type,
+                 'discount' => $activePackage->discount,
+                 'sub_total_price' => $activePackage->sub_total_price,
+                 'currency' => $activePackage->currency,
+                 'duration' => $activePackage->duration,
+                 'created_at' => $activePackage->created_at,
+                 'updated_at' => $activePackage->updated_at,
+                 'allowed_services' => $activePackage->activeServices->map(function ($service) {
+                     return [
+                         'name' => $service->service->name,
+                         'status' => $service->status,
+                     ];
+                 }),
+             ];
+         }
 
-            return null; // Return null if no active package
-        }
-
+         return null; // Return null if no active package found
+     }
 
 
            /**

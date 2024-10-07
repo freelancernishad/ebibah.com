@@ -196,6 +196,17 @@ class UserProfileController extends Controller
         // Find the user by id with the related images
         $user = User::with('userImages')->find($id);
 
+        $user->unsetRelation('sentInvitations');
+        $user->unsetRelation('receivedInvitations');
+        $user->unsetRelation('profileViews');
+        $user->unsetRelation('payments');
+        $user->makeHidden([
+            'active_package_id',
+            'active_package',
+            'email',
+            'email_verification_hash',
+        ]);
+
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
@@ -206,7 +217,6 @@ class UserProfileController extends Controller
             'religion' => $authUser->partner_religion,
             'community' => $authUser->partner_community,
             'mother_tongue' => $authUser->partner_mother_tongue,
-            // Check if the relationship exists before calling pluck(), return an empty array if null
             'highest_qualification' => $authUser->partnerQualification ? $authUser->partnerQualification->pluck('qualification')->toArray() : [],
             'working_sector' => $authUser->partnerWorkingWith ? $authUser->partnerWorkingWith->pluck('sector')->toArray() : [],
             'profession' => $authUser->partnerProfession ? $authUser->partnerProfession->pluck('profession')->toArray() : [],
@@ -221,54 +231,46 @@ class UserProfileController extends Controller
         $matches = []; // This will store details of which criteria matched and which didn't
 
         foreach ($partnerPreferences as $column => $value) {
-            // Skip the condition if the value is null or an empty array
             if (!isset($value) || (is_array($value) && empty($value))) {
-                continue; // Skip to the next iteration if the value is null or an empty array
+                continue;
             }
 
             if (is_array($value)) {
-                // Use an IN clause if the value is an array
                 $placeholders = implode(',', array_fill(0, count($value), '?'));
                 $scoreConditions[] = "(CASE WHEN LOWER($column) IN (" . $placeholders . ") THEN 1 ELSE 0 END)";
-                $bindings = array_merge($bindings, array_map('strtolower', $value)); // Convert to lowercase for binding
+                $bindings = array_merge($bindings, array_map('strtolower', $value));
             } else {
-                // Use a simple comparison if the value is a single value
                 $scoreConditions[] = "(CASE WHEN LOWER($column) = LOWER(?) THEN 1 ELSE 0 END)";
-                $bindings[] = strtolower($value); // Convert to lowercase for binding
+                $bindings[] = strtolower($value);
             }
         }
 
-        // If no score conditions are generated, set match score to 0
         if (empty($scoreConditions)) {
             return response()->json([
                 'user' => $user,
                 'is_match' => false,
                 'match_percentage' => 0,
                 'match_score' => 0,
-                'criteria_matches' => [],  // No matches found
+                'criteria_matches' => [],
                 'similar_profiles' => [],
             ]);
         }
 
-        // Add match score calculations for the single user
         $totalCriteria = count($scoreConditions);
         $matchScoreQuery = DB::table('users')
             ->selectRaw(
                 'users.*, (' . implode(' + ', $scoreConditions) . ') as match_score',
                 $bindings
             )
-            ->where('users.id', $user->id) // Match only the user with the given ID
+            ->where('users.id', $user->id)
             ->first();
 
-        // Calculate match percentage
         $matchScore = $matchScoreQuery->match_score;
         $matchPercentage = ($matchScore / $totalCriteria) * 100;
 
-        // Define a threshold for matching
         $matchThreshold = ceil($totalCriteria * 0.2);
         $isMatch = $matchScore >= $matchThreshold;
 
-        // Prepare display names for the preferences
         $displayNames = [
             'marital_status' => 'Marital Status',
             'religion' => 'Religion',
@@ -282,48 +284,44 @@ class UserProfileController extends Controller
             'city_living_in' => 'City Living In',
         ];
 
-        // Determine which criteria matched and which did not
         foreach ($partnerPreferences as $preferenceCriteria => $preferenceValue) {
-            $displayName = $displayNames[$preferenceCriteria] ?? $preferenceCriteria; // Default to the original key if not found
+            $displayName = $displayNames[$preferenceCriteria] ?? $preferenceCriteria;
 
             if (is_array($preferenceValue)) {
-                // Handle array preference values
                 $matches[] = [
                     'preference' => $displayName,
                     'required' => $preferenceValue,
                     'user_value' => $user->{$preferenceCriteria},
-                    'match' => in_array(strtolower($user->{$preferenceCriteria}), array_map('strtolower', $preferenceValue)) // Case-insensitive check
+                    'match' => in_array(strtolower($user->{$preferenceCriteria}), array_map('strtolower', $preferenceValue))
                 ];
             } else {
-                // Handle single value preferences
                 $matches[] = [
                     'preference' => $displayName,
                     'required' => $preferenceValue,
                     'user_value' => $user->{$preferenceCriteria},
-                    'match' => (strtolower($user->{$preferenceCriteria}) === strtolower($preferenceValue)) // Case-insensitive check
+                    'match' => (strtolower($user->{$preferenceCriteria}) === strtolower($preferenceValue))
                 ];
             }
         }
 
-        // Hide specific relations by unsetting them
-        $user->unsetRelation('sentInvitations');
-        $user->unsetRelation('receivedInvitations');
-        $user->unsetRelation('profileViews');
-        $user->unsetRelation('payments');
+        // Unset specific relationships
+
+
+        // Hide specific attributes
 
         // Get similar profiles
         $similar_profiles = $user->getSimilarProfiles(10);
 
-        // Return the user and match details as a JSON response
         return response()->json([
             'user' => $user,
             'is_match' => $isMatch,
             'match_percentage' => $matchPercentage,
             'match_score' => $matchScore,
-            'criteria_matches' => $matches,  // Return detailed matching info
+            'criteria_matches' => $matches,
             'similar_profiles' => $similar_profiles,
         ]);
     }
+
 
 
 
