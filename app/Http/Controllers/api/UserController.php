@@ -34,6 +34,7 @@ class UserController extends Controller
             'profileViews',
             'viewedProfiles',
             'payments',
+            'favorites',
             'userImages',
         ]);
 

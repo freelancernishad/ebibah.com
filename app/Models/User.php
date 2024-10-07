@@ -177,6 +177,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'likes',
             'received_invitations_count',
             'accepted_invitations_count',
+            'favorites',
 
         ]);
 
