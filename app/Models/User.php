@@ -338,7 +338,13 @@ public function permissions()
 
     public function favorites($limit = 4)
     {
-        return $this->hasMany(Favorite::class)
+        return $this->hasMany(Favorite::class)->with([
+            'user' => function($query) {
+                $this->selectUserFields($query);
+            },
+
+        ])
+
         ->latest() // Order by latest
         ->limit($limit); // Limit to 4 records
     }
