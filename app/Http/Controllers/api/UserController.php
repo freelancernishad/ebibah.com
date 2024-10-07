@@ -46,8 +46,17 @@ class UserController extends Controller
         $userArray = $user->toArrayWithRelations();
         // $userArray['age'] = $age;
 
+       $my_match =  profile_matches('my',4);
+       $new_match =  profile_matches('new',4);
+
+
+
         // Return the authenticated user's profile
-        return response()->json(['user' => $userArray], 200);
+        return response()->json([
+            'user' => $userArray,
+            'my_match' => $my_match,
+            'new_match' => $new_match,
+        ], 200);
     }
 
 
