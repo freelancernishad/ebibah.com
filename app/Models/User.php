@@ -79,17 +79,23 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'state',
         'about_myself',
         'partner_age',
-        'partner_marital_status',
-        'partner_religion',
-        'partner_community',
-        'partner_mother_tongue',
-        'partner_qualification',
-        'partner_working_with',
-        'partner_profession',
-        'partner_professional_details',
-        'partner_country',
-        'partner_state',
-        'partner_city',
+
+
+        // 'partner_marital_status',
+        // 'partner_religion',
+        // 'partner_community',
+        // 'partner_mother_tongue',
+
+        // 'partner_qualification', deleted
+        // 'partner_working_with', deleted
+        // 'partner_profession', deleted
+
+        // 'partner_professional_details',
+        // 'partner_country',
+        // 'partner_state',
+        // 'partner_city',
+
+
         'username',
         'step',
         'smoking',
@@ -99,8 +105,28 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email_verification_hash',
     ];
 
+    public function partnerMaritalStatuses()
+    {
+        return $this->hasMany(PartnerMaritalStatus::class);
+    }
 
-    public function partnerQualifications()
+    public function partnerReligions()
+    {
+        return $this->hasMany(PartnerReligion::class);
+    }
+
+    public function partnerCommunities()
+    {
+        return $this->hasMany(PartnerCommunity::class);
+    }
+
+    public function partnerMotherTongues()
+    {
+        return $this->hasMany(PartnerMotherTongue::class);
+    }
+
+
+    public function partnerQualification()
     {
         return $this->hasMany(PartnerQualification::class);
     }
@@ -114,6 +140,32 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $this->hasMany(PartnerProfession::class);
     }
+
+
+    public function partnerProfessionalDetails()
+{
+    return $this->hasMany(PartnerProfessionalDetail::class);
+}
+
+public function partnerCountries()
+{
+    return $this->hasMany(PartnerCountry::class);
+}
+
+public function partnerStates()
+{
+    return $this->hasMany(PartnerState::class);
+}
+
+public function partnerCities()
+{
+    return $this->hasMany(PartnerCity::class);
+}
+
+
+
+
+
 
 
     public function setGenderAttribute($value)
@@ -147,6 +199,19 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'password' => 'hashed',
     ];
 
+    protected $with = [
+        'partnerMaritalStatuses',
+        'partnerReligions',
+        'partnerCommunities',
+        'partnerMotherTongues',
+        'partnerQualification',
+        'partnerWorkingWith',
+        'partnerProfessions',
+        'partnerProfessionalDetails',
+        'partnerCountries',
+        'partnerStates',
+        'partnerCities',
+    ];
 
     public function toArrayWithRelations()
     {

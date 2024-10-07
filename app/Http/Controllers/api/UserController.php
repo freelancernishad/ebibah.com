@@ -171,18 +171,36 @@ class UserController extends Controller
             'siblings_not_married' => 'nullable|integer',
             'state' => 'nullable|string|max:255',
             'about_myself' => 'nullable|string',
+
+
             'partner_age' => 'nullable|string|max:50',
-            'partner_marital_status' => 'nullable|string|max:50',
-            'partner_religion' => 'nullable|string|max:255',
-            'partner_community' => 'nullable|string|max:255',
-            'partner_mother_tongue' => 'nullable|string|max:255',
+            'partner_marital_status' => 'nullable|array',
+            'partner_religion' => 'nullable|array', // Ensure it's an array
+            'partner_religion.*' => 'nullable|string|max:255', // Each religion should be a string
+            'partner_community' => 'nullable|array', // Ensure it's an array
+            'partner_community.*' => 'nullable|string|max:255', // Each community should be a string
+            'partner_mother_tongue' => 'nullable|array', // Ensure it's an array
+            'partner_mother_tongue.*' => 'nullable|string|max:255', // Each mother tongue should be a string
+
+
             'partner_qualification' => 'nullable|array',
             'partner_working_with' => 'nullable|array',
             'partner_profession' => 'nullable|array',
-            'partner_professional_details' => 'nullable|string',
-            'partner_country' => 'nullable|string|max:255',
-            'partner_state' => 'nullable|string|max:255',
-            'partner_city' => 'nullable|string|max:255',
+
+            'partner_professional_details' => 'nullable|array',
+            'partner_professional_details.*.profession' => 'nullable|string|max:255',
+
+            'partner_country' => 'nullable|array',
+            'partner_country.*' => 'nullable|string|max:255',
+
+            'partner_state' => 'nullable|array',
+            'partner_state.*' => 'nullable|string|max:255',
+
+            'partner_city' => 'nullable|array',
+            'partner_city.*' => 'nullable|string|max:255',
+
+
+
             'diet' => 'nullable|string|max:255', // New field validation
             'drinking' => 'nullable|string|max:255', // New field validation
             'other_lifestyle_preferences' => 'nullable|string|max:255', // New field validation
@@ -248,17 +266,15 @@ class UserController extends Controller
             'state',
             'about_myself',
             'partner_age',
-            'partner_marital_status',
-            'partner_religion',
-            'partner_community',
-            'partner_mother_tongue',
-            'partner_qualification',
-            'partner_working_with',
-            'partner_profession',
-            'partner_professional_details',
-            'partner_country',
-            'partner_state',
-            'partner_city',
+            // 'partner_marital_status',
+            // 'partner_religion',
+            // 'partner_community',
+            // 'partner_mother_tongue',
+            // 'partner_professional_details',
+            // 'partner_country',
+            // 'partner_state',
+            // 'partner_city',
+
             'diet', // New field
             'drinking', // New field
             'other_lifestyle_preferences', // New field
@@ -271,6 +287,125 @@ class UserController extends Controller
 
         // Update the user with the filtered data
         $user->update($data);
+
+
+         // Handle partner qualification
+    if ($request->has('partner_qualification')) {
+        // Remove all current qualifications before inserting new ones
+        $user->partnerQualification()->delete();
+        // Insert the new qualifications
+        foreach ($request->partner_qualification as $qualification) {
+            $user->partnerQualification()->create(['qualification' => $qualification]);
+        }
+    }
+
+    // Handle partner working with
+    if ($request->has('partner_working_with')) {
+        // Remove all current 'working with' records before inserting new ones
+        $user->partnerWorkingWith()->delete();
+        // Insert the new 'working with' records
+        foreach ($request->partner_working_with as $workingWith) {
+            $user->partnerWorkingWith()->create(['working_with' => $workingWith]);
+        }
+    }
+
+    // Handle partner profession
+    if ($request->has('partner_profession')) {
+        // Remove all current professions before inserting new ones
+        $user->partnerProfessions()->delete();
+        // Insert the new professions
+        foreach ($request->partner_profession as $profession) {
+            $user->partnerProfessions()->create(['profession' => $profession]);
+        }
+    }
+
+
+        // Handle partner marital statuses (hasMany relationship)
+        if ($request->has('partner_marital_status')) {
+            // Remove all current marital statuses before inserting new ones
+            $user->partnerMaritalStatuses()->delete();
+            // Insert the new marital statuses
+            foreach ($request->partner_marital_status as $maritalStatus) {
+                $user->partnerMaritalStatuses()->create(['marital_status' => $maritalStatus]);
+            }
+        }
+
+
+
+          // Handle partner religion
+    if ($request->has('partner_religion')) {
+        $user->partnerReligions()->delete();
+        foreach ($request->partner_religion as $religion) {
+            $user->partnerReligions()->create(['religion' => $religion]);
+        }
+    }
+
+    // Handle partner community
+    if ($request->has('partner_community')) {
+        $user->partnerCommunities()->delete();
+        foreach ($request->partner_community as $community) {
+            $user->partnerCommunities()->create(['community' => $community]);
+        }
+    }
+
+    // Handle partner mother tongue
+    if ($request->has('partner_mother_tongue')) {
+        $user->partnerMotherTongues()->delete();
+        foreach ($request->partner_mother_tongue as $motherTongue) {
+            $user->partnerMotherTongues()->create(['mother_tongue' => $motherTongue]);
+        }
+    }
+
+
+    // Handle Partner Professional Details
+    if ($request->has('partner_professional_details')) {
+        // Remove all current professional details before inserting new ones
+        $user->partnerProfessionalDetails()->delete();
+
+        // Insert the new professional details
+        foreach ($request->partner_professional_details as $professionalDetail) {
+            $user->partnerProfessionalDetails()->create([
+                'profession' => $professionalDetail,
+            ]);
+        }
+    }
+
+    // Handle partner country
+    if ($request->has('partner_country')) {
+        // Remove existing partner countries and insert new ones
+        $user->partnerCountries()->delete(); // Assuming a relationship exists for partner countries
+
+        foreach ($request->partner_country as $country) {
+            $user->partnerCountries()->create([
+                'country' => $country,
+            ]);
+        }
+    }
+
+    // Handle partner state
+    if ($request->has('partner_state')) {
+        // Remove existing partner states and insert new ones
+        $user->partnerStates()->delete(); // Assuming a relationship exists for partner states
+
+        foreach ($request->partner_state as $state) {
+            $user->partnerStates()->create([
+                'state' => $state,
+            ]);
+        }
+    }
+
+    // Handle partner city
+    if ($request->has('partner_city')) {
+        // Remove existing partner cities and insert new ones
+        $user->partnerCities()->delete(); // Assuming a relationship exists for partner cities
+
+        foreach ($request->partner_city as $city) {
+            $user->partnerCities()->create([
+                'city' => $city,
+            ]);
+        }
+    }
+
 
         return response()->json(['message' => 'User updated successfully'], 200);
     }
