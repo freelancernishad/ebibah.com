@@ -236,7 +236,7 @@ public function partnerCities()
             'email_verified_at',
             'role',
             'role_id',
-            'created_at',
+            // 'created_at',
             'updated_at',
             'views',
             'likes',

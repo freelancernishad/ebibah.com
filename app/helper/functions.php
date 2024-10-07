@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -97,8 +98,6 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
     return response()->json($response, $statusCode);
 }
 
-
-
 function profile_matches($type = '', $limit = null)
 {
     // Get the authenticated user
@@ -115,9 +114,11 @@ function profile_matches($type = '', $limit = null)
     // Filter based on requested type
     $matchType = $type;
 
+    applyMatchTypeFilters($query, $matchType, $user);
+
     // Only match users of the opposite gender and exclude the authenticated user
     $query->where('gender', '!=', $user->gender)
-          ->where('id', '!=', $user->id);
+    ->where('id', '!=', $user->id);
 
     // Initialize conditions for the SQL CASE statement
     $scoreConditions = [];
@@ -126,22 +127,54 @@ function profile_matches($type = '', $limit = null)
     // Initialize the array to store matched fields
     $matchedUsersDetails = [];
 
+    // Define minAge and maxAge to avoid undefined variable errors
+    $minAge = null;
+    $maxAge = null;
+
     // Add other matching criteria checks
     addMatchingCriteria($query, $user, $scoreConditions, $totalCriteria, $matchedUsersDetails);
+
+
+    // Filter by partner_age to match date_of_birth
+    if (!empty($user->partner_age)) {
+        $partnerAge = explode('-', $user->partner_age); // Assuming 'partner_age' is a range like '25-30'
+        $minAge = isset($partnerAge[0]) ? (int)$partnerAge[0] : null;
+        $maxAge = isset($partnerAge[1]) ? (int)$partnerAge[1] : null;
+
+        $query->where(function ($subQuery) use ($minAge, $maxAge) {
+            $subQuery->whereNotNull('date_of_birth'); // Only include users with a date of birth
+            if ($minAge !== null) {
+                $subQuery->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= ?', [$minAge]);
+            }
+            if ($maxAge !== null) {
+                $subQuery->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) <= ?', [$maxAge]);
+            }
+        });
+    }
 
 
 
 
     // Retrieve all users that match other criteria
     $matchingUsers = $query->get();
+// Log the SQL and bindings
+\Log::info($query->toSql());
+\Log::info($query->getBindings());
+      // Apply additional filters based on the type of match requested
+
 
     // Log initial matching users count
     \Log::info('Initial Matching Users Count: ', ['count' => $matchingUsers->count()]);
 
     // Create a filtered collection for users that meet at least 2 matching criteria
-    $finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matchedUsersDetails) {
-        // Ensure that the user has at least 2 matching fields
-        return isset($matchedUsersDetails[$matchingUser->id]) && count($matchedUsersDetails[$matchingUser->id]) >= 2;
+    $finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matchedUsersDetails, $minAge, $maxAge) {
+        // Calculate age from date_of_birth for the matched user
+        $age = \Carbon\Carbon::parse($matchingUser->date_of_birth)->age;
+
+        // Ensure that the user has at least 2 matching fields and their age is within the partner age range
+        return isset($matchedUsersDetails[$matchingUser->id]) &&
+               count($matchedUsersDetails[$matchingUser->id]) >= 2 &&
+               ($age >= $minAge && $age <= $maxAge); // Ensure age is in the range
     });
 
     // Log matched users
@@ -153,15 +186,31 @@ function profile_matches($type = '', $limit = null)
     }
 
     // Attach matched fields to the final matching users and remove the "user" key
-    $result = $finalMatchingUsers->map(function ($user) use ($matchedUsersDetails) {
+    $result = $finalMatchingUsers->map(function ($matchedUser) use ($matchedUsersDetails, $user, $minAge, $maxAge) {
+        // Prepare matched fields for partner age
+        $partnerAgeMatch = [
+            "field" => "partner_age",
+            "auth_user_preference" => explode('-', $user->partner_age), // Assuming 'partner_age' is a range like '25-30'
+            "matched_user_value" => \Carbon\Carbon::parse($matchedUser->date_of_birth)->age, // Age of the matched user
+            "is_matched" => (\Carbon\Carbon::parse($matchedUser->date_of_birth)->age >= $minAge &&
+                             \Carbon\Carbon::parse($matchedUser->date_of_birth)->age <= $maxAge) // True/False if age is within range
+        ];
+
+        // Add partner age match to matchedUsersDetails
+        if (!isset($matchedUsersDetails[$matchedUser->id])) {
+            $matchedUsersDetails[$matchedUser->id] = [];
+        }
+        $matchedUsersDetails[$matchedUser->id][] = $partnerAgeMatch;
+
         return array_merge(
-            $user->toArray(), // Merge the user's attributes directly
-            ['matched_fields' => $matchedUsersDetails[$user->id] ?? []] // Add matched fields
+            $matchedUser->toArray(), // Merge the user's attributes directly
+            [
+                'matched_fields' => $matchedUsersDetails[$matchedUser->id] // Attach the matched fields
+            ]
         );
     })->values(); // Use values() to remove numeric keys
 
-    // Apply additional filters based on the type of match requested
-    applyMatchTypeFilters($result, $matchType, $user);
+
 
     // Apply the optional limit if provided
     if ($limit !== null) {
@@ -171,9 +220,6 @@ function profile_matches($type = '', $limit = null)
     // Return the final matching users as a JSON response
     return $result;
 }
-
-
-
 
 
 
@@ -270,24 +316,66 @@ function addMatchingCriteria($query, $user, &$scoreConditions, &$totalCriteria, 
 }
 
 
-
-function applyMatchTypeFilters($finalMatchingUsers, $matchType, $user)
+function applyMatchTypeFilters($query, $matchType, $user)
 {
-    // Additional filters based on match type can be added here
-    if ($matchType) {
-        // Example logic for match type filtering
-        switch ($matchType) {
-            case 'preferred':
-                // Apply preferred match type logic here
+    // Eager load the partner-related relationships to avoid N+1 problems
+    $user->load(['partnerCountries', 'partnerStates', 'partnerCities']);
+
+    switch ($matchType) {
+        case 'new':
+            // Filter for new users based on their creation date
+            $query->orderBy('created_at', 'desc');
+            break;
+
+            case 'today':
+                // Get the start and end of today in the specified timezone
+                $startOfDay = Carbon::today(); // Start of today
+                $endOfDay = Carbon::today()->endOfDay(); // End of today
+
+                // Apply the filter
+                $query->whereBetween('created_at', [$startOfDay, $endOfDay]);
                 break;
-            case 'strict':
-                // Apply strict match type logic here
-                break;
-            default:
-                break;
-        }
+
+        case 'my':
+            // For 'my', we will not use previously matched users or an ID check,
+            // but instead rely entirely on the calculated match score from the preferences.
+            // No additional filters are needed; the match score logic is already in place.
+            break;
+
+        case 'near':
+            // Access partner's location attributes from related models
+            $partnerCountries = $user->partnerCountries->pluck('country')->toArray(); // Assuming 'country' is the column name
+            $partnerStates = $user->partnerStates->pluck('state')->toArray();       // Assuming 'state' is the column name
+            $partnerCities = $user->partnerCities->pluck('city')->toArray();        // Assuming 'city' is the column name
+
+            // Use a closure to apply location filters
+            $query->where(function ($subQuery) use ($partnerCountries, $partnerStates, $partnerCities) {
+                // Check if partner countries are provided and apply the filter
+                if (!empty($partnerCountries)) {
+                    $subQuery->whereIn('living_country', $partnerCountries);
+                }
+
+                // Check if partner states are provided and apply the filter
+                if (!empty($partnerStates)) {
+                    $subQuery->whereIn('state', $partnerStates);
+                }
+
+                // Check if partner cities are provided and apply the filter
+                if (!empty($partnerCities)) {
+                    $subQuery->whereIn('city_living_in', $partnerCities);
+                }
+            });
+            break;
+
+        default:
+            // Handle unknown match types gracefully
+            \Log::warning('Unknown match type: ' . $matchType);
+            break;
     }
 }
+
+
+
 
 
 
