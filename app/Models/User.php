@@ -118,6 +118,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'status',
     ];
 
+    protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion'];
+
+
+
+
     public function partnerMaritalStatuses()
     {
         return $this->hasMany(PartnerMaritalStatus::class);
@@ -174,6 +179,48 @@ public function partnerCities()
 {
     return $this->hasMany(PartnerCity::class);
 }
+
+
+
+
+public function getProfileCompletionAttribute()
+    {
+        $totalFields = count($this->fillable);
+        $filledFields = 0;
+
+        // Check fillable fields
+        foreach ($this->fillable as $field) {
+            if (!empty($this->{$field})) {
+                $filledFields++;
+            }
+        }
+
+        // Check related fields
+        $relatedModels = [
+            'partnerMaritalStatuses',
+            'partnerReligions',
+            'partnerCommunities',
+            'partnerMotherTongues',
+            'partnerQualification',
+            'partnerWorkingWith',
+            'partnerProfessions',
+            'partnerProfessionalDetails',
+            'partnerCountries',
+            'partnerStates',
+            'partnerCities',
+        ];
+
+        foreach ($relatedModels as $relation) {
+            $count = $this->{$relation}()->count();
+            if ($count > 0) {
+                $filledFields++; // Count if there's at least one related entry
+            }
+        }
+
+        $number = ($filledFields / ($totalFields + count($relatedModels))) * 100; // Returns percentage
+
+        return number_format($number, 2);
+    }
 
 
 
@@ -266,7 +313,6 @@ public function partnerCities()
 
         return $array;
     }
-
     protected static $applyActiveScope = true;
     protected static function boot()
     {
@@ -277,38 +323,26 @@ public function partnerCities()
             static::addGlobalScope(new ActiveUserScope);
         }
     }
-
     // Method to set the flag
     public static function setApplyActiveScope($apply)
     {
         self::$applyActiveScope = $apply;
     }
 
-
-
-
-
-
     public function organization()
     {
         return $this->belongsTo(Organization::class, 'org');
     }
-
-
-
-
  // Required method from JWTSubject
  public function getJWTIdentifier()
  {
      return $this->getKey();
  }
-
  // Required method from JWTSubject
  public function getJWTCustomClaims()
  {
      return [];
  }
-
  public function roles()
  {
      return $this->belongsTo(Role::class, 'role_id');
@@ -341,8 +375,6 @@ public function permissions()
 
     //     return false;
     // }
-
-
     public function hasPermission($routeName)
     {
         // Get the user's roles with eager loaded permissions
@@ -350,21 +382,12 @@ public function permissions()
             ->get()
             ->pluck('permissions')
             ->flatten();
-
-
-
-
         // Check if any of the user's permissions match the provided route name and permission name
         $checkPermission =  $permissions->contains(function ($permission) use ($routeName) {
-
             return true;
-
             // Log:info($permission->name === $routeName && $permission->permission);
             // return $permission->path === $routeName && $permission->permission;
         });
-
-
-
         return $checkPermission;
 
     }
@@ -373,7 +396,6 @@ public function permissions()
         return $this->hasMany(UserImage::class);
     }
 
-
     /**
      * Get the profile views where the user is the viewed profile.
      */
@@ -381,7 +403,6 @@ public function permissions()
     {
         return $this->hasMany(ProfileView::class, 'profile_id')->latest()->take(10);
     }
-
     /**
      * Get the profile views where the user is the viewer.
      */
@@ -389,16 +410,10 @@ public function permissions()
     {
         return $this->hasMany(ProfileView::class, 'viewer_id')->latest()->take(10);
     }
-
-
     private function selectUserFields($query)
     {
         $query->select('id','name','marital_status','religion','date_of_birth','profession','living_country','working_sector','height');
     }
-
-    // Other relationships...
-
-
     public function sentInvitations(): HasMany
     {
         return $this->hasMany(Invitation::class, 'sender_id')->with([
@@ -466,15 +481,7 @@ public function permissions()
     {
         return $this->hasOne(Popularity::class);
     }
-
-
-
      // Automatically append 'is_favorited' to the user instance
-
-
-
-     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count'];
-
 
 
      public function getReceivedInvitationsCountAttribute(): int
@@ -496,9 +503,6 @@ public function permissions()
      {
         return $this->hasMany(Favorite::class)->count();
      }
-
-
-
 
      public function getInvitationReceivedStatusAttribute()
      {

@@ -18,6 +18,7 @@ class UserController extends Controller
 
     public function myProfile()
     {
+        User::setApplyActiveScope(false);
         // Get the authenticated user
         $user = Auth::guard('api')->user();
 
@@ -118,6 +119,7 @@ class UserController extends Controller
 
     public function update(Request $request)
     {
+        User::setApplyActiveScope(false);
         $user = auth()->user();
 
         if (!$user) {

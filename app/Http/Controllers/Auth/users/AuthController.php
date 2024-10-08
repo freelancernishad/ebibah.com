@@ -20,6 +20,8 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        User::setApplyActiveScope(false);
+
         if ($request->has('access_token')) {
             // Validate access_token
             $validator = Validator::make($request->all(), [
@@ -146,7 +148,7 @@ class AuthController extends Controller
 
 public function checkTokenExpiration(Request $request)
 {
-
+    User::setApplyActiveScope(false);
 
     // return $token = $request->token;
      $token = $request->bearerToken();
@@ -196,6 +198,7 @@ public function checkTokenExpiration(Request $request)
 }
 public function checkToken(Request $request)
 {
+    User::setApplyActiveScope(false); 
     $user = Auth::guard('web')->user();
     if ($user) {
         return response()->json(['message' => 'Token is valid']);
