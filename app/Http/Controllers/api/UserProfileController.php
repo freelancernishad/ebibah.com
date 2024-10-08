@@ -57,6 +57,10 @@ class UserProfileController extends Controller
         // Get the authenticated user
         $authUser = Auth::user();
 
+        // Check if the requested user ID is the same as the authenticated user ID
+        if ($authUser->id == $id) {
+            return response()->json(['message' => 'You cannot access your own data.'], 403);
+        }
 
         // return $authUser->calculateProfileCompletion();
 
