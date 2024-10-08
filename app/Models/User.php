@@ -15,6 +15,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Scope;
+class ActiveUserScope implements Scope
+{
+    public function apply(Builder $builder, Model $model)
+    {
+        $builder->where('status', 'active');
+    }
+}
+
+
 class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -103,6 +115,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'drinking',
         'diet',
         'email_verification_hash',
+        'status',
     ];
 
     public function partnerMaritalStatuses()
@@ -243,11 +256,35 @@ public function partnerCities()
             'received_invitations_count',
             'accepted_invitations_count',
             'favorites',
-
         ]);
+        $this->where('status','active');
 
-        return parent::toArray();
+        // Convert the model to an array
+        $array = parent::toArray();
+
+
+
+        return $array;
     }
+
+    protected static $applyActiveScope = true;
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Conditionally apply the global scope based on the static property
+        if (static::$applyActiveScope) {
+            static::addGlobalScope(new ActiveUserScope);
+        }
+    }
+
+    // Method to set the flag
+    public static function setApplyActiveScope($apply)
+    {
+        self::$applyActiveScope = $apply;
+    }
+
+
 
 
 

@@ -3,9 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\PackageController;
+use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\api\PackagePurchaseController;
 use App\Http\Controllers\Backed\SettingBackedController;
 use App\Http\Controllers\Auth\admins\AdminAuthController;
+use App\Http\Controllers\Api\Admin\AdminDashboardController;
 
 // Admin auth routes
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
@@ -34,17 +36,28 @@ Route::middleware('auth:admin')->group(function () {
 
 
 
+        // Dashboard
+        Route::get('admin/dashboard', [AdminDashboardController::class, 'index']);
 
-    Route::prefix('users')->group(function () {
-        // Update user by id
-        Route::put('update/{id}', [UserController::class, 'update']);
-        // Delete user by id
-        Route::delete('delete/{id}', [UserController::class, 'delete']);
-        // List all users
-        Route::get('/', [UserController::class, 'index']);
-        // Show user details by id
-        Route::get('{id}', [UserController::class, 'show']);
-    });
+        // User Management
+        Route::get('admin/users', [AdminUserController::class, 'index']);
+        Route::get('/admin/users/inactive', [AdminUserController::class, 'inactiveUsers']);
+        Route::get('/admin/users/banned', [AdminUserController::class, 'bannedUsers']);
+
+
+
+        Route::get('admin/users/{id}', [AdminUserController::class, 'show']);
+        Route::put('admin/users/{id}', [UserController::class, 'update']);
+
+        Route::post('admin/users/{id}/activate', [AdminUserController::class, 'activate'])->name('users.activate');
+        Route::post('admin/users/{id}/deactivate', [AdminUserController::class, 'deactivate'])->name('users.deactivate');
+        Route::post('admin/users/{id}/ban', [AdminUserController::class, 'ban']);
+
+
+
+
+
+
 
 
     Route::post('packages', [PackageController::class, 'store']);
