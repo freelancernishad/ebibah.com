@@ -14,6 +14,7 @@ class VerificationController extends Controller
 
     public function verifyEmail(Request $request, $hash)
     {
+        User::setApplyActiveScope(false);
         // Find the user by the hash
         $user = User::where('email_verification_hash', $hash)->first();
 

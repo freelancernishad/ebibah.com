@@ -111,6 +111,7 @@ class AuthController extends Controller
 
     public function resendVerificationLink(Request $request)
     {
+        User::setApplyActiveScope(false);
         // Validate the request
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
@@ -198,7 +199,7 @@ public function checkTokenExpiration(Request $request)
 }
 public function checkToken(Request $request)
 {
-    User::setApplyActiveScope(false); 
+    User::setApplyActiveScope(false);
     $user = Auth::guard('web')->user();
     if ($user) {
         return response()->json(['message' => 'Token is valid']);
@@ -208,6 +209,7 @@ public function checkToken(Request $request)
 }
     public function logout(Request $request)
     {
+        User::setApplyActiveScope(false);
         try {
             $token = $request->bearerToken();
             if ($token) {
@@ -339,6 +341,7 @@ public function checkToken(Request $request)
 
          public function changePassword(Request $request)
          {
+            User::setApplyActiveScope(false);
              $validator = Validator::make($request->all(), [
                 'current_password' => 'required',
                  'new_password' => 'required|min:8|confirmed',
