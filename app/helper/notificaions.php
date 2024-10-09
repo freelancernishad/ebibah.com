@@ -26,7 +26,7 @@ function notificationCreate($userId, $type, $extraUserId = null)
             break;
 
         case 'invitation_received':
-            $message = "You have received an invitation from {$userName}. Click here to view and respond.";
+            $message = "You have received an invitation from {$extraUserName}.";
             break;
 
         case 'invitation_accept':
