@@ -25,5 +25,6 @@ class AppServiceProvider extends ServiceProvider
 
             // Set the mail configuration dynamically
             Config::set('mail.mailers.smtp.password', $decryptedPassword);
+
     }
 }

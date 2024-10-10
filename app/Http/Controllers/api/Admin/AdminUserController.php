@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Admin;
+namespace App\Http\Controllers\api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -149,7 +149,7 @@ public function deactivate(int $id): JsonResponse
      */
     public function ban(int $id): JsonResponse
     {
-        User::setApplyActiveScope(false); 
+        User::setApplyActiveScope(false);
         $status = "banned";
         // Validate the provided status
         $validStatuses = ['active', 'inactive', 'banned'];
