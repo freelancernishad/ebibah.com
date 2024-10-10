@@ -56,10 +56,18 @@ class AuthController extends Controller
                     'name' => $userData['name'],
                     'password' => Hash::make(Str::random(16)), // Generate a random password
                     'step' => 1, // Set step value to 1
-                    'email_verified_at' => now(), 
+                    'email_verified_at' => now(),
 
                 ]);
+            } else {
+                // Check if email is not verified
+                if (is_null($user->email_verified_at)) {
+                    // If not verified, set email_verified_at to current timestamp
+                    $user->email_verified_at = now();
+                    $user->save();
+                }
             }
+
 
             // Login the user
             Auth::login($user);
