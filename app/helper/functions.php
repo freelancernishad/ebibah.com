@@ -381,9 +381,13 @@ function applyMatchTypeFilters($users, $matchType, $user)
     }
 
 
-    // Apply gender and ID filters to exclude users with the same gender or the same ID
-    $users = $users->filter(function ($filteredUser) use ($user) {
-        return $filteredUser->gender !== $user->gender && $filteredUser->id !== $user->id;
+     // Apply gender and ID filters, ensure the user is an object
+     $users = $users->filter(function ($filteredUser) use ($user) {
+        // Ensure $filteredUser is an object (instance of a model)
+        if (is_object($filteredUser) && isset($filteredUser->gender) && isset($filteredUser->id)) {
+            return $filteredUser->gender !== $user->gender && $filteredUser->id !== $user->id;
+        }
+        return false; // Exclude if it's not an object or missing required properties
     });
 
     // Return the filtered and sorted users
