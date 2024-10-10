@@ -120,8 +120,8 @@ function profile_matches($type = '', $limit = null)
 
 
     // Only match users of the opposite gender and exclude the authenticated user
-    $query->where('gender', '!=', $user->gender)
-    ->where('id', '!=', $user->id);
+    $query->where('gender', '!==', $user->gender)
+    ->where('id', '!==', $user->id);
 
     // Initialize conditions for the SQL CASE statement
     $scoreConditions = [];
