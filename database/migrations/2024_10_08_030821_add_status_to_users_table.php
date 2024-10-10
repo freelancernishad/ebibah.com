@@ -14,7 +14,7 @@ class AddStatusToUsersTable extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // Adding a 'status' column to the 'users' table
-            $table->string('status')->default('inactive')->after('email'); // You can adjust the default value and position
+            $table->string('status')->default('active')->after('email'); // You can adjust the default value and position
         });
     }
 

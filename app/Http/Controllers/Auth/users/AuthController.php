@@ -197,6 +197,7 @@ public function checkTokenExpiration(Request $request)
         return response()->json(['message' => 'Error while processing token'], 500);
     }
 }
+
 public function checkToken(Request $request)
 {
     User::setApplyActiveScope(false);
