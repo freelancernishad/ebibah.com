@@ -51,8 +51,8 @@ class AuthController extends Controller
                 $user = User::create([
                     'username' => $username,
                     'email' => $userData['email'],
-                    'first_name' => $userData['given_name'],
-                    'last_name' => $userData['family_name'],
+                    'first_name' => $userData['given_name']  ?? '',
+                    'last_name' => $userData['family_name']  ?? '',
                     'name' => $userData['name'],
                     'password' => Hash::make(Str::random(16)), // Generate a random password
                     'step' => 1, // Set step value to 1
