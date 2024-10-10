@@ -56,6 +56,8 @@ class AuthController extends Controller
                     'name' => $userData['name'],
                     'password' => Hash::make(Str::random(16)), // Generate a random password
                     'step' => 1, // Set step value to 1
+                    'email_verified_at' => now(), 
+
                 ]);
             }
 
@@ -272,6 +274,7 @@ public function checkToken(Request $request)
                 'religion' => $request->input('religion', null), // Use the provided religion if available
                 'gender' => $request->input('gender', null), // Use the provided gender if available
                 'step' => 1, // Set step value to 1
+                'email_verified_at' => now(),
             ]);
 
             $user->save();
