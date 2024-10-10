@@ -380,6 +380,12 @@ function applyMatchTypeFilters($users, $matchType, $user)
             break;
     }
 
+
+    // Apply gender and ID filters to exclude users with the same gender or the same ID
+    $users = $users->filter(function ($filteredUser) use ($user) {
+        return $filteredUser->gender !== $user->gender && $filteredUser->id !== $user->id;
+    });
+
     // Return the filtered and sorted users
     return $users->values(); // Reset the array keys after filtering
 }
