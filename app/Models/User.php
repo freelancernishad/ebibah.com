@@ -161,7 +161,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 
 
    // Define the relationship and get the profession directly
-   public function partnerProfessionalDetail()
+   public function partnerProfessionalDetails()
    {
        // Get the most recent professional detail
        $professionalDetail = $this->hasOne(PartnerProfessionalDetail::class)
