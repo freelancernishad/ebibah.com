@@ -38,10 +38,15 @@ Route::post('/user/check/login', [AuthController::class, 'checkTokenExpiration']
 Route::post('/user/check-token', [AuthController::class, 'checkToken']);
 Route::post('/user/register', [AuthController::class, 'register']);
 
+
+Route::post('/verify-otp', [VerificationController::class, 'verifyOtp']);
+
+
 // Email verification route
 Route::get('/email/verify/{hash}', [VerificationController::class, 'verifyEmail']);
 
 Route::post('/resend/verification-link', [AuthController::class, 'resendVerificationLink']);
+Route::post('/resend/otp', [AuthController::class, 'resendOtp']);
 
 
 // Register a new user

@@ -116,6 +116,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'diet',
         'email_verification_hash',
         'status',
+        'otp',
+        'otp_expires_at',
     ];
 
     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion','what_u_looking'];
@@ -303,6 +305,8 @@ public function getProfileCompletionAttribute()
             'active_package',
             'email',
             'email_verification_hash',
+            'otp',
+            'otp_expires_at',
             'step',
             'email_verified_at',
             'role',

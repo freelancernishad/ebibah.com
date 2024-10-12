@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use App\Notifications\OtpNotification;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -154,6 +155,39 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Verification link has been sent.'], 200);
     }
+
+
+    public function resendOtp(Request $request)
+{
+    // Validate the request
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email|exists:users,email',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // Find the user by email
+    $user = User::where('email', $request->email)->first();
+
+    // Check if the user exists and if the email is not already verified
+    if (!$user || $user->hasVerifiedEmail()) {
+        return response()->json(['message' => 'Email is either already verified or user does not exist.'], 400);
+    }
+
+    // Generate a new 6-digit numeric OTP
+    $otp = random_int(100000, 999999); // Generates a random integer between 100000 and 999999
+    $user->otp = Hash::make($otp); // Store hashed OTP
+    $user->otp_expires_at = now()->addMinutes(5); // Set expiration time
+    $user->save();
+
+    // Send the new OTP via email
+    $user->notify(new OtpNotification($otp));
+
+    return response()->json(['message' => 'A new OTP has been sent to your email.'], 200);
+}
+
 
 
 
@@ -316,10 +350,23 @@ public function checkToken(Request $request)
 
 
                 // Generate verification URL
-        $verify_url = $request->verify_url;
+        // $verify_url = $request->verify_url;
 
         // Send email verification
-        $user->notify(new VerifyEmail($user, $verify_url));
+        // $user->notify(new VerifyEmail($user, $verify_url));
+
+
+
+
+       // Generate a 6-digit numeric OTP
+        $otp = random_int(100000, 999999); // Generates a random integer between 100000 and 999999
+        $user->otp = Hash::make($otp); // Store hashed OTP
+        $user->otp_expires_at = now()->addMinutes(5); // Set expiration time
+        $user->save();
+
+        // Send OTP via email
+        $user->notify(new OtpNotification($otp));
+
 
         }
 
@@ -369,6 +416,10 @@ public function checkToken(Request $request)
              $user->save();
              return response()->json(['message' => 'Password changed successfully.'], 200);
          }
+
+
+
+
 
 
 }
