@@ -173,9 +173,15 @@ public function partnerProfessionalDetails()
 // Accessor to get the profession
 public function getWhatULookingAttribute()
 {
-    return PartnerProfessionalDetail::where('user_id',$this->id)->latest()->first()->profession;
-    return $this->partnerProfessionalDetails ? $this->partnerProfessionalDetails->profession : null;
+    // Fetch the latest PartnerProfessionalDetail for the user
+    $partnerProfessionalDetail = PartnerProfessionalDetail::where('user_id', $this->id)
+        ->latest()
+        ->first();
+
+    // Return the profession if found, otherwise return null
+    return $partnerProfessionalDetail ? $partnerProfessionalDetail->profession : null;
 }
+
 
 
 public function partnerCountries()
