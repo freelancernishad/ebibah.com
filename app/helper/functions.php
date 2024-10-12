@@ -385,11 +385,11 @@ function applyMatchTypeFilters($users, $matchType, $user)
     $excludedGender = $user->gender; // Get the gender of the current user (e.g., 'Male' or 'Female')
 
     // Filter out users with the same gender and exclude the current user
-    $users = $users->filter(function ($filteredUser) use ($excludedGender, $user) {
-        return $filteredUser instanceof \Illuminate\Database\Eloquent\Model
-            && $filteredUser->gender !== $excludedGender
-            && $filteredUser->id !== $user->id; // Exclude the current user
-    });
+//    return $users = $users->filter(function ($filteredUser) use ($excludedGender, $user) {
+//         return $filteredUser instanceof \Illuminate\Database\Eloquent\Model;
+//             // && $filteredUser->gender !== $excludedGender;
+//             // && $filteredUser->id !== $user->id;
+//     });
 
 
 
