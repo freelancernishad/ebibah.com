@@ -672,8 +672,12 @@ public function permissions()
         $heightRange = $this->getHeightRange(); // Method to calculate flexible height range
         $personalValues = $this->personal_values;
 
+        // Determine the opposite gender
+        $oppositeGender = $gender === 'Male' ? 'Female' : 'Male';
+
         // Base query to find similar profiles
-        $query = self::where('id', '!=', $this->id)->where('gender', '!=', $this->gender); // Exclude the current user
+        $query = self::where('id', '!=', $this->id) // Exclude the current user
+                    ->where('gender', $oppositeGender); // Filter for the opposite gender
 
         // Initialize an array to hold matched profiles
         $matchedProfiles = [];
