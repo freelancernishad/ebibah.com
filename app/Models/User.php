@@ -160,18 +160,20 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     }
 
 
-   // Define the relationship and get the profession directly
-   public function partnerProfessionalDetails()
-   {
-       // Get the most recent professional detail
-       $professionalDetail = $this->hasOne(PartnerProfessionalDetail::class)
-                                   ->select('profession', 'user_id')
-                                   ->latest()
-                                   ->first(); // Retrieve the single instance
+// Define the relationship
+public function partnerProfessionalDetails()
+{
+    return $this->hasOne(PartnerProfessionalDetail::class)
+                ->select('profession', 'user_id')
+                ->latest(); // Get the most recent record if multiple exist
+}
 
-       // Return the profession or null if not found
-       return $professionalDetail ? $professionalDetail->profession : null;
-   }
+// Accessor to get the profession
+public function getProfessionAttribute()
+{
+    return $this->partnerProfessionalDetails ? $this->partnerProfessionalDetails->profession : null;
+}
+
 
 public function partnerCountries()
 {
