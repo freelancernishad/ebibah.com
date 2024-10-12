@@ -5,6 +5,7 @@ use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\PackageController;
 use App\Http\Controllers\api\Admin\AdminUserController;
 use App\Http\Controllers\api\PackagePurchaseController;
+use App\Http\Controllers\api\Admin\PaymentLogController;
 use App\Http\Controllers\Backed\SettingBackedController;
 use App\Http\Controllers\Auth\admins\AdminAuthController;
 use App\Http\Controllers\api\Admin\AdminDashboardController;
@@ -114,6 +115,16 @@ Route::middleware('auth:admin')->group(function () {
 
     // List pending user images
     Route::get('/admin/user-images/pending', [AdminUserImageController::class, 'pending']);
+
+
+
+        // List all payment transactions
+        Route::get('/admin/payment-logs', [PaymentLogController::class, 'index']);
+
+        // View details of a specific payment transaction
+        Route::get('/admin/payment-logs/{id}', [PaymentLogController::class, 'show']);
+
+
 
 
 
