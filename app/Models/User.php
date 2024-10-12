@@ -118,7 +118,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'status',
     ];
 
-    protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion'];
+    protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion','what_u_looking'];
 
 
 
