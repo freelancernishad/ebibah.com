@@ -673,7 +673,7 @@ public function permissions()
         $personalValues = $this->personal_values;
 
         // Base query to find similar profiles
-        $query = self::where('id', '!=', $this->id); // Exclude the current user
+        $query = self::where('id', '!=', $this->id)->where('gender', '!=', $this->gender); // Exclude the current user
 
         // Initialize an array to hold matched profiles
         $matchedProfiles = [];
