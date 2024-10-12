@@ -384,16 +384,17 @@ function applyMatchTypeFilters($users, $matchType, $user)
     \Log::info('User gender:', ['current_user_gender' => $user->gender]);
     \Log::info('Before gender filtering:', $users->pluck('gender')->toArray());
 
+    
     if (strcasecmp(trim($user->gender), 'Male') === 0) {
         $users = $users->filter(function ($filteredUser) {
+            \Log::info('Filtering out Male user:', ['gender' => $filteredUser->gender]);
             return $filteredUser instanceof \Illuminate\Database\Eloquent\Model 
-                && !is_null($filteredUser->gender) 
                 && strcasecmp(trim($filteredUser->gender), 'Male') !== 0;
         });
     } elseif (strcasecmp(trim($user->gender), 'Female') === 0) {
         $users = $users->filter(function ($filteredUser) {
+            \Log::info('Filtering out Female user:', ['gender' => $filteredUser->gender]);
             return $filteredUser instanceof \Illuminate\Database\Eloquent\Model 
-                && !is_null($filteredUser->gender) 
                 && strcasecmp(trim($filteredUser->gender), 'Female') !== 0;
         });
     }
