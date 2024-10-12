@@ -165,7 +165,7 @@ public function partnerProfessionalDetails()
 {
     return $this->hasOne(PartnerProfessionalDetail::class)
                 ->select('profession', 'user_id')
-                ->latest(); // Get the most recent record if multiple exist
+                ->latest()->get(); // Get the most recent record if multiple exist
 }
 
 // Accessor to get the profession
