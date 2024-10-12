@@ -675,11 +675,11 @@ public function permissions()
         // Base query to find similar profiles
         $query = self::where('id', '!=', $this->id); // Exclude the current user
 
-        // Initialize an array to hold matched attributes for each profile
+        // Initialize an array to hold matched profiles
         $matchedProfiles = [];
 
         // Find profiles and check for matches
-        $profiles = $query->limit($limit)->get();
+       return $profiles = $query->limit($limit)->get();
 
         foreach ($profiles as $profile) {
             $matches = [];
@@ -718,14 +718,10 @@ public function permissions()
                 $matches[] = 'personal_values';
             }
 
-
-
-
-
             // Add matched profile and its matching attributes to the result
             if (!empty($matches)) {
                 $profile->matchedAttributes = $matches;
-                $matchedProfiles = [ $profile];
+                $matchedProfiles[] = $profile; // Append the matched profile to the array
             }
         }
 
