@@ -673,11 +673,11 @@ public function permissions()
         $personalValues = $this->personal_values;
 
         // Determine the opposite gender
-        $oppositeGender = $gender === 'Male' ? 'Female' : 'Male';
+        // $oppositeGender = $gender === 'Male' ? 'Female' : 'Male';
 
         // Base query to find similar profiles
         $query = self::where('id', '!=', $this->id) // Exclude the current user
-                    ->where('gender', $oppositeGender); // Filter for the opposite gender
+                    ->where('gender', $gender); // Filter for the opposite gender
 
         // Initialize an array to hold matched profiles
         $matchedProfiles = [];
