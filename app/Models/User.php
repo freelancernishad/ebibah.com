@@ -679,7 +679,7 @@ public function permissions()
         $matchedProfiles = [];
 
         // Find profiles and check for matches
-       return $profiles = $query->limit($limit)->get();
+        $profiles = $query->limit($limit)->get();
 
         foreach ($profiles as $profile) {
             $matches = [];
