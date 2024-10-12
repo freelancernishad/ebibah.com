@@ -381,14 +381,17 @@ function applyMatchTypeFilters($users, $matchType, $user)
     }
 
 
-    //  // Apply gender and ID filters, ensure the user is an object
-    //  $users = $users->filter(function ($filteredUser) use ($user) {
-    //     // Ensure $filteredUser is an object (instance of a model)
-    //     if (is_object($filteredUser) && isset($filteredUser->gender) && isset($filteredUser->id)) {
-    //         return $filteredUser->gender !== $user->gender && $filteredUser->id !== $user->id;
-    //     }
-    //     return false; // Exclude if it's not an object or missing required properties
-    // });
+    // Apply gender filter: Exclude users with the same gender as the current user
+    $excludedGender = $user->gender; // Get the gender of the current user (e.g., 'Male' or 'Female')
+
+    // Filter out users with the same gender and exclude the current user
+    $users = $users->filter(function ($filteredUser) use ($excludedGender, $user) {
+        return $filteredUser instanceof \Illuminate\Database\Eloquent\Model
+            && $filteredUser->gender !== $excludedGender
+            && $filteredUser->id !== $user->id; // Exclude the current user
+    });
+
+
 
     // Return the filtered and sorted users
     return $users->values(); // Reset the array keys after filtering
