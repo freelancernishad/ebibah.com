@@ -8,6 +8,7 @@ use App\Http\Controllers\api\PackagePurchaseController;
 use App\Http\Controllers\Backed\SettingBackedController;
 use App\Http\Controllers\Auth\admins\AdminAuthController;
 use App\Http\Controllers\api\Admin\AdminDashboardController;
+use App\Http\Controllers\api\Admin\AdminSupportTicketApiController;
 
 // Admin auth routes
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
@@ -77,5 +78,20 @@ Route::middleware('auth:admin')->group(function () {
     Route::post('packages/{packageId}/services/update-status', [PackageController::class, 'updateServicesStatus']);
 
     Route::get('all-purchases', [PackagePurchaseController::class, 'allPurchases']);
+
+
+
+     // List all support tickets
+     Route::get('/admin/support', [AdminSupportTicketApiController::class, 'index']);
+
+     // View a specific support ticket
+     Route::get('/admin/support/{ticket}', [AdminSupportTicketApiController::class, 'show']);
+
+     // Reply to a support ticket
+     Route::post('/admin/support/{ticket}/reply', [AdminSupportTicketApiController::class, 'reply']);
+
+     // Update the status of a support ticket
+     Route::patch('/admin/support/{ticket}/status', [AdminSupportTicketApiController::class, 'updateStatus']);
+
 
 });

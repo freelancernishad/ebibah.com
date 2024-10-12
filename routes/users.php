@@ -3,10 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\api\UserController;
-use App\Http\Controllers\api\FavoriteController;
 use App\Http\Controllers\RoleUserController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\api\PackageController;
+use App\Http\Controllers\api\FavoriteController;
 use App\Http\Controllers\api\UserImageController;
 use App\Http\Controllers\api\InvitationController;
 use App\Http\Controllers\RolePermissionController;
@@ -15,6 +15,7 @@ use App\Http\Controllers\api\UserProfileController;
 use App\Http\Controllers\Auth\users\AuthController;
 use App\Http\Controllers\api\NotificationController;
 use App\Http\Controllers\api\PackagePurchaseController;
+use App\Http\Controllers\Api\SupportTicketApiController;
 use App\Http\Controllers\Auth\users\VerificationController;
 use App\Http\Controllers\Auth\users\PasswordResetController;
 
@@ -169,6 +170,22 @@ Route::get('invitations/received/rejected', [InvitationController::class, 'rejec
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites', [FavoriteController::class, 'store']);
     Route::delete('/favorites', [FavoriteController::class, 'destroy']);
+
+
+
+// List all support tickets
+Route::get('/user/support', [SupportTicketApiController::class, 'index'])->middleware('auth:api');
+// Create a new support ticket
+Route::post('/user/support', [SupportTicketApiController::class, 'store'])->middleware('auth:api');
+// View a specific support ticket
+Route::get('/user/support/{ticket}', [SupportTicketApiController::class, 'show'])->middleware('auth:api');
+
+
+
+
+
+
+
 
 
     Route::get('/user-access', function () {
