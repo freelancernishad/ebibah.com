@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('partner_professional_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('profession')->nullable();
+            $table->longText('profession')->nullable();
 
             $table->timestamps();
         });
