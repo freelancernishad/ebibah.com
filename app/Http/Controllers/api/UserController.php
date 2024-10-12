@@ -189,8 +189,8 @@ class UserController extends Controller
             'partner_working_with' => 'nullable|array',
             'partner_profession' => 'nullable|array',
 
-            'partner_professional_details' => 'nullable|array',
-            'partner_professional_details.*.profession' => 'nullable|string|max:255',
+            'partner_professional_details' => 'nullable|string',
+
 
             'partner_country' => 'nullable|array',
             'partner_country.*' => 'nullable|string|max:255',
@@ -364,11 +364,19 @@ class UserController extends Controller
         // Remove all current professional details before inserting new ones
         $user->partnerProfessionalDetails()->delete();
 
-        // Insert the new professional details
-        foreach ($request->partner_professional_details as $professionalDetail) {
+        // Check if the partner_professional_details is a string
+        if (is_string($request->partner_professional_details)) {
+            // If it's a string, create a new professional detail directly
             $user->partnerProfessionalDetails()->create([
-                'profession' => $professionalDetail,
+                'profession' => $request->partner_professional_details,
             ]);
+        } elseif (is_array($request->partner_professional_details)) {
+            // If it's an array, loop through and create each professional detail
+            foreach ($request->partner_professional_details as $professionalDetail) {
+                $user->partnerProfessionalDetails()->create([
+                    'profession' => $professionalDetail,
+                ]);
+            }
         }
     }
 
