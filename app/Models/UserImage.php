@@ -9,10 +9,19 @@ class UserImage extends Model
 {
     use HasFactory;
 
+    const STATUS_PENDING = 'pending';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
+
+    protected $with = [
+        'user',
+    ];
+
 
     protected $fillable = [
         'user_id',
         'image_path',
+        'status', // Add status here
     ];
 
     /**

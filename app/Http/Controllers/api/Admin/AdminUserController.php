@@ -174,4 +174,20 @@ public function deactivate(int $id): JsonResponse
 
 
     }
+
+
+    public function destroy(int $id): JsonResponse
+    {
+        // Find the user or fail with a 404 response
+        $user = User::findOrFail($id);
+
+        // Delete the user
+        $user->delete();
+
+        return response()->json([
+            'message' => 'User account has been permanently deleted.',
+            'user_id' => $user->id,
+        ]);
+    }
+
 }

@@ -8,6 +8,7 @@ use App\Http\Controllers\api\PackagePurchaseController;
 use App\Http\Controllers\Backed\SettingBackedController;
 use App\Http\Controllers\Auth\admins\AdminAuthController;
 use App\Http\Controllers\api\Admin\AdminDashboardController;
+use App\Http\Controllers\api\Admin\AdminUserImageController;
 use App\Http\Controllers\api\Admin\AdminSupportTicketApiController;
 
 // Admin auth routes
@@ -44,7 +45,7 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('admin/users', [AdminUserController::class, 'index']);
         Route::get('/admin/users/inactive', [AdminUserController::class, 'inactiveUsers']);
         Route::get('/admin/users/banned', [AdminUserController::class, 'bannedUsers']);
-
+        Route::delete('/admin/users/{id}', [AdminUserController::class, 'destroy']);
 
 
         Route::get('admin/users/{id}', [AdminUserController::class, 'show']);
@@ -92,6 +93,28 @@ Route::middleware('auth:admin')->group(function () {
 
      // Update the status of a support ticket
      Route::patch('/admin/support/{ticket}/status', [AdminSupportTicketApiController::class, 'updateStatus']);
+
+
+
+       // List approved user images
+    Route::get('/admin/user-images', [AdminUserImageController::class, 'index']);
+
+    // Approve a user image
+    Route::patch('/admin/user-images/{id}/approve', [AdminUserImageController::class, 'approve']);
+
+    // Reject a user image
+    Route::patch('/admin/user-images/{id}/reject', [AdminUserImageController::class, 'reject']);
+
+
+    // List approved user images
+    Route::get('/admin/user-images/approved', [AdminUserImageController::class, 'approved']);
+
+    // List rejected user images
+    Route::get('/admin/user-images/rejected', [AdminUserImageController::class, 'rejected']);
+
+    // List pending user images
+    Route::get('/admin/user-images/pending', [AdminUserImageController::class, 'pending']);
+
 
 
 });

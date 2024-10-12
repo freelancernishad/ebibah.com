@@ -414,8 +414,9 @@ public function permissions()
     }
     public function images()
     {
-        return $this->hasMany(UserImage::class);
+        return $this->hasMany(UserImage::class)->where('status', UserImage::STATUS_APPROVED);
     }
+
 
     /**
      * Get the profile views where the user is the viewed profile.
@@ -625,7 +626,7 @@ public function permissions()
         }
 
         // Default images based on gender
-        if ($this->gender === 'female') {
+        if ($this->gender === 'Female') {
             return 'https://cdn-icons-png.freepik.com/512/9193/9193915.png';
         } else {
             return 'https://cdn.icon-icons.com/icons2/2643/PNG/512/male_boy_person_people_avatar_white_tone_icon_159368.png';
