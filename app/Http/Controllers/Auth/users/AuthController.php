@@ -329,7 +329,7 @@ public function checkToken(Request $request)
                 'date_of_birth' => 'nullable|date',
                 'religion' => 'nullable|string|max:255',
                 'gender' => 'nullable|string|max:10',
-                'verify_url' => 'required|url', // Ensure verify_url is a valid URL
+                'verify_url' => 'nullable|url', // Ensure verify_url is a valid URL
             ]);
 
             if ($validator->fails()) {
