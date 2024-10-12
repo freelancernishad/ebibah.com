@@ -379,18 +379,22 @@ function applyMatchTypeFilters($users, $matchType, $user)
             \Log::warning('Unknown match type: ' . $matchType);
             break;
     }
-    
 
-    \Log::info('Before filtering:', $users->toArray()); // Log users before filtering
 
-    // Apply gender filters
-    if (strcasecmp($user->gender, 'Male') === 0) {
+    \Log::info('User gender:', ['current_user_gender' => $user->gender]);
+    \Log::info('Before gender filtering:', $users->pluck('gender')->toArray());
+
+    if (strcasecmp(trim($user->gender), 'Male') === 0) {
         $users = $users->filter(function ($filteredUser) {
-            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && strcasecmp($filteredUser->gender, 'Male') !== 0;
+            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model 
+                && !is_null($filteredUser->gender) 
+                && strcasecmp(trim($filteredUser->gender), 'Male') !== 0;
         });
-    } elseif (strcasecmp($user->gender, 'Female') === 0) {
+    } elseif (strcasecmp(trim($user->gender), 'Female') === 0) {
         $users = $users->filter(function ($filteredUser) {
-            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && strcasecmp($filteredUser->gender, 'Female') !== 0;
+            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model 
+                && !is_null($filteredUser->gender) 
+                && strcasecmp(trim($filteredUser->gender), 'Female') !== 0;
         });
     }
 
