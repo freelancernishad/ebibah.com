@@ -379,8 +379,11 @@ function applyMatchTypeFilters($users, $matchType, $user)
             \Log::warning('Unknown match type: ' . $matchType);
             break;
     }
+    
 
+    \Log::info('Before filtering:', $users->toArray()); // Log users before filtering
 
+    // Apply gender filters
     if (strcasecmp($user->gender, 'Male') === 0) {
         $users = $users->filter(function ($filteredUser) {
             return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && strcasecmp($filteredUser->gender, 'Male') !== 0;
@@ -390,6 +393,8 @@ function applyMatchTypeFilters($users, $matchType, $user)
             return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && strcasecmp($filteredUser->gender, 'Female') !== 0;
         });
     }
+
+    \Log::info('After filtering:', $users->toArray()); // Log users after filtering
 
 
 
