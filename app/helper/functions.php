@@ -384,20 +384,40 @@ function applyMatchTypeFilters($users, $matchType, $user)
     \Log::info('User gender:', ['current_user_gender' => $user->gender]);
     \Log::info('Before gender filtering:', $users->pluck('gender')->toArray());
 
-    
+
+
     if (strcasecmp(trim($user->gender), 'Male') === 0) {
         $users = $users->filter(function ($filteredUser) {
-            \Log::info('Filtering out Male user:', ['gender' => $filteredUser->gender]);
-            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model 
-                && strcasecmp(trim($filteredUser->gender), 'Male') !== 0;
+            // Check if the filtered user is an object or an array
+            if (is_array($filteredUser)) {
+                $gender = $filteredUser['gender'] ?? null;  // Access gender if it's an array
+            } elseif ($filteredUser instanceof \Illuminate\Database\Eloquent\Model) {
+                $gender = $filteredUser->gender;  // Access gender if it's an object
+            } else {
+                return false;  // If it's neither an array nor an Eloquent model, exclude the user
+            }
+
+            \Log::info('Filtering out Male user:', ['gender' => $gender]);
+
+            return strcasecmp(trim($gender), 'Male') !== 0;  // Filter out Male users
         });
     } elseif (strcasecmp(trim($user->gender), 'Female') === 0) {
         $users = $users->filter(function ($filteredUser) {
-            \Log::info('Filtering out Female user:', ['gender' => $filteredUser->gender]);
-            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model 
-                && strcasecmp(trim($filteredUser->gender), 'Female') !== 0;
+            // Check if the filtered user is an object or an array
+            if (is_array($filteredUser)) {
+                $gender = $filteredUser['gender'] ?? null;  // Access gender if it's an array
+            } elseif ($filteredUser instanceof \Illuminate\Database\Eloquent\Model) {
+                $gender = $filteredUser->gender;  // Access gender if it's an object
+            } else {
+                return false;  // If it's neither an array nor an Eloquent model, exclude the user
+            }
+
+            \Log::info('Filtering out Female user:', ['gender' => $gender]);
+
+            return strcasecmp(trim($gender), 'Female') !== 0;  // Filter out Female users
         });
     }
+
 
     \Log::info('After filtering:', $users->toArray()); // Log users after filtering
 
