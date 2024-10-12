@@ -381,15 +381,15 @@ function applyMatchTypeFilters($users, $matchType, $user)
     }
 
 
-    if ($user->gender === 'Male') {
-        $users = $users->filter(function ($filteredUser) {
-            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && $filteredUser->gender != 'Male';
-        });
-    }elseif ($user->gender === 'Female') {
-        $users = $users->filter(function ($filteredUser) {
-            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && $filteredUser->gender != 'Female';
-        });
-    }
+    // if ($user->gender === 'Male') {
+    //     $users = $users->filter(function ($filteredUser) {
+    //         return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && $filteredUser->gender != 'Male';
+    //     });
+    // }elseif ($user->gender === 'Female') {
+    //     $users = $users->filter(function ($filteredUser) {
+    //         return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && $filteredUser->gender != 'Female';
+    //     });
+    // }
 
 
     // Apply gender filter: Exclude users with the same gender as the current user
