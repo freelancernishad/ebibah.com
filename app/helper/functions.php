@@ -381,26 +381,16 @@ function applyMatchTypeFilters($users, $matchType, $user)
     }
 
 
-    // if ($user->gender === 'Male') {
-    //     $users = $users->filter(function ($filteredUser) {
-    //         return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && $filteredUser->gender != 'Male';
-    //     });
-    // }elseif ($user->gender === 'Female') {
-    //     $users = $users->filter(function ($filteredUser) {
-    //         return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && $filteredUser->gender != 'Female';
-    //     });
-    // }
+    if (strcasecmp($user->gender, 'Male') === 0) {
+        $users = $users->filter(function ($filteredUser) {
+            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && strcasecmp($filteredUser->gender, 'Male') !== 0;
+        });
+    } elseif (strcasecmp($user->gender, 'Female') === 0) {
+        $users = $users->filter(function ($filteredUser) {
+            return $filteredUser instanceof \Illuminate\Database\Eloquent\Model && strcasecmp($filteredUser->gender, 'Female') !== 0;
+        });
+    }
 
-
-    // Apply gender filter: Exclude users with the same gender as the current user
-    // $excludedGender = $user->gender; // Get the gender of the current user (e.g., 'Male' or 'Female')
-
-    // Filter out users with the same gender and exclude the current user
-//    return $users = $users->filter(function ($filteredUser) use ($excludedGender, $user) {
-//         return $filteredUser instanceof \Illuminate\Database\Eloquent\Model;
-//             // && $filteredUser->gender !== $excludedGender;
-//             // && $filteredUser->id !== $user->id;
-//     });
 
 
 
