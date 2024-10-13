@@ -11,7 +11,7 @@ class CreateRepliesTable extends Migration
         Schema::create('replies', function (Blueprint $table) {
             $table->id();
             $table->foreignId('support_ticket_id')->constrained()->onDelete('cascade');
-            $table->foreignId('admin_id')->constrained()->onDelete('cascade'); // Assuming you have an Admin model
+            $table->foreignId('admin_id')->nullable()->constrained()->onDelete('cascade'); // Assuming you have an Admin model
             $table->text('reply');
             $table->timestamps();
         });

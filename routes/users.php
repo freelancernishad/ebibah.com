@@ -18,6 +18,7 @@ use App\Http\Controllers\api\PackagePurchaseController;
 use App\Http\Controllers\api\SupportTicketApiController;
 use App\Http\Controllers\Auth\users\VerificationController;
 use App\Http\Controllers\Auth\users\PasswordResetController;
+use App\Http\Controllers\api\Admin\AdminSupportTicketApiController;
 
 Route::post('store/permissions', [RolePermissionController::class, 'storePermissions']);
 
@@ -180,6 +181,8 @@ Route::post('/user/support', [SupportTicketApiController::class, 'store'])->midd
 // View a specific support ticket
 Route::get('/user/support/{ticket}', [SupportTicketApiController::class, 'show'])->middleware('auth:api');
 
+   // Reply to a support ticket
+   Route::post('/user/support/{ticket}/reply', [AdminSupportTicketApiController::class, 'reply']);
 
 
 
