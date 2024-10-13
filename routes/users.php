@@ -15,7 +15,7 @@ use App\Http\Controllers\api\UserProfileController;
 use App\Http\Controllers\Auth\users\AuthController;
 use App\Http\Controllers\api\NotificationController;
 use App\Http\Controllers\api\PackagePurchaseController;
-use App\Http\Controllers\Api\SupportTicketApiController;
+use App\Http\Controllers\api\SupportTicketApiController;
 use App\Http\Controllers\Auth\users\VerificationController;
 use App\Http\Controllers\Auth\users\PasswordResetController;
 
