@@ -180,6 +180,12 @@ function profile_matches($type = '', $limit = null)
                ($age >= $minAge && $age <= $maxAge); // Ensure age is in the range
     });
 
+
+    if ($limit !== null) {
+        $finalMatchingUsers = $finalMatchingUsers->take($limit);
+    }
+
+
     // Log matched users
     \Log::info('Final Matching Users Count: ', ['count' => $finalMatchingUsers->count()]);
 
@@ -220,10 +226,7 @@ function profile_matches($type = '', $limit = null)
 
 
 
-    // Apply the optional limit if provided
-    if ($limit !== null) {
-        $result = $result->take($limit);
-    }
+
 
 
     $result = applyMatchTypeFilters($result, $matchType, $user);
