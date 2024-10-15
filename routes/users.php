@@ -63,7 +63,7 @@ Route::post('/resend/otp', [AuthController::class, 'resendOtp']);
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/user/logout', [AuthController::class, 'logout'])->name('user.logout');
 
-    Route::get('user/my/profile', [UserController::class, 'myProfile']);
+    Route::get('user/my/profile', [UserController::class, 'myProfile'])->name('myProfile');
 
     // Route::get('user/profile/{id}', [UserController::class, 'show']);
 

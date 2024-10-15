@@ -355,7 +355,7 @@ public function getProfileCompletionAttribute()
     public function toArray()
     {
 
-        if (Route::currentRouteName() === 'getMatchingUsers') {
+        if (Route::currentRouteName() === 'getMatchingUsers' || Route::currentRouteName() === 'myProfile') {
 
             $this->makeHidden([
                 'active_package_id',
