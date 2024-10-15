@@ -37,6 +37,7 @@ class UserController extends Controller
             'payments',
             'favorites',
             'userImages',
+            'userPendingImages',
         ]);
 
 
@@ -210,11 +211,13 @@ class UserController extends Controller
 
         ]);
 
+
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
         // Filter out null values from the request data including new fields
+   // Filter out only null values (allow 0, false, etc.)
         $data = array_filter($request->only([
             'name',
             'email',
@@ -268,21 +271,18 @@ class UserController extends Controller
             'state',
             'about_myself',
             'partner_age',
-            // 'partner_marital_status',
-            // 'partner_religion',
-            // 'partner_community',
-            // 'partner_mother_tongue',
-            // 'partner_professional_details',
-            // 'partner_country',
-            // 'partner_state',
-            // 'partner_city',
+            'diet',
+            'drinking',
+            'other_lifestyle_preferences',
+            'smoking',
+            'step',
+        ]), function ($value) {
+            // Keep values that are not null (allow 0, empty string, etc.)
+            return !is_null($value);
+        });
 
-            'diet', // New field
-            'drinking', // New field
-            'other_lifestyle_preferences', // New field
-            'smoking', // New field
-            'step', // Step field
-        ]));
+
+
 
         // Ensure step is set to 2 if it was not provided in the request
         $data['step'] = 2;

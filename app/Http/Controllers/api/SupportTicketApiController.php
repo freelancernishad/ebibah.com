@@ -13,7 +13,7 @@ class SupportTicketApiController extends Controller
     // Get all support tickets for the authenticated user
     public function index()
     {
-        $tickets = SupportTicket::where('user_id', Auth::id())->get();
+        $tickets = SupportTicket::where('user_id', Auth::id())->orderBy('id','desc')->get();
         return response()->json($tickets, 200);
     }
 

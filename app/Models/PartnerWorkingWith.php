@@ -15,6 +15,12 @@ class PartnerWorkingWith extends Model
         'user_id',
         'working_with',
     ];
+    protected $hidden = [
+        'user_id',
+        'created_at',
+        'updated_at',
+    ];
+
 
     public function user()
     {

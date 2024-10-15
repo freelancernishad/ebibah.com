@@ -18,6 +18,7 @@ class SupportTicket extends Model
     ];
 
 
+
     protected $with = [
         'user',
         'replies',
@@ -32,5 +33,4 @@ class SupportTicket extends Model
     {
         return $this->hasMany(Reply::class);
     }
-
 }

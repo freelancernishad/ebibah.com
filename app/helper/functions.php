@@ -431,6 +431,140 @@ function applyMatchTypeFilters($users, $matchType, $user)
 
 
 
+function maskUserData($user)
+{
+    // Define the fields that should not be masked (visible fields)
+    $visibleFields = [
+
+    'id',
+    'name',
+    'email',
+    'password',
+    'role',
+    'role_id',
+    'profile_for',
+    'profile_created_by',
+    'mobile_number',
+    'whatsapp',
+    'date_of_birth',
+    'gender',
+    'first_name',
+    'last_name',
+    'father_name',
+    'mother_name',
+    'marital_status',
+    'religion',
+    'community',
+    'mother_tongue',
+    'sub_community',
+    'nationality',
+    'highest_qualification',
+    'college_name',
+    'working_sector',
+    'profession',
+    'profession_details',
+    'monthly_income',
+    'father_occupation',
+    'mother_occupation',
+    'living_country',
+    'currently_living_in',
+    'city_living_in',
+    'family_details',
+    'family_values',
+    'family_location',
+    'family_type',
+    'family_native_place',
+    'total_siblings',
+    'siblings_married',
+    'siblings_not_married',
+    'height',
+    'birth_place',
+    'personal_values',
+    'disability',
+    'posted_by',
+    'weight',
+    'bodyType',
+    'race',
+    'blood_group',
+    'mother_status',
+    'state',
+    'about_myself',
+    'partner_age',
+    'username',
+    'step',
+    'smoking',
+    'other_lifestyle_preferences',
+    'drinking',
+    'diet',
+    'email_verification_hash',
+    'status',
+    'otp',
+    'otp_expires_at',
+    'is_favorited',
+    'age',
+    'profile_picture_url',
+    'active_package',
+    'invitation_send_status',
+    'received_invitations_count',
+    'accepted_invitations_count',
+    'favorites_count',
+    'profile_completion',
+    'what_u_looking',
+
+
+
+    'partner_marital_statuses',
+    'partner_religions',
+    'partner_communities',
+    'partner_mother_tongues',
+    'partner_qualification',
+    'partner_working_with',
+    'partner_professions',
+    'partner_professional_details', //////
+    'partner_countries',
+    'partner_states',
+    'partner_cities',
+
+
+];
+
+    // Define the mapping of masked array fields to their respective columns
+    $maskedArrayFields = [
+        'partner_marital_statuses' => 'marital_status',
+        'partner_religions' => 'religion',
+        'partner_communities' => 'community',
+        'partner_mother_tongues' => 'mother_tongue',
+        'partner_qualification' => 'partner_qualifications',
+        'partner_working_with' => 'working_with',
+        'partner_professions' => 'profession',
+        'partner_professional_details' => 'profession',
+        'partner_countries' => 'country',
+        'partner_states' => 'state',
+        'partner_cities' => 'city',
+    ];
+
+    $maskedUser = [];
+
+    // Loop through user attributes
+    foreach ($user as $key => $value) {
+        if (in_array($key, $visibleFields)) {
+            // Show specified fields
+            $maskedUser[$key] = $value;
+        } elseif (array_key_exists($key, $maskedArrayFields) && is_array($value) && !empty($value)) {
+            // Mask only one entry for fields that are arrays of objects
+            $maskedUser[$key] = [
+                [
+                    $maskedArrayFields[$key] => '****' // Mask the appropriate column for this field
+                ]
+            ];
+        } else {
+            // Mask other simple fields
+            $maskedUser[$key] = '****';
+        }
+    }
+
+    return $maskedUser;
+}
 
 
 

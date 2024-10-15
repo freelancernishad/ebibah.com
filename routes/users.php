@@ -175,11 +175,11 @@ Route::get('invitations/received/rejected', [InvitationController::class, 'rejec
 
 
 // List all support tickets
-Route::get('/user/support', [SupportTicketApiController::class, 'index'])->middleware('auth:api');
+Route::get('/user/support', [SupportTicketApiController::class, 'index']);
 // Create a new support ticket
-Route::post('/user/support', [SupportTicketApiController::class, 'store'])->middleware('auth:api');
+Route::post('/user/support', [SupportTicketApiController::class, 'store']);
 // View a specific support ticket
-Route::get('/user/support/{ticket}', [SupportTicketApiController::class, 'show'])->middleware('auth:api');
+Route::get('/user/support/{ticket}', [SupportTicketApiController::class, 'show']);
 
    // Reply to a support ticket
    Route::post('/user/support/{ticket}/reply', [AdminSupportTicketApiController::class, 'reply']);

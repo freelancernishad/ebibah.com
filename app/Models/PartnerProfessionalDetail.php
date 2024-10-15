@@ -11,6 +11,13 @@ class PartnerProfessionalDetail extends Model
 
     protected $fillable = ['user_id','profession'];
 
+
+    protected $hidden = [
+        'user_id',
+        'created_at',
+        'updated_at',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

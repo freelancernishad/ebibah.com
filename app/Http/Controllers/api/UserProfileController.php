@@ -65,7 +65,8 @@ class UserProfileController extends Controller
         // return $authUser->calculateProfileCompletion();
 
         // Find the user by id with the related images
-        $user = User::with('userImages')->find($id);
+        $user = User::with('userImages')->find($id)->toArrayWithRelations();
+
 
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
@@ -108,7 +109,7 @@ class UserProfileController extends Controller
 
         if (empty($scoreConditions)) {
             return response()->json([
-                'user' => $user,
+                'user' => maskUserData($user),
                 'is_match' => false,
                 'match_percentage' => 0,
                 'match_score' => 0,
@@ -169,8 +170,10 @@ class UserProfileController extends Controller
         // Get similar profiles
         $similar_profiles = $user->getSimilarProfiles(10);
 
+
+
         return response()->json([
-            'user' => $user,
+            'user' => maskUserData($user),
             'is_match' => $isMatch,
             'match_percentage' => $matchPercentage,
             'match_score' => $matchScore,

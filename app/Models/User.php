@@ -292,48 +292,76 @@ public function getProfileCompletionAttribute()
         'partnerCities',
     ];
 
+
+
+
+
     public function toArrayWithRelations()
     {
         return parent::toArray(); // Call the parent's toArray without any modifications
     }
 
+
     public function toArray()
     {
-        // Unset the specified relations
-        $this->unsetRelation('sentInvitations');
-        $this->unsetRelation('receivedInvitations');
-        $this->unsetRelation('profileViews');
-        $this->unsetRelation('payments');
+        $fields = [
+            'id',
+            'name',
+            'age',
+            'Height',
+            'city_living_in',
+            'currently_living_in',
+            'living_country',
+            'religion',
+            'marital_status',
+            'working_sector',
+            'profession',
+            'about_myself',
+        ];
 
-        // Hide the specified attributes
-        $this->makeHidden([
-            'active_package_id',
-            'active_package',
-            'email',
-            'email_verification_hash',
-            'otp',
-            'otp_expires_at',
-            'step',
-            'email_verified_at',
-            'role',
-            'role_id',
-            // 'created_at',
-            'updated_at',
-            'views',
-            'likes',
-            'received_invitations_count',
-            'accepted_invitations_count',
-            'favorites',
-        ]);
-        $this->where('status','active');
-
-        // Convert the model to an array
-        $array = parent::toArray();
-
-
+        $array = array_intersect_key(parent::toArray(), array_flip($fields));
 
         return $array;
     }
+
+
+    // public function toArray()
+    // {
+    //     // Unset the specified relations
+    //     $this->unsetRelation('sentInvitations');
+    //     $this->unsetRelation('receivedInvitations');
+    //     $this->unsetRelation('profileViews');
+    //     $this->unsetRelation('payments');
+    //     // Hide the specified attributes
+    //     $this->makeHidden([
+    //         'active_package_id',
+    //         'active_package',
+    //         'email',
+    //         'email_verification_hash',
+    //         'otp',
+    //         'otp_expires_at',
+    //         'step',
+    //         'email_verified_at',
+    //         'role',
+    //         'role_id',
+    //         // 'created_at',
+    //         'updated_at',
+    //         'views',
+    //         'likes',
+    //         'received_invitations_count',
+    //         'accepted_invitations_count',
+    //         'favorites',
+    //     ]);
+    //     $this->where('status','active');
+    //     // Convert the model to an array
+    //     $array = parent::toArray();
+
+    //     return $array;
+    // }
+
+
+
+
     protected static $applyActiveScope = true;
     protected static function boot()
     {
@@ -491,7 +519,16 @@ public function permissions()
 
     public function userImages(): HasMany
     {
-        return $this->hasMany(UserImage::class);
+        return $this->hasMany(UserImage::class)->where('status', UserImage::STATUS_APPROVED);
+
+        // return $this->hasMany(UserImage::class);
+    }
+
+    public function userPendingImages(): HasMany
+    {
+        return $this->hasMany(UserImage::class)->where('status', UserImage::STATUS_PENDING);
+
+        // return $this->hasMany(UserImage::class);
     }
 
     public function notifications(): HasMany

@@ -13,7 +13,7 @@ class CreateSupportTicketsTable extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('subject');
             $table->text('message');
-            $table->enum('status', ['open', 'replay', 'in_progress', 'resolved', 'closed'])->default('open');
+            $table->enum('status', ['open', 'replay', 'in_progress', 'resolved', 'closed','pending'])->default('open');
             $table->string('priority')->default('medium'); // Add the priority column with a default value
             $table->timestamps();
         });
