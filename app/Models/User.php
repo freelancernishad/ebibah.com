@@ -204,13 +204,62 @@ public function partnerCities()
 
 
 
+protected $profilecompleted = [
+        "name",
+        "profile_for",
+        "profile_created_by",
+        "mobile_number",
+        "whatsapp",
+        "what_u_looking",
+        "date_of_birth",
+        "gender",
+        "marital_status",
+        "religion",
+        "community",
+        "mother_tongue",
+        "nationality",
+        "highest_qualification",
+        "college_name",
+        "working_sector",
+        "profession",
+        "profession_details",
+        "monthly_income",
+        "father_occupation",
+        "mother_occupation",
+        "living_country",
+        "city_living_in",
+        "family_details",
+        "family_values",
+        "family_location",
+        "family_type",
+        "family_native_place",
+        "total_siblings",
+        "siblings_married",
+        "siblings_not_married",
+
+        "height",
+        "birth_place",
+        "disability",
+        "posted_by",
+        "blood_group",
+        "mother_status",
+        "state",
+        "about_myself",
+        "diet",
+        "smoking",
+        "drinking",
+        "other_lifestyle_preferences",
+        "partner_age",
+    ];
+
+
 public function getProfileCompletionAttribute()
     {
         $totalFields = count($this->fillable);
         $filledFields = 0;
 
         // Check fillable fields
-        foreach ($this->fillable as $field) {
+        foreach ($this->profilecompleted as $field) {
             if (!empty($this->{$field})) {
                 $filledFields++;
             }
