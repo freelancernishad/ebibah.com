@@ -210,7 +210,6 @@ protected $profilecompleted = [
         "profile_created_by",
         "mobile_number",
         "whatsapp",
-        "what_u_looking",
         "date_of_birth",
         "gender",
         "marital_status",
