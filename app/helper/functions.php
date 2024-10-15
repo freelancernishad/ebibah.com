@@ -234,6 +234,7 @@ $fields = [
     'id',
     'name',
     'age',
+    'gender',
     'Height',
     'city_living_in',
     'currently_living_in',
