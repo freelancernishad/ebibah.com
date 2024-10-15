@@ -303,7 +303,6 @@ public function getProfileCompletionAttribute()
 
     public function toArrayProfileWithoutRelation()
     {
-
         $this->makeHidden([
             'active_package_id',
             'active_package',
