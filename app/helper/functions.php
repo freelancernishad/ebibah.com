@@ -229,6 +229,32 @@ function profile_matches($type = '', $limit = null)
     $result = applyMatchTypeFilters($result, $matchType, $user);
 
 
+    // Define the fields to be displayed
+$fields = [
+    'id',
+    'name',
+    'age',
+    'Height',
+    'city_living_in',
+    'currently_living_in',
+    'living_country',
+    'religion',
+    'marital_status',
+    'working_sector',
+    'profession',
+    'about_myself',
+    'profile_picture_url',
+    'invitation_send_status',
+];
+
+// Map the result to only include the specified fields
+$result = $result->map(function ($user) use ($fields) {
+    return array_intersect_key($user->toArray(), array_flip($fields));
+});
+
+
+
+
     // Return the final matching users as a JSON response
     return $result;
 }
