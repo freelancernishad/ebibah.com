@@ -181,9 +181,9 @@ function profile_matches($type = '', $limit = null)
     });
 
 
-    if ($limit !== null) {
-        $finalMatchingUsers = $finalMatchingUsers->take($limit);
-    }
+    // if ($limit !== null) {
+    //     $finalMatchingUsers = $finalMatchingUsers->take($limit);
+    // }
 
 
     // Log matched users
