@@ -65,7 +65,7 @@ class UserProfileController extends Controller
         // return $authUser->calculateProfileCompletion();
 
         // Find the user by id with the related images
-       return $user = User::with('userImages')->find($id)->toArrayWithRelations();
+        $user = User::with('userImages')->find($id)->toArrayWithRelations();
 
 
         if (!$user) {
@@ -118,6 +118,7 @@ class UserProfileController extends Controller
             ]);
         }
 
+        return $user;
         $totalCriteria = count($scoreConditions);
         $matchScoreQuery = DB::table('users')
             ->selectRaw(
