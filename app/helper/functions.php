@@ -158,8 +158,20 @@ function profile_matches($type = '', $limit = null)
 
 
 
-    // Retrieve all users that match other criteria
-    $matchingUsers = $query->get();
+
+
+
+        // Conditional retrieval based on limit
+        if ($limit !== null) {
+            // Retrieve users matching the criteria with a limit
+            $matchingUsers = $query->take($limit)->get();
+        } else {
+            // Retrieve all users that match other criteria
+            $matchingUsers = $query->get();
+        }
+
+
+
     // Log the SQL and bindings
     \Log::info($query->toSql());
     \Log::info($query->getBindings());
