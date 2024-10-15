@@ -254,7 +254,7 @@ protected $profilecompleted = [
 
 public function getProfileCompletionAttribute()
     {
-        $totalFields = count($this->fillable);
+        $totalFields = count($this->profilecompleted);
         $filledFields = 0;
 
         // Check fillable fields
