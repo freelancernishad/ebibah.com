@@ -229,7 +229,7 @@ public function checkTokenExpiration(Request $request)
     // You can use $permissions as needed
 
         // $user = JWTAuth::setToken($token)->authenticate();
-        return response()->json(['message' => 'Token is valid', 'user' => $user ], 200);
+        return response()->json(['message' => 'Token is valid', 'user' => $user->toArrayProfileWithoutRelation() ], 200);
     } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
         // Token has expired
         return response()->json(['message' => 'Token has expired'], 401);

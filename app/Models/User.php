@@ -296,8 +296,57 @@ public function getProfileCompletionAttribute()
 
 
 
+    public function toArrayProfile()
+    {
+        return parent::toArray();
+    }
+
+    public function toArrayProfileWithoutRelation()
+    {
+
+        $this->makeHidden([
+            'active_package_id',
+            'active_package',
+        ]);
+        $this->unsetRelations([
+            "partner_marital_statuses",
+            "partner_religions",
+            "partner_communities",
+            "partner_mother_tongues",
+            "partner_qualification",
+            "partner_working_with",
+            "partner_professions",
+            "partner_professional_details",
+            "partner_countries",
+            "partner_states",
+            "partner_cities",
+        ]);
+
+        return parent::toArray();
+    }
+
     public function toArrayWithRelations()
     {
+        $this->makeHidden([
+            'active_package_id',
+            'active_package',
+            'email',
+            'email_verification_hash',
+            'otp',
+            'otp_expires_at',
+            'step',
+            'email_verified_at',
+            'role',
+            'role_id',
+            // 'created_at',
+            'updated_at',
+            'views',
+            'likes',
+            'received_invitations_count',
+            'accepted_invitations_count',
+            'favorites',
+        ]);
+
         return parent::toArray(); // Call the parent's toArray without any modifications
     }
 

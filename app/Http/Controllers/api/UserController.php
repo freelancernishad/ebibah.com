@@ -45,7 +45,7 @@ class UserController extends Controller
         // $age = calculateAge($user->date_of_birth);
 
         // Convert user to array and include age
-        $userArray = $user->toArrayWithRelations();
+        $userArray = $user->toArrayProfile();
         // $userArray['age'] = $age;
 
        $my_match =  profile_matches('my',4);

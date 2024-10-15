@@ -524,6 +524,7 @@ function maskUserData($user)
     'partner_countries',
     'partner_states',
     'partner_cities',
+    'created_at',
 
 
 ];
