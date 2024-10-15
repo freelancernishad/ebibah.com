@@ -403,7 +403,7 @@ public function getProfileCompletionAttribute()
         return $array;
     }
 
-    public function toArrayCustom()
+    public function toArrayCustomarray()
     {
         $fields = [
             'id',

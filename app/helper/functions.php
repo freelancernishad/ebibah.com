@@ -159,7 +159,7 @@ function profile_matches($type = '', $limit = null)
 
 
     // Retrieve all users that match other criteria
-    $matchingUsers = $query->get()->toArrayCustom();
+    $matchingUsers = $query->get()->toArrayCustomarray();
     // Log the SQL and bindings
     \Log::info($query->toSql());
     \Log::info($query->getBindings());
