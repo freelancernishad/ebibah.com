@@ -157,18 +157,8 @@ function profile_matches($type = '', $limit = null)
 
 
 
+    $matchingUsers = $query->get();
 
-
-
-
-        // Conditional retrieval based on limit
-        if ($limit !== null) {
-            // Retrieve users matching the criteria with a limit
-            $matchingUsers = $query->take($limit)->get();
-        } else {
-            // Retrieve all users that match other criteria
-            $matchingUsers = $query->get();
-        }
 
 
 
@@ -268,6 +258,10 @@ $result = $result->map(function ($user) use ($fields) {
     return array_intersect_key($user, array_flip($fields));
 });
 
+// Apply the optional limit if provided
+if ($limit !== null) {
+    $result = $result->take($limit);
+}
 
 
 
