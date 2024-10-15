@@ -356,6 +356,27 @@ public function getProfileCompletionAttribute()
     {
 
         if (Route::currentRouteName() === 'getMatchingUsers') {
+
+            $this->makeHidden([
+                'active_package_id',
+                'active_package',
+                'email',
+                'email_verification_hash',
+                'otp',
+                'otp_expires_at',
+                'step',
+                'email_verified_at',
+                'role',
+                'role_id',
+                // 'created_at',
+                'updated_at',
+                'views',
+                'likes',
+                'received_invitations_count',
+                'accepted_invitations_count',
+                'favorites',
+            ]);
+
             return parent::toArray(); // Use the default toArray() for this route
         }
 
