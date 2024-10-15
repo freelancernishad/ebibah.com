@@ -118,7 +118,7 @@ class UserProfileController extends Controller
             ]);
         }
 
-        return $user->id;
+        return $user;
         $totalCriteria = count($scoreConditions);
         $matchScoreQuery = DB::table('users')
             ->selectRaw(
