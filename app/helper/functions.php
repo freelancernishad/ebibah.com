@@ -104,7 +104,7 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 function profile_matches($type = '', $limit = null)
 {
     // Get the authenticated user
-   return $user = Auth::user()->toArrayWithRelations();
+    $user = Auth::user()->toArrayWithRelations();
 
     // Check if the user is authenticated
     if (!$user) {
