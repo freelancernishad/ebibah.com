@@ -103,38 +103,49 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 
 function profile_matches($type = '', $limit = null)
 {
-    // Get the authenticated user with relations
-    $authUser = Auth::user();
+    // Get the authenticated user
+    $user = Auth::user();
 
-    if (!$authUser) {
+    // Check if the user is authenticated
+    if (!$user) {
         return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
     }
 
-    // Convert the authenticated user to an array with relations
-    $authUserArray = $authUser->toArrayWithRelations();
-
-    // Start the query for users
+    // Start the query with the User model
     $query = User::query();
 
-    // Exclude the authenticated user and only match users of the opposite gender
-    $query->where('gender', '!=', $authUserArray['gender'])
-          ->where('id', '!=', $authUserArray['id']);
+    // Filter based on requested type
+    $matchType = $type;
 
-    // Initialize conditions for SQL CASE statements for scoring and criteria matching
+
+
+    // Only match users of the opposite gender and exclude the authenticated user
+    $query->where('gender', '!==', $user->gender)
+    ->where('id', '!==', $user->id);
+
+    // Initialize conditions for the SQL CASE statement
     $scoreConditions = [];
     $totalCriteria = 0;
+
+    // Initialize the array to store matched fields
     $matchedUsersDetails = [];
 
-    // Add matching criteria checks using helper function
-    addMatchingCriteria($query, $authUserArray, $scoreConditions, $totalCriteria, $matchedUsersDetails);
+    // Define minAge and maxAge to avoid undefined variable errors
+    $minAge = null;
+    $maxAge = null;
 
-    // Filter by partner_age, matching date_of_birth
-    if (!empty($authUserArray['partner_age'])) {
-        $partnerAge = explode('-', $authUserArray['partner_age']); // Assuming 'partner_age' is a range like '25-30'
+    // Add other matching criteria checks
+    addMatchingCriteria($query, $user, $scoreConditions, $totalCriteria, $matchedUsersDetails);
+
+
+    // Filter by partner_age to match date_of_birth
+    if (!empty($user->partner_age)) {
+        $partnerAge = explode('-', $user->partner_age); // Assuming 'partner_age' is a range like '25-30'
         $minAge = isset($partnerAge[0]) ? (int)$partnerAge[0] : null;
         $maxAge = isset($partnerAge[1]) ? (int)$partnerAge[1] : null;
 
         $query->where(function ($subQuery) use ($minAge, $maxAge) {
+            $subQuery->whereNotNull('date_of_birth'); // Only include users with a date of birth
             if ($minAge !== null) {
                 $subQuery->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= ?', [$minAge]);
             }
@@ -144,68 +155,77 @@ function profile_matches($type = '', $limit = null)
         });
     }
 
-    // Retrieve matching users
+
+
+
+    // Retrieve all users that match other criteria
     $matchingUsers = $query->get();
+    // Log the SQL and bindings
+    \Log::info($query->toSql());
+    \Log::info($query->getBindings());
+      // Apply additional filters based on the type of match requested
 
-    // Convert the matching users to an array with relations
-    $matchingUsersArray = $matchingUsers->map->toArrayWithRelations();
 
-    \Log::info($query->toSql());  // Log SQL query
-    \Log::info($query->getBindings());  // Log query bindings
+    // Log initial matching users count
+    \Log::info('Initial Matching Users Count: ', ['count' => $matchingUsers->count()]);
 
-    // Log the count of matching users
-    \Log::info('Initial Matching Users Count: ', ['count' => count($matchingUsersArray)]);
+    // Create a filtered collection for users that meet at least 2 matching criteria
+    $finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matchedUsersDetails, $minAge, $maxAge) {
+        // Calculate age from date_of_birth for the matched user
+        $age = \Carbon\Carbon::parse($matchingUser->date_of_birth)->age;
 
-    // Filter users that match at least 2 criteria
-    $finalMatchingUsers = collect($matchingUsersArray)->filter(function ($matchingUser) use ($matchedUsersDetails, $minAge, $maxAge) {
-        $age = \Carbon\Carbon::parse($matchingUser['date_of_birth'])->age;
-
-        // Ensure the user meets at least 2 matching fields and age range if applicable
-        return isset($matchedUsersDetails[$matchingUser['id']]) &&
-               count($matchedUsersDetails[$matchingUser['id']]) >= 2 &&
-               ($age >= $minAge && $age <= $maxAge);
+        // Ensure that the user has at least 2 matching fields and their age is within the partner age range
+        return isset($matchedUsersDetails[$matchingUser->id]) &&
+               count($matchedUsersDetails[$matchingUser->id]) >= 2 &&
+               ($age >= $minAge && $age <= $maxAge); // Ensure age is in the range
     });
 
-    // Log the final matching users count
+    // Log matched users
     \Log::info('Final Matching Users Count: ', ['count' => $finalMatchingUsers->count()]);
 
-    // Attach matched fields and return user details
-    $result = $finalMatchingUsers->map(function ($matchedUser) use ($matchedUsersDetails, $authUserArray, $minAge, $maxAge) {
-        // Age match criteria
+    // Log details of matched users
+    foreach ($finalMatchingUsers as $matchingUser) {
+        \Log::info('Matched User:', ['user_id' => $matchingUser->id]);
+    }
+
+    // Attach matched fields to the final matching users and remove the "user" key
+    $result = $finalMatchingUsers->map(function ($matchedUser) use ($matchedUsersDetails, $user, $minAge, $maxAge) {
+        // Prepare matched fields for partner age
         $partnerAgeMatch = [
             "field" => "partner_age",
-            "auth_user_preference" => explode('-', $authUserArray['partner_age']),
-            "matched_user_value" => \Carbon\Carbon::parse($matchedUser['date_of_birth'])->age,
-            "is_matched" => (\Carbon\Carbon::parse($matchedUser['date_of_birth'])->age >= $minAge &&
-                             \Carbon\Carbon::parse($matchedUser['date_of_birth'])->age <= $maxAge)
+            "auth_user_preference" => explode('-', $user->partner_age), // Assuming 'partner_age' is a range like '25-30'
+            "matched_user_value" => \Carbon\Carbon::parse($matchedUser->date_of_birth)->age, // Age of the matched user
+            "is_matched" => (\Carbon\Carbon::parse($matchedUser->date_of_birth)->age >= $minAge &&
+                             \Carbon\Carbon::parse($matchedUser->date_of_birth)->age <= $maxAge) // True/False if age is within range
         ];
 
-        // Append age match to matched details
-        if (!isset($matchedUsersDetails[$matchedUser['id']])) {
-            $matchedUsersDetails[$matchedUser['id']] = [];
+        // Add partner age match to matchedUsersDetails
+        if (!isset($matchedUsersDetails[$matchedUser->id])) {
+            $matchedUsersDetails[$matchedUser->id] = [];
         }
-        $matchedUsersDetails[$matchedUser['id']][] = $partnerAgeMatch;
+        $matchedUsersDetails[$matchedUser->id][] = $partnerAgeMatch;
 
         return array_merge(
-            $matchedUser, // Directly use the array representation
+            $matchedUser->toArray(), // Merge the user's attributes directly
             [
-                'matched_fields' => $matchedUsersDetails[$matchedUser['id']]
+                'matched_fields' => $matchedUsersDetails[$matchedUser->id] // Attach the matched fields
             ]
         );
     })->values(); // Use values() to remove numeric keys
+
+
 
     // Apply the optional limit if provided
     if ($limit !== null) {
         $result = $result->take($limit);
     }
 
-    // Apply match type filters (e.g., based on $type)
-    $result = applyMatchTypeFilters($result, $type, $authUserArray);
+
+    $result = applyMatchTypeFilters($result, $matchType, $user);
 
     // Return the final matching users as a JSON response
     return $result;
 }
-
 
 
 
