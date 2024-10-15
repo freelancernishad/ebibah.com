@@ -104,7 +104,7 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 function profile_matches($type = '', $limit = null)
 {
     // Get the authenticated user
-    $user = Auth::user();
+    $user = Auth::user()->toArrayWithRelations();
 
     // Check if the user is authenticated
     if (!$user) {
@@ -112,7 +112,7 @@ function profile_matches($type = '', $limit = null)
     }
 
     // Start the query with the User model
-    $query = User::query();
+    $query = User::query()->toArrayWithRelations();
 
     // Filter based on requested type
     $matchType = $type;
