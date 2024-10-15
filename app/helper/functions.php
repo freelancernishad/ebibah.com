@@ -228,7 +228,7 @@ function addMatchingCriteria($query, $user, &$scoreConditions, &$totalCriteria, 
     ];
 
     foreach ($criteriaMappings as $relation => $column) {
-        if ($user[$relation]) {
+        if ($user->$relation) {
             // Retrieve the values from the authenticated user's relationship
             $userValues = $user->$relation->pluck($column)->toArray();
 

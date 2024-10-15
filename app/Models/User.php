@@ -352,7 +352,10 @@ public function getProfileCompletionAttribute()
 
     public function toArray()
     {
-        // return parent::toArray();
+
+
+
+        return parent::toArray();
         $fields = [
             'id',
             'name',
