@@ -249,7 +249,7 @@ $fields = [
 
 // Map the result to only include the specified fields
 $result = $result->map(function ($user) use ($fields) {
-    return array_intersect_key($user->toArray(), array_flip($fields));
+    return array_intersect_key($user, array_flip($fields));
 });
 
 
