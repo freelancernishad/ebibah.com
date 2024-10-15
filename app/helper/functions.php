@@ -390,11 +390,12 @@ function applyMatchTypeFilters($users, $matchType, $user)
             });
             break;
 
-        case 'my':
-            // For 'my', we will not use previously matched users or an ID check,
-            // but instead rely entirely on the calculated match score from the preferences.
-            // No additional filters are needed; the match score logic is already in place.
-            break;
+            case 'my':
+                // For 'my', we will select matched users randomly
+                // Here you can adjust the number of random users you want to return
+                $randomUsers = $users->shuffle()->take(10); // Change 10 to your desired limit
+                return $randomUsers; // Return random users directly for 'my' match type
+                break;
 
         case 'near':
             // Access partner's location attributes from related models
