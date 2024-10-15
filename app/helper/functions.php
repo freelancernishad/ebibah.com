@@ -111,7 +111,7 @@ function profile_matches($type = '', $limit = null)
         return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
     }
 
-    // Start the query with the User model
+    // Start the query for users with relations
     $query = User::query()->toArrayWithRelations();
 
     // Filter based on requested type
@@ -158,8 +158,8 @@ function profile_matches($type = '', $limit = null)
 
 
 
-    // Retrieve all users that match other criteria
-    $matchingUsers = $query->get();
+    // Retrieve matching users with relations
+    $matchingUsers = $query->get()->toArrayWithRelations();
     // Log the SQL and bindings
     \Log::info($query->toSql());
     \Log::info($query->getBindings());
