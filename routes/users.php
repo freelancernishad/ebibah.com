@@ -165,7 +165,7 @@ Route::get('invitations/received/rejected', [InvitationController::class, 'rejec
 
 
 
-    Route::get('/user/matches', [UserProfileController::class, 'getMatchingUsers']);
+    Route::get('/user/matches', [UserProfileController::class, 'getMatchingUsers'])->name('getMatchingUsers');
     Route::get('/user/{id}/matches', [UserProfileController::class, 'getSingleUserWithAuthUserMatch']);
 
     Route::get('/favorites', [FavoriteController::class, 'index']);

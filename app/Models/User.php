@@ -353,7 +353,9 @@ public function getProfileCompletionAttribute()
     public function toArray()
     {
 
-
+        if (Route::currentRouteName() === 'getMatchingUsers') {
+            return parent::toArray(); // Use the default toArray() for this route
+        }
 
         return parent::toArray();
         $fields = [
