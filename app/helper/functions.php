@@ -190,27 +190,11 @@ function profile_matches($type = '', $limit = null)
 
 
 
-       // Define the fields to be displayed
-       $fields = [
-        'id',
-        'name',
-        'age',
-        'Height',
-        'city_living_in',
-        'currently_living_in',
-        'living_country',
-        'religion',
-        'marital_status',
-        'working_sector',
-        'profession',
-        'about_myself',
-        'profile_picture_url',
-        'invitation_send_status',
-    ];
 
 
-     // Attach matched fields to the final matching users and remove the "user" key
-     $result = $finalMatchingUsers->map(function ($matchedUser) use ($matchedUsersDetails, $user, $fields, $minAge, $maxAge) {
+
+    // Attach matched fields to the final matching users and remove the "user" key
+    $result = $finalMatchingUsers->map(function ($matchedUser) use ($matchedUsersDetails, $user, $minAge, $maxAge) {
         // Prepare matched fields for partner age
         $partnerAgeMatch = [
             "field" => "partner_age",
@@ -226,11 +210,12 @@ function profile_matches($type = '', $limit = null)
         }
         $matchedUsersDetails[$matchedUser->id][] = $partnerAgeMatch;
 
-        // Create a custom array without using the global toArray() function
-        return collect($matchedUser)->only($fields) // Use only the specified fields
-            ->merge([
+        return array_merge(
+            $matchedUser->toArray(), // Merge the user's attributes directly
+            [
                 'matched_fields' => $matchedUsersDetails[$matchedUser->id] // Attach the matched fields
-            ]);
+            ]
+        );
     })->values(); // Use values() to remove numeric keys
 
 
