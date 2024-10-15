@@ -65,7 +65,7 @@ class UserProfileController extends Controller
         // return $authUser->calculateProfileCompletion();
 
         // Find the user by id with the related images
-        $user = User::with('userImages')->find($id)->toArrayWithRelations();
+       return $user = User::with('userImages')->find($id)->toArrayWithRelations();
 
 
         if (!$user) {
