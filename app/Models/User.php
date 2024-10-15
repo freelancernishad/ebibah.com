@@ -403,29 +403,7 @@ public function getProfileCompletionAttribute()
         return $array;
     }
 
-    public function toArrayCustomarray()
-    {
-        $fields = [
-            'id',
-            'name',
-            'age',
-            'Height',
-            'city_living_in',
-            'currently_living_in',
-            'living_country',
-            'religion',
-            'marital_status',
-            'working_sector',
-            'profession',
-            'about_myself',
-            'profile_picture_url',
-            'invitation_send_status',
-        ];
 
-        $array = array_intersect_key(parent::toArray(), array_flip($fields));
-
-        return $array;
-    }
 
 
 
