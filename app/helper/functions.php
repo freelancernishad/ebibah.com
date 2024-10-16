@@ -615,4 +615,21 @@ function maskUserData($user)
 
 
 
+ function hasServiceAccess(string $serviceName): bool
+{
+       // Get the authenticated user
+       $user = Auth::user();
+    // Check if the user's active package allows the specified service
+    if (isset($user->active_package) && isset($user->active_package['allowed_services'])) {
+        foreach ($user->active_package['allowed_services'] as $service) {
+            if (isset($service['name']) && $service['name'] === $serviceName && $service['status'] === 'active') {
+                return true; // Access granted
+            }
+        }
+    }
+
+    return false; // Access denied
+}
+
+
 

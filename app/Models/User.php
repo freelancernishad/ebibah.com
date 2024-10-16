@@ -120,7 +120,65 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'status',
         'otp',
         'otp_expires_at',
+        'contact_view_balance'
     ];
+
+
+
+    public function decrementContactViewBalance($viewedProfileUserId)
+    {
+        // Check if the viewed profile user exists
+        if (!User::find($viewedProfileUserId)) {
+            return ['status' => false, 'message' => 'The profile you are trying to view does not exist.'];
+        }
+
+        // Check if the user has enough contact view balance
+        if ($this->contact_view_balance > 0) {
+            // Check if a record of this view already exists
+            $existingView = $this->contactViews()
+                ->where('viewed_profile_user_id', $viewedProfileUserId)
+                ->where('package_id', $this->active_package_id) // Check for the active package
+                ->first();
+
+            // If a view does not exist, decrement the balance and create a new record
+            if (!$existingView) {
+                // Decrement the contact view balance
+                $this->contact_view_balance--;
+                $this->save();
+
+                // Create a new ContactView record with the active package and user info
+                $this->contactViews()->create([
+                    'user_id' => $this->id, // Current user ID (viewing the contact)
+                    'package_id' => $this->active_package_id, // The active package being used
+                    'viewed_profile_user_id' => $viewedProfileUserId, // ID of the profile being viewed
+                ]);
+
+                // Return success message
+                return ['status' => true, 'message' => 'Contact view successful'];
+            } else {
+                // Return message if the contact has already been viewed with this package
+                return ['status' => false, 'message' => 'You have already viewed this profile with your current package.'];
+            }
+        } else {
+            // Return error message if no balance is available
+            return ['status' => false, 'message' => 'You do not have enough contact views available.'];
+        }
+    }
+
+
+
+
+     // Method to check if the user has enough balance to view more contacts
+     public function hasContactViewBalance()
+     {
+         return $this->contact_view_balance > 0;
+     }
+
+     // Relationship with ContactView
+     public function contactViews()
+     {
+         return $this->hasMany(ContactView::class);
+     }
 
     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion','what_u_looking'];
 
@@ -348,30 +406,9 @@ public function getProfileCompletionAttribute()
     {
         // Convert the model data to an array
         $array = parent::toArray();
-        $premiumMemberBadge = false;
-        $trustedBadgeAccess = false;
 
-        if (isset($this->active_package) && isset($this->active_package['allowed_services'])) {
-            foreach ($this->active_package['allowed_services'] as $service) {
-                // Check if the service name is "Premium member badge" and it's active
-                if (isset($service['name']) && $service['name'] === 'Premium member badge' && $service['status'] === 'active') {
-                    $premiumMemberBadge = true;
-                }
-
-                // Check if the service name is "Trusted badge access" and it's active
-                if (isset($service['name']) && $service['name'] === 'Trusted badge access' && $service['status'] === 'active') {
-                    $trustedBadgeAccess = true;
-                }
-
-                // Stop checking if both badges have been found
-                if ($premiumMemberBadge && $trustedBadgeAccess) {
-                    break;
-                }
-            }
-        }
-
-        $array['premium_member_badge'] = $premiumMemberBadge;
-        $array['trusted_badge_access'] = $trustedBadgeAccess;
+        $array['premium_member_badge'] = hasServiceAccess('Premium member badge');
+        $array['trusted_badge_access'] = hasServiceAccess('Trusted badge access');
 
         return $array;
     }

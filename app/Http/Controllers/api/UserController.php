@@ -784,4 +784,35 @@ class UserController extends Controller
         return response()->json(['message' => 'Password changed successfully'], 200);
     }
 
+
+
+    public function viewContactDetails(Request $request, $viewedProfileUserId)
+    {
+        // Get the currently authenticated user
+        $user = Auth::user();
+
+        // Check if the user is authenticated
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+    
+       $canViewContacts =  hasServiceAccess('View up to 180 Contact Details');
+
+        // If the user does not have permission to view contacts, return an error
+        if (!$canViewContacts) {
+            return response()->json(['message' => 'Your package does not allow viewing contact details.'], 403);
+        }
+
+        // Check if the user has enough balance and try to decrement it
+        $result = $user->decrementContactViewBalance($viewedProfileUserId);
+
+
+            return response()->json([
+                'message' => $result['message'], // Success message
+            ]);
+
+    }
+
+
 }
