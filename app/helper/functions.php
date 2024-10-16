@@ -251,6 +251,7 @@ $fields = [
     'about_myself',
     'profile_picture_url',
     'invitation_send_status',
+    'is_favorited',
 ];
 
 // Map the result to only include the specified fields

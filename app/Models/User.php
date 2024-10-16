@@ -445,6 +445,7 @@ public function getProfileCompletionAttribute()
             'about_myself',
             'profile_picture_url',
             'invitation_send_status',
+            'is_favorited',
         ];
 
         $array = array_intersect_key(parent::toArray(), array_flip($fields));
