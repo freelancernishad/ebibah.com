@@ -157,9 +157,20 @@ class StripePaymentController extends Controller
                 // Update User's active_package_id
                 $user = $payment->user;
                 if ($user) {
+
                     $user->update([
                         'active_package_id' => $packagePurchase->package->id,
                     ]);
+
+
+                      // Check if the user has access to the "View up to 180 Contact Details" service
+                if (hasServiceAccess('View up to 180 Contact Details')) {
+                    // Update contact view balance to 180
+                    $user->update([
+                        'contact_view_balance' => 180, // Set the balance to 180
+                    ]);
+                }
+
                 }
             }
         } else {
