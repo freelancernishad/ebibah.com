@@ -345,10 +345,28 @@ public function getProfileCompletionAttribute()
 
 
 
-
     public function toArrayProfile()
     {
-        return parent::toArray();
+        // Convert the model data to an array
+        $array = parent::toArray();
+
+        // Check if active_package and active_services exist
+        $premiumMemberBadge = false;
+
+        if (isset($this->active_package) && isset($this->active_package['active_services'])) {
+            foreach ($this->active_package['active_services'] as $service) {
+                // Check if the service name is "Premium member badge" and it's active
+                if (isset($service['service']) && $service['service']['name'] === 'Premium member badge' && $service['status'] === 'active') {
+                    $premiumMemberBadge = true;
+                    break;
+                }
+            }
+        }
+
+        // Add premium_member_badge column to the array
+        $array['premium_member_badge'] = $premiumMemberBadge;
+
+        return $array;
     }
 
     public function toArrayProfileWithoutRelation()
