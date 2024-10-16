@@ -344,27 +344,34 @@ public function getProfileCompletionAttribute()
 
 
 
-
     public function toArrayProfile()
     {
         // Convert the model data to an array
         $array = parent::toArray();
-
-        // Check if active_package and active_services exist
         $premiumMemberBadge = false;
+        $trustedBadgeAccess = false;
 
-        if (isset($this->active_package) && isset($this->active_package['active_services'])) {
-            foreach ($this->active_package['active_services'] as $service) {
+        if (isset($this->active_package) && isset($this->active_package['allowed_services'])) {
+            foreach ($this->active_package['allowed_services'] as $service) {
                 // Check if the service name is "Premium member badge" and it's active
-                if (isset($service['service']) && $service['service']['name'] === 'Premium member badge' && $service['status'] === 'active') {
+                if (isset($service['name']) && $service['name'] === 'Premium member badge' && $service['status'] === 'active') {
                     $premiumMemberBadge = true;
+                }
+
+                // Check if the service name is "Trusted badge access" and it's active
+                if (isset($service['name']) && $service['name'] === 'Trusted badge access' && $service['status'] === 'active') {
+                    $trustedBadgeAccess = true;
+                }
+
+                // Stop checking if both badges have been found
+                if ($premiumMemberBadge && $trustedBadgeAccess) {
                     break;
                 }
             }
         }
 
-        // Add premium_member_badge column to the array
         $array['premium_member_badge'] = $premiumMemberBadge;
+        $array['trusted_badge_access'] = $trustedBadgeAccess;
 
         return $array;
     }
