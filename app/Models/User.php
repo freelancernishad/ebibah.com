@@ -180,9 +180,22 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
          return $this->hasMany(ContactView::class);
      }
 
-    protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion','what_u_looking'];
+    protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion','what_u_looking',       'premium_member_badge',
+    'trusted_badge_access'];
 
+    // Define the accessor for premium_member_badge
+    public function getPremiumMemberBadgeAttribute()
+    {
+        // Pass the current user (for profile) or the authenticated user if not specified
+        return hasServiceAccess('Premium member badge', $this);
+    }
 
+    // Define the accessor for trusted_badge_access
+    public function getTrustedBadgeAccessAttribute()
+    {
+        // Pass the current user (for profile) or the authenticated user if not specified
+        return hasServiceAccess('Trusted badge access', $this);
+    }
 
 
     public function partnerMaritalStatuses()
@@ -407,8 +420,6 @@ public function getProfileCompletionAttribute()
         // Convert the model data to an array
         $array = parent::toArray();
 
-        $array['premium_member_badge'] = hasServiceAccess('Premium member badge');
-        $array['trusted_badge_access'] = hasServiceAccess('Trusted badge access');
 
         return $array;
     }
@@ -438,8 +449,9 @@ public function getProfileCompletionAttribute()
 
     public function toArrayWithRelations()
     {
+
         $this->makeHidden([
-            'active_package_id',
+            // 'active_package_id',
             'active_package',
             'email',
             'email_verification_hash',
@@ -457,8 +469,10 @@ public function getProfileCompletionAttribute()
             'accepted_invitations_count',
             'favorites',
         ]);
+        $array = parent::toArray();
 
-        return parent::toArray(); // Call the parent's toArray without any modifications
+
+        return $array; // Call the parent's toArray without any modifications
     }
 
 
@@ -487,7 +501,10 @@ public function getProfileCompletionAttribute()
                 'favorites',
             ]);
 
-            return parent::toArray(); // Use the default toArray() for this route
+            $array = parent::toArray();
+
+
+            return $array; // Call the parent's toArray without any modifications
         }
 
 
@@ -508,9 +525,14 @@ public function getProfileCompletionAttribute()
             'profile_picture_url',
             'invitation_send_status',
             'is_favorited',
+            'premium_member_badge',
+            'trusted_badge_access',
         ];
 
         $array = array_intersect_key(parent::toArray(), array_flip($fields));
+
+
+
 
         return $array;
     }

@@ -481,7 +481,9 @@ function maskUserData($user)
     $visibleFields = [
 
     'id',
+
     'name',
+    'active_package_id',
     'email',
     'password',
     'role',
@@ -569,6 +571,8 @@ function maskUserData($user)
     'partner_states',
     'partner_cities',
     'created_at',
+    'trusted_badge_access',
+    'premium_member_badge',
 
 
 ];
@@ -615,21 +619,26 @@ function maskUserData($user)
 
 
 
- function hasServiceAccess(string $serviceName): bool
+function hasServiceAccess(string $serviceName, $user = null): bool
 {
-       // Get the authenticated user
-       $user = Auth::user();
+    // Use the passed user or the authenticated user if none is provided
+    $user = $user ?? Auth::user();
+
+    // If no user is authenticated or the user doesn't have an active package, deny access
+    if (!$user || !isset($user->active_package) || !isset($user->active_package['allowed_services'])) {
+        return false; // Access denied
+    }
+
     // Check if the user's active package allows the specified service
-    if (isset($user->active_package) && isset($user->active_package['allowed_services'])) {
-        foreach ($user->active_package['allowed_services'] as $service) {
-            if (isset($service['name']) && $service['name'] === $serviceName && $service['status'] === 'active') {
-                return true; // Access granted
-            }
+    foreach ($user->active_package['allowed_services'] as $service) {
+        if (isset($service['name'], $service['status']) && $service['name'] === $serviceName && $service['status'] === 'active') {
+            return true; // Access granted
         }
     }
 
     return false; // Access denied
 }
+
 
 
 
