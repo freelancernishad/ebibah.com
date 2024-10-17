@@ -252,6 +252,8 @@ $fields = [
     'profile_picture_url',
     'invitation_send_status',
     'is_favorited',
+    'premium_member_badge',
+    'trusted_badge_access',
 ];
 
 // Map the result to only include the specified fields
