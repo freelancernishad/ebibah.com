@@ -109,6 +109,7 @@ class UserProfileController extends Controller
             }
         }
 
+        return $userArray;
         if (empty($scoreConditions)) {
             return response()->json([
                 'user' => maskUserData($userArray,$authUser),
