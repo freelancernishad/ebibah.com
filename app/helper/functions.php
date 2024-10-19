@@ -486,14 +486,13 @@ function maskUserData($user,$currentUser)
 
     'name',
     'active_package_id',
-    'email',
+
     'password',
     'role',
     'role_id',
     'profile_for',
     'profile_created_by',
-    'mobile_number',
-    'whatsapp',
+
     'date_of_birth',
     'gender',
     'first_name',
@@ -514,9 +513,7 @@ function maskUserData($user,$currentUser)
     'monthly_income',
     'father_occupation',
     'mother_occupation',
-    'living_country',
-    'currently_living_in',
-    'city_living_in',
+
     'family_details',
     'family_values',
     'family_location',
@@ -592,7 +589,7 @@ function maskUserData($user,$currentUser)
 
 
 // Check if the profile has been viewed by the current user
-$hasViewedProfile = $currentUser->hasViewedProfile($user['id']);
+return $hasViewedProfile = $currentUser->hasViewedProfile($user['id']);
 
 // If the profile has been viewed, merge conditionally viewable fields into visibleFields
 if ($hasViewedProfile) {
