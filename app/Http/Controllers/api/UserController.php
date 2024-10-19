@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Package;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -791,13 +792,20 @@ class UserController extends Controller
         // Get the currently authenticated user
         $user = Auth::user();
 
+
         // Check if the user is authenticated
         if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-    
-       $canViewContacts =  hasServiceAccess('View up to 180 Contact Details');
+        $package = Package::find($user->active_package_id);
+
+        if ($package) {
+            $profile_view = $package->profile_view;
+             $canViewContacts = hasServiceAccess("View up to $profile_view Contact Details");
+        }else{
+            $canViewContacts = hasServiceAccess("View up to 180 Contact Details");
+        }
 
         // If the user does not have permission to view contacts, return an error
         if (!$canViewContacts) {
@@ -809,7 +817,7 @@ class UserController extends Controller
 
 
             return response()->json([
-                'message' => $result['message'], // Success message
+                'message' => $result, // Success message
             ]);
 
     }

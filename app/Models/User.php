@@ -128,8 +128,12 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function decrementContactViewBalance($viewedProfileUserId)
     {
         // Check if the viewed profile user exists
-        if (!User::find($viewedProfileUserId)) {
-            return ['status' => false, 'message' => 'The profile you are trying to view does not exist.'];
+        $viewedProfileUser = User::find($viewedProfileUserId);
+        if (!$viewedProfileUser) {
+            return [
+                'status' => false,
+                'message' => 'The profile you are trying to view does not exist.'
+            ];
         }
 
         // Check if the user has enough contact view balance
@@ -153,18 +157,40 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
                     'viewed_profile_user_id' => $viewedProfileUserId, // ID of the profile being viewed
                 ]);
 
-                // Return success message
-                return ['status' => true, 'message' => 'Contact view successful'];
+                // Return success message with contact details
+                return [
+                    'status' => true,
+                    'message' => 'Contact view successful',
+                    'contact_details' => $this->getContactDetails($viewedProfileUser)
+                ];
             } else {
                 // Return message if the contact has already been viewed with this package
-                return ['status' => false, 'message' => 'You have already viewed this profile with your current package.'];
+                return [
+                    'status' => true,
+                    'message' => 'You have already viewed this profile with your current package.',
+                    'contact_details' => $this->getContactDetails($viewedProfileUser)
+                ];
             }
         } else {
             // Return error message if no balance is available
-            return ['status' => false, 'message' => 'You do not have enough contact views available.'];
+            return [
+                'status' => false,
+                'message' => 'You do not have enough contact views available.'
+            ];
         }
     }
 
+    private function getContactDetails($user)
+    {
+        return [
+            'mobile_number' => $user->mobile_number,
+            'whatsapp' => $user->whatsapp,
+            'email' => $user->email,
+            'living_country' => $user->living_country,
+            'currently_living_in' => $user->currently_living_in,
+            'city_living_in' => $user->city_living_in,
+        ];
+    }
 
 
 
@@ -182,6 +208,26 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 
     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion','what_u_looking',       'premium_member_badge',
     'trusted_badge_access'];
+
+
+
+    public function hasViewedProfile($viewedProfileUserId)
+{
+    // Check if the viewed profile user exists
+    if (!User::find($viewedProfileUserId)) {
+        return false; // User does not exist
+    }
+
+    // Check if a record of this view exists with the active package
+    $existingView = $this->contactViews()
+        ->where('viewed_profile_user_id', $viewedProfileUserId)
+        ->where('package_id', $this->active_package_id) // Check for the active package
+        ->exists();
+
+    return $existingView; // Returns true if viewed, false otherwise
+}
+
+
 
     // Define the accessor for premium_member_badge
     public function getPremiumMemberBadgeAttribute()

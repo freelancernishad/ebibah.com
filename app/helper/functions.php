@@ -558,6 +558,7 @@ function maskUserData($user)
     'favorites_count',
     'profile_completion',
     'what_u_looking',
+    'is_contact_details_viewed',
 
 
 
@@ -621,8 +622,9 @@ function maskUserData($user)
 
 
 
-function hasServiceAccess(string $serviceName, $user = null): bool
+function hasServiceAccess(string $serviceName, $user = null)
 {
+    // return $user;
     // Use the passed user or the authenticated user if none is provided
     $user = $user ?? Auth::user();
 
@@ -631,6 +633,7 @@ function hasServiceAccess(string $serviceName, $user = null): bool
         return false; // Access denied
     }
 
+    // return $user->active_package;
     // Check if the user's active package allows the specified service
     foreach ($user->active_package['allowed_services'] as $service) {
         if (isset($service['name'], $service['status']) && $service['name'] === $serviceName && $service['status'] === 'active') {
@@ -675,4 +678,6 @@ function allowed_services($activePackage) {
 
     return null;
 }
+
+
 
