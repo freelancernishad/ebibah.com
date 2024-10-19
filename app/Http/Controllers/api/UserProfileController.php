@@ -111,7 +111,7 @@ class UserProfileController extends Controller
 
         if (empty($scoreConditions)) {
             return response()->json([
-                'user' => maskUserData($userArray),
+                'user' => maskUserData($userArray,$authUser),
                 'is_match' => false,
                 'match_percentage' => 0,
                 'match_score' => 0,
@@ -180,7 +180,7 @@ class UserProfileController extends Controller
 
 
         return response()->json([
-            'user' => maskUserData($userArray),
+            'user' => maskUserData($userArray,$authUser),
             'is_match' => $isMatch,
             'match_percentage' => $matchPercentage,
             'match_score' => $matchScore,
