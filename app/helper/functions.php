@@ -590,9 +590,9 @@ function maskUserData($user,$currentUser)
     'city_living_in',
 ];
 
-return $user;
+
 // Check if the profile has been viewed by the current user
-$hasViewedProfile = $currentUser->hasViewedProfile($user->id);
+$hasViewedProfile = $currentUser->hasViewedProfile($user['id']);
 
 // If the profile has been viewed, merge conditionally viewable fields into visibleFields
 if ($hasViewedProfile) {
