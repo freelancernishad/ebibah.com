@@ -589,7 +589,7 @@ function maskUserData($user,$currentUser)
 
 
 // Check if the profile has been viewed by the current user
-return $hasViewedProfile = $currentUser->hasViewedProfile($user['id']);
+ $hasViewedProfile = $currentUser->hasViewedProfile($user['id']);
 
 // If the profile has been viewed, merge conditionally viewable fields into visibleFields
 if ($hasViewedProfile) {
