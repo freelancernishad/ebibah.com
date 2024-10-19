@@ -476,37 +476,128 @@ function applyMatchTypeFilters($users, $matchType, $user)
 
 
 
-function maskUserData($user, $currentUser) {
+
+function maskUserData($user,$currentUser)
+{
     // Define the fields that should not be masked (visible fields)
     $visibleFields = [
-        'id', 'name', 'active_package_id', 'password', 'role', 'role_id',
-        'profile_for', 'profile_created_by', 'date_of_birth', 'gender', 'first_name',
-        'last_name', 'father_name', 'mother_name', 'marital_status', 'religion', 'community',
-        'mother_tongue', 'sub_community', 'nationality', 'highest_qualification', 'college_name',
-        'working_sector', 'profession', 'profession_details', 'monthly_income', 'father_occupation',
-        'mother_occupation', 'family_details', 'family_values', 'family_location', 'family_type',
-        'family_native_place', 'total_siblings', 'siblings_married', 'siblings_not_married', 'height',
-        'birth_place', 'personal_values', 'disability', 'posted_by', 'weight', 'bodyType', 'race',
-        'blood_group', 'mother_status', 'state', 'about_myself', 'partner_age', 'username', 'step',
-        'smoking', 'other_lifestyle_preferences', 'drinking', 'diet', 'email_verification_hash',
-        'status', 'otp', 'otp_expires_at', 'is_favorited', 'age', 'profile_picture_url',
-        'active_package', 'invitation_send_status', 'received_invitations_count',
-        'accepted_invitations_count', 'favorites_count', 'profile_completion', 'what_u_looking',
-        'is_contact_details_viewed', 'partner_marital_statuses', 'partner_religions', 'partner_communities',
-        'partner_mother_tongues', 'partner_qualification', 'partner_working_with', 'partner_professions',
-        'partner_professional_details', 'partner_countries', 'partner_states', 'partner_cities', 'created_at',
-        'trusted_badge_access', 'premium_member_badge'
-    ];
 
-    // Define the fields that are conditionally viewable
-    $conditionallyViewableFields = [
-        'mobile_number' => $user->mobile_number,
-        'whatsapp' => $user->whatsapp,
-        'email' => $user->email,
-        'living_country' => $user->living_country,
-        'currently_living_in' => $user->currently_living_in,
-        'city_living_in' => $user->city_living_in,
-    ];
+    'id',
+
+    'name',
+    'active_package_id',
+    'email',
+    'password',
+    'role',
+    'role_id',
+    'profile_for',
+    'profile_created_by',
+    'mobile_number',
+    'whatsapp',
+    'date_of_birth',
+    'gender',
+    'first_name',
+    'last_name',
+    'father_name',
+    'mother_name',
+    'marital_status',
+    'religion',
+    'community',
+    'mother_tongue',
+    'sub_community',
+    'nationality',
+    'highest_qualification',
+    'college_name',
+    'working_sector',
+    'profession',
+    'profession_details',
+    'monthly_income',
+    'father_occupation',
+    'mother_occupation',
+    'living_country',
+    'currently_living_in',
+    'city_living_in',
+    'family_details',
+    'family_values',
+    'family_location',
+    'family_type',
+    'family_native_place',
+    'total_siblings',
+    'siblings_married',
+    'siblings_not_married',
+    'height',
+    'birth_place',
+    'personal_values',
+    'disability',
+    'posted_by',
+    'weight',
+    'bodyType',
+    'race',
+    'blood_group',
+    'mother_status',
+    'state',
+    'about_myself',
+    'partner_age',
+    'username',
+    'step',
+    'smoking',
+    'other_lifestyle_preferences',
+    'drinking',
+    'diet',
+    'email_verification_hash',
+    'status',
+    'otp',
+    'otp_expires_at',
+    'is_favorited',
+    'age',
+    'profile_picture_url',
+    'active_package',
+    'invitation_send_status',
+    'received_invitations_count',
+    'accepted_invitations_count',
+    'favorites_count',
+    'profile_completion',
+    'what_u_looking',
+    'is_contact_details_viewed',
+
+
+
+    'partner_marital_statuses',
+    'partner_religions',
+    'partner_communities',
+    'partner_mother_tongues',
+    'partner_qualification',
+    'partner_working_with',
+    'partner_professions',
+    'partner_professional_details', //////
+    'partner_countries',
+    'partner_states',
+    'partner_cities',
+    'created_at',
+    'trusted_badge_access',
+    'premium_member_badge',
+
+
+];
+
+   // Define the fields that are conditionally viewable
+   $conditionallyViewableFields = [
+    'mobile_number',
+    'whatsapp',
+    'email',
+    'living_country',
+    'currently_living_in',
+    'city_living_in',
+];
+
+// Check if the profile has been viewed by the current user
+$hasViewedProfile = $currentUser->hasViewedProfile($user->id);
+
+// If the profile has been viewed, merge conditionally viewable fields into visibleFields
+if ($hasViewedProfile) {
+    $visibleFields = array_merge($visibleFields, $conditionallyViewableFields);
+}
+
 
     // Define the mapping of masked array fields to their respective columns
     $maskedArrayFields = [
@@ -523,10 +614,12 @@ function maskUserData($user, $currentUser) {
         'partner_cities' => 'city',
     ];
 
-    $maskedUser = [];
 
-    // Check if the profile has been viewed by the current user
-    $hasViewedProfile = $currentUser->hasViewedProfile($user->id);
+
+
+
+
+    $maskedUser = [];
 
     // Loop through user attributes
     foreach ($user as $key => $value) {
@@ -540,9 +633,6 @@ function maskUserData($user, $currentUser) {
                     $maskedArrayFields[$key] => '****' // Mask the appropriate column for this field
                 ]
             ];
-        } elseif (array_key_exists($key, $conditionallyViewableFields)) {
-            // Conditionally mask contact and location fields
-            $maskedUser[$key] = $hasViewedProfile ? $conditionallyViewableFields[$key] : '****';
         } else {
             // Mask other simple fields
             $maskedUser[$key] = '****';
@@ -551,6 +641,12 @@ function maskUserData($user, $currentUser) {
 
     return $maskedUser;
 }
+
+
+
+
+
+
 
 
 
