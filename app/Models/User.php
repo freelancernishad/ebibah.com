@@ -904,30 +904,12 @@ public function permissions()
      // Add accessor to include active_package details
      public function getActivePackageAttribute()
      {
-        $activePackage = $this->getRelationValue('activePackage');
+        $activePackage = Package::find($this->active_package_id);
 
-         if ($activePackage) {
-             return [
-                 'id' => $activePackage->id,
-                 'package_name' => $activePackage->package_name,
-                 'price' => $activePackage->price,
-                 'discount_type' => $activePackage->discount_type,
-                 'discount' => $activePackage->discount,
-                 'sub_total_price' => $activePackage->sub_total_price,
-                 'currency' => $activePackage->currency,
-                 'duration' => $activePackage->duration,
-                 'created_at' => $activePackage->created_at,
-                 'updated_at' => $activePackage->updated_at,
-                 'allowed_services' => $activePackage->activeServices->map(function ($service) {
-                     return [
-                         'name' => $service->service->name,
-                         'status' => $service->status,
-                     ];
-                 }),
-             ];
-         }
 
-         return null; // Return null if no active package found
+       return allowed_services($activePackage);
+
+          // Return null if no active package found
      }
 
 

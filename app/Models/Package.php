@@ -19,6 +19,7 @@ class Package extends Model
         'sub_total_price',
         'currency',
         'duration',
+        'profile_view',
     ];
 
 

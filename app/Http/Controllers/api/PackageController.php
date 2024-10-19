@@ -15,47 +15,14 @@ public function index()
 {
     $packages = Package::with('activeServices.service')->get();
 
-    // Fetch all package services for reference
-    $allPackageServices = PackageService::all()->keyBy('id');
-
-    // Transform the packages to include only allowed_services array
-    $packagesWithAllowedServices = $packages->map(function ($package) use ($allPackageServices) {
-        $activeServices = $package->activeServices->keyBy('service_id');
-
-        $allowedServices = $activeServices->map(function ($activeService) {
-            return [
-                'name' => $activeService->service->name,
-                'status' => $activeService->status
-            ];
-        })->values();
-
-        // If no active services, use all package services with 'deactive' status
-        if ($allowedServices->isEmpty()) {
-            $allowedServices = $allPackageServices->map(function ($service) {
-                return [
-                    'name' => $service->name,
-                    'status' => 'deactive'
-                ];
-            })->values();
-        }
-
-        return [
-            'id' => $package->id,
-            'package_name' => $package->package_name,
-            'price' => $package->price,
-            'discount_type' => $package->discount_type,
-            'discount' => $package->discount,
-            'sub_total_price' => $package->sub_total_price,
-            'currency' => $package->currency,
-            'duration' => $package->duration,
-            'created_at' => $package->created_at,
-            'updated_at' => $package->updated_at,
-            'allowed_services' => $allowedServices
-        ];
+    // Transform the packages to include only allowed_services array using the function allowed_services
+    $packagesWithAllowedServices = $packages->map(function ($package) {
+        return allowed_services($package); // Use the allowed_services function
     });
 
     return response()->json($packagesWithAllowedServices, 200);
 }
+
 
 
 // Fetch a specific package by ID
@@ -68,44 +35,12 @@ public function show($id)
         return response()->json(['message' => 'Package not found'], 404);
     }
 
-    // Fetch all package services for reference
-    $allPackageServices = PackageService::all()->keyBy('id');
-
-    // Map active services
-    $activeServices = $package->activeServices->keyBy('service_id')->map(function ($activeService) {
-        return [
-            'name' => $activeService->service->name,
-            'status' => $activeService->status
-        ];
-    })->values();
-
-    // If no active services, use all package services with 'deactive' status
-    if ($activeServices->isEmpty()) {
-        $activeServices = $allPackageServices->map(function ($service) {
-            return [
-                'name' => $service->name,
-                'status' => 'deactive'
-            ];
-        })->values();
-    }
-
-    // Prepare the response data
-    $responseData = [
-        'id' => $package->id,
-        'package_name' => $package->package_name,
-        'price' => $package->price,
-        'discount_type' => $package->discount_type,
-        'discount' => $package->discount,
-        'sub_total_price' => $package->sub_total_price,
-        'currency' => $package->currency,
-        'duration' => $package->duration,
-        'created_at' => $package->created_at,
-        'updated_at' => $package->updated_at,
-        'allowed_services' => $activeServices
-    ];
+    // Use the allowed_services function to handle the logic of mapping services
+    $responseData = allowed_services($package);
 
     return response()->json($responseData, 200);
 }
+
 
 
     // Create a new package
@@ -313,15 +248,29 @@ public function deletePackageService($id)
         return response()->json($inactiveServices, 200);
     }
 
-
     public function updateServicesStatus(Request $request, $packageId)
     {
+        // Validate the incoming request
         $validated = $request->validate([
             'services' => 'required|array',
             'services.*.service_id' => 'required|exists:package_services,id',
             'services.*.status' => 'required|in:active,deactive',
         ]);
-        // return Package::find($packageId);
+
+        // Find the package by its ID
+        $package = Package::find($packageId);
+
+        if (!$package) {
+            return response()->json(['message' => 'Package not found'], 404);
+        }
+
+        // Check if the 'profile-view' query parameter exists and update it
+        if ($request->has('profile-view')) {
+            $profileView = $request->query('profile-view');
+            if (is_numeric($profileView) && $profileView >= 0) {
+                $package->update(['profile_view' => $profileView]);
+            }
+        }
 
         // Delete all existing services for the package
         PackageActiveService::where('package_id', $packageId)->delete();
@@ -336,7 +285,7 @@ public function deletePackageService($id)
                 $packageActiveService = PackageActiveService::create([
                     'package_id' => $packageId,
                     'service_id' => $service['service_id'],
-                    'status' => $service['status']
+                    'status' => $service['status'],
                 ]);
 
                 $servicesStatus[] = $packageActiveService;
@@ -345,8 +294,13 @@ public function deletePackageService($id)
             }
         }
 
-        return response()->json($servicesStatus, 201);
+        return response()->json([
+            'message' => 'Services and profile view updated successfully',
+            'profile_view' => $package->profile_view,
+            'services' => $servicesStatus,
+        ], 201);
     }
+
 
     public function getAllPackageServices()
     {

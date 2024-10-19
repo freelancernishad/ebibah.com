@@ -24,42 +24,40 @@ use App\Http\Controllers\Global\FilterUserController;
 |
 */
 
-
-
-
-
+// Retrieve User-Agent
 Route::get('/userAgent', function (Request $request) {
     return request()->header('User-Agent');
 });
 
-
+// Settings routes
 Route::get('/settings', [SettingController::class, 'index']);
 Route::post('/settings', [SettingController::class, 'store']);
 
-
+// Weather route
 Route::get('/weather', [WeatherController::class, 'show']);
 
+// Social Links routes
 Route::get('/social-links', [SocialLinkController::class, 'index']);
 Route::get('/social-links/{platform}', [SocialLinkController::class, 'showByPlatform']);
 
+// Pages route by slug
 Route::get('/pages/slug/{slug}', [PageController::class, 'showBySlug']);
 
+// Advertisements route
 Route::get('advertisements', [AdvertisementController::class, 'index']);
 
+// Visitors routes
 Route::get('/visitors', [VisitorController::class, 'index']);
 Route::get('/visitors/reports', [VisitorController::class, 'generateReports']);
 
-
-
-
+// Partner search filter
 Route::get('/search/partner', [FilterUserController::class, 'filter']);
 
-
+// Package routes
 Route::get('packages', [PackageController::class, 'index']);
 Route::get('packages/{id}', [PackageController::class, 'show']);
 Route::get('packages/{packageId}/services', [PackageController::class, 'getPackageServices']);
 Route::get('package-services', [PackageController::class, 'getAllPackageServices']);
 
-
-
+// Stripe webhook
 Route::post('stripe/webhook', [StripePaymentController::class, 'handleWebhook']);

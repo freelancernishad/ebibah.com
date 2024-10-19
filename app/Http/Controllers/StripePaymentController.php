@@ -167,7 +167,7 @@ class StripePaymentController extends Controller
                 if (hasServiceAccess('View up to 180 Contact Details')) {
                     // Update contact view balance to 180
                     $user->update([
-                        'contact_view_balance' => 180, // Set the balance to 180
+                        'contact_view_balance' => $packagePurchase->package->profile_view, // Use the profile_view value
                     ]);
                 }
 
