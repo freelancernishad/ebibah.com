@@ -165,7 +165,8 @@ class StripePaymentController extends Controller
 
 
 
-                        $profile_view = $packagePurchase->profile_view;
+                        $profile_view = $packagePurchase->package->profile_view;
+
                         Log::info("profile_view: ".$profile_view);
                         Log::info("packagePurchase: ". $packagePurchase);
                         // Update contact view balance to 180
