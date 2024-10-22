@@ -86,21 +86,21 @@ class StripePaymentController extends Controller
         $sig_header = $request->header('Stripe-Signature');
 
         // Log the payload for debugging purposes
-        Log::info('Webhook Payload: ', ['payload' => $payload]);
+        // Log::info('Webhook Payload: ', ['payload' => $payload]);
 
         try {
             // Verify the event with the Stripe webhook secret
             $event = \Stripe\Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
 
             // Log the event type for debugging purposes
-            Log::info('Stripe Event Type: ', ['event_type' => $event->type]);
+            // Log::info('Stripe Event Type: ', ['event_type' => $event->type]);
 
             // Handle the 'checkout.session.completed' event
             if ($event->type == 'checkout.session.completed') {
                 $session = $event->data->object;
 
                 // Log the session data for debugging purposes
-                Log::info('Session Object: ', ['session' => $session]);
+                // Log::info('Session Object: ', ['session' => $session]);
 
                 // Find the payment by the session's client reference ID (trxId)
                 $payment = Payment::where('trxId', $session->client_reference_id)->first();
@@ -111,23 +111,23 @@ class StripePaymentController extends Controller
                     $this->updatePaymentStatus($payment, $session);
 
                     // Log the successful processing of the payment
-                    Log::info('Payment processed successfully: ', ['payment' => $payment]);
+                    // Log::info('Payment processed successfully: ', ['payment' => $payment]);
                 } else {
                     // Log if the payment is not found
-                    Log::warning('Payment not found for trxId: ' . $session->client_reference_id);
+                    // Log::warning('Payment not found for trxId: ' . $session->client_reference_id);
                 }
             }
         } catch (\UnexpectedValueException $e) {
             // Invalid payload
-            Log::error('Invalid Payload: ', ['error' => $e->getMessage()]);
+            // Log::error('Invalid Payload: ', ['error' => $e->getMessage()]);
             return jsonResponse(false, 'Invalid Payload', null, 400);
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
             // Invalid signature
-            Log::error('Invalid Signature: ', ['error' => $e->getMessage()]);
+            // Log::error('Invalid Signature: ', ['error' => $e->getMessage()]);
             return jsonResponse(false, 'Invalid Signature', null, 400);
         } catch (\Exception $e) {
             // General exception handling
-            Log::error('Webhook Error: ', ['error' => $e->getMessage()]);
+            // Log::error('Webhook Error: ', ['error' => $e->getMessage()]);
             return jsonResponse(false, 'Webhook Error', null, 400);
         }
 
@@ -167,8 +167,8 @@ class StripePaymentController extends Controller
 
                         $profile_view = $packagePurchase->package->profile_view;
 
-                        Log::info("profile_view: ".$profile_view);
-                        Log::info("packagePurchase: ". $packagePurchase);
+                        // Log::info("profile_view: ".$profile_view);
+                        // Log::info("packagePurchase: ". $packagePurchase);
                         // Update contact view balance to 180
                         $user->update([
                             'contact_view_balance' => $profile_view, // Use the profile_view value
