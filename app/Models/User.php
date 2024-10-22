@@ -499,7 +499,7 @@ public function getProfileCompletionAttribute()
         $this->makeHidden([
             // 'active_package_id',
             'active_package',
-            'email',
+            // 'email',
             'email_verification_hash',
             'otp',
             'otp_expires_at',
