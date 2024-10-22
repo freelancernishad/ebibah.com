@@ -164,25 +164,13 @@ class StripePaymentController extends Controller
                     ]);
 
 
-
-                    $package = Package::find($user->active_package_id);
-
-                    if ($package) {
-                        $profile_view = $package->profile_view;
-                         $canViewContacts = hasServiceAccess("View up to $profile_view Contact Details");
-                    }else{
-                        $canViewContacts = hasServiceAccess("View up to 180 Contact Details");
-                    }
-
-                    Log::info("package: ". $package);
-                    Log::info("canViewContacts: ". $canViewContacts);
-                      // Check if the user has access to the "View up to 180 Contact Details" service
-                    if ($canViewContacts) {
+                    
+                        $profile_view = $packagePurchase->profile_view;
                         // Update contact view balance to 180
                         $user->update([
-                            'contact_view_balance' => $packagePurchase->package->profile_view, // Use the profile_view value
+                            'contact_view_balance' => $profile_view, // Use the profile_view value
                         ]);
-                    }
+                 
 
                 }
             }
