@@ -32,7 +32,7 @@ class AdminUserController extends Controller
                 });
             })
             ->orderBy('created_at', 'desc') // Order by creation date
-            ->paginate($perPage); // Paginate results
+            ->paginate($perPage)->toArrayProfile(); // Paginate results
 
         return response()->json($users); // Return the paginated results as JSON
     }
