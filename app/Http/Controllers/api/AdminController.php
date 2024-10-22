@@ -21,5 +21,6 @@ class AdminController extends Controller
         // Find and delete the admin
     }
 
+
     // Add other functions as needed
 }
