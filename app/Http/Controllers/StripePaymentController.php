@@ -187,9 +187,4 @@ class StripePaymentController extends Controller
     }
 
 
-
-
-
-
-
 }
