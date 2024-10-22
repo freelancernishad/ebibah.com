@@ -86,7 +86,7 @@ class AdminUserController extends Controller
     public function show(int $id): JsonResponse
     {
         User::setApplyActiveScope(false);
-        $user = User::findOrFail($id);
+        $user = User::findOrFail($id)->toArrayProfile();
         return response()->json($user);
     }
 
