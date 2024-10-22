@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Stripe\Stripe;
+use App\Models\Package;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use App\Models\HiringRequest;
@@ -163,8 +164,18 @@ class StripePaymentController extends Controller
                     ]);
 
 
+
+                    $package = Package::find($user->active_package_id);
+
+                    if ($package) {
+                        $profile_view = $package->profile_view;
+                         $canViewContacts = hasServiceAccess("View up to $profile_view Contact Details");
+                    }else{
+                        $canViewContacts = hasServiceAccess("View up to 180 Contact Details");
+                    }
+
                       // Check if the user has access to the "View up to 180 Contact Details" service
-                if (hasServiceAccess('View up to 180 Contact Details')) {
+                if ($canViewContacts) {
                     // Update contact view balance to 180
                     $user->update([
                         'contact_view_balance' => $packagePurchase->package->profile_view, // Use the profile_view value
