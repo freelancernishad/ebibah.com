@@ -117,7 +117,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/user/support/{ticket}', [SupportTicketApiController::class, 'show']);
     Route::post('/user/support/{ticket}/reply', [AdminSupportTicketApiController::class, 'reply']);
 
-    Route::get('/contact-details/{viewedProfileUserId}', [UserController::class, 'viewContactDetails']);
+    Route::post('/contact-details/{viewedProfileUserId}', [UserController::class, 'viewContactDetails']);
 
     Route::get('/user-access', function () {
         return 'user access';
