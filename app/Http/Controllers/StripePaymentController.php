@@ -174,13 +174,15 @@ class StripePaymentController extends Controller
                         $canViewContacts = hasServiceAccess("View up to 180 Contact Details");
                     }
 
+                    Log::info("package: ". $package);
+                    Log::info("canViewContacts: ". $canViewContacts);
                       // Check if the user has access to the "View up to 180 Contact Details" service
-                if ($canViewContacts) {
-                    // Update contact view balance to 180
-                    $user->update([
-                        'contact_view_balance' => $packagePurchase->package->profile_view, // Use the profile_view value
-                    ]);
-                }
+                    if ($canViewContacts) {
+                        // Update contact view balance to 180
+                        $user->update([
+                            'contact_view_balance' => $packagePurchase->package->profile_view, // Use the profile_view value
+                        ]);
+                    }
 
                 }
             }
