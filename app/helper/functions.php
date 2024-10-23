@@ -673,7 +673,6 @@ function hasServiceAccess(string $serviceName, $user = null)
 }
 
 
-
 function allowed_services($activePackage) {
     if ($activePackage) {
         return [
@@ -685,22 +684,27 @@ function allowed_services($activePackage) {
             'sub_total_price' => $activePackage->sub_total_price,
             'currency' => $activePackage->currency,
             'duration' => $activePackage->duration,
-           //  'created_at' => $activePackage->created_at,
-           //  'updated_at' => $activePackage->updated_at,
-            'allowed_services' => $activePackage->activeServices->map(function ($service) use ($activePackage) {
-
-                     // Conditional logic to display "View up to X Contact Details" only if profile_view is present
-               if ($service->service->name === 'View up to 180 Contact Details') {
-                   return [
-                       'name' => 'View up to ' . $activePackage->profile_view . ' Contact Details',
-                       'status' => $service->status,
-                   ];
-               }
-                return [
-                    'name' => $service->service->name,
-                    'status' => $service->status,
-                ];
-            }),
+            // 'created_at' => $activePackage->created_at,
+            // 'updated_at' => $activePackage->updated_at,
+            'allowed_services' => $activePackage->activeServices
+                ->sortBy(function ($service) {
+                    return $service->service->indexno; // Sort by the indexno of the related package_service
+                })
+                ->map(function ($service) use ($activePackage) {
+                    // Conditional logic to display "View up to X Contact Details" only if profile_view is present
+                    if ($service->service->name === 'View up to 180 Contact Details') {
+                        return [
+                            'name' => 'View up to ' . $activePackage->profile_view . ' Contact Details',
+                            'status' => $service->status,
+                        ];
+                    }
+                    return [
+                        'name' => $service->service->name,
+                        'status' => $service->status,
+                    ];
+                })
+                ->values() // Re-index the collection to remove the original keys
+                ->toArray(), // Convert the collection to an array
         ];
     }
 
