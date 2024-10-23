@@ -22,7 +22,7 @@ function notificationCreate($userId, $type, $extraUserId = null)
             break;
 
         case 'invitation_send':
-            $message = "You have sent an invitation to {$userName}.";
+            $message = "You have sent an invitation to {$extraUserName}.";
             break;
 
         case 'invitation_received':
@@ -90,4 +90,5 @@ function notificationCreate($userId, $type, $extraUserId = null)
         'read' => false,
     ]);
 }
+
 
