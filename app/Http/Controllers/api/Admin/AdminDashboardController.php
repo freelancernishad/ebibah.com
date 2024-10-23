@@ -33,7 +33,8 @@ class AdminDashboardController extends Controller
 
 
         // Pending verifications
-        $pendingVerifications = User::where('is_verified', false)->count();
+        $pendingVerifications = User::whereNull('email_verified_at')->count();
+
 
         return response()->json([
             'total_users' => $totalUsers,
