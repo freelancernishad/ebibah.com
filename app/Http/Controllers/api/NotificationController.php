@@ -46,7 +46,11 @@ class NotificationController extends Controller
     public function getAll()
     {
         $user = Auth::guard('api')->user();
-        $notifications = Notification::where('user_id', $user->id)->get();
+
+        // Fetch notifications for the authenticated user, ordered by latest
+        $notifications = Notification::where('user_id', $user->id)
+                                     ->orderBy('created_at', 'desc') // Sort by latest
+                                     ->get();
 
         return response()->json(['notifications' => $notifications], 200);
     }
