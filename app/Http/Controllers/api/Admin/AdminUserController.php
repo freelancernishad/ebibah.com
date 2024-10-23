@@ -6,11 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AdminUserController extends Controller
 {
-
-
 
     private function getUsers(Request $request, string $status): JsonResponse
     {
@@ -44,118 +45,78 @@ class AdminUserController extends Controller
 
         return response()->json($users); // Return the paginated results as JSON
     }
-
-
-
-
-
-    /**
-     * Display a listing of users.
-     *
-     * @return JsonResponse
-     */
     public function index(Request $request): JsonResponse
     {
         return $this->getUsers($request, 'active');
     }
-
     public function inactiveUsers(Request $request): JsonResponse
     {
         User::setApplyActiveScope(false); // Disable the active user scope
         return $this->getUsers($request, 'inactive');
     }
-
     public function bannedUsers(Request $request): JsonResponse
     {
         User::setApplyActiveScope(false); // Disable the active user scope
         return $this->getUsers($request, 'banned');
     }
-
-
-
-
-
-
-
-    /**
-     * Show the user details.
-     *
-     * @param int $id
-     * @return JsonResponse
-     */
     public function show(int $id): JsonResponse
     {
         User::setApplyActiveScope(false);
         $user = User::findOrFail($id)->toArrayProfile();
         return response()->json($user);
     }
-
-
-
     public function activate(int $id): JsonResponse
-{
-    User::setApplyActiveScope(false);
-    $status = "active";
+    {
+        User::setApplyActiveScope(false);
+        $status = "active";
 
-    // Validate the provided status
-    $validStatuses = ['active', 'inactive', 'banned'];
-    if (!in_array($status, $validStatuses)) {
-        return response()->json(['error' => 'Invalid status provided.'], 400);
+        // Validate the provided status
+        $validStatuses = ['active', 'inactive', 'banned'];
+        if (!in_array($status, $validStatuses)) {
+            return response()->json(['error' => 'Invalid status provided.'], 400);
+        }
+
+        // Find the user or fail with a 404 response
+        $user = User::findOrFail($id);
+
+        // Update the user's status
+        $user->status = $status;
+        $user->save();
+
+        return response()->json([
+            'message' => "User status has been successfully changed to {$status}.",
+            'user' => [
+                'id' => $user->id,
+                'status' => $user->status,
+            ],
+        ]);
     }
+    public function deactivate(int $id): JsonResponse
+    {
+        User::setApplyActiveScope(false);
+        $status = "inactive";
 
-    // Find the user or fail with a 404 response
-    $user = User::findOrFail($id);
+        // Validate the provided status
+        $validStatuses = ['active', 'inactive', 'banned'];
+        if (!in_array($status, $validStatuses)) {
+            return response()->json(['error' => 'Invalid status provided.'], 400);
+        }
 
-    // Update the user's status
-    $user->status = $status;
-    $user->save();
+        // Find the user or fail with a 404 response
+        $user = User::findOrFail($id);
 
-    return response()->json([
-        'message' => "User status has been successfully changed to {$status}.",
-        'user' => [
-            'id' => $user->id,
-            'status' => $user->status,
-        ],
-    ]);
-}
+        // Update the user's status
+        $user->status = $status;
+        $user->save();
 
-public function deactivate(int $id): JsonResponse
-{
-    User::setApplyActiveScope(false);
-    $status = "inactive";
-
-    // Validate the provided status
-    $validStatuses = ['active', 'inactive', 'banned'];
-    if (!in_array($status, $validStatuses)) {
-        return response()->json(['error' => 'Invalid status provided.'], 400);
+        return response()->json([
+            'message' => "User status has been successfully changed to {$status}.",
+            'user' => [
+                'id' => $user->id,
+                'status' => $user->status,
+            ],
+        ]);
     }
-
-    // Find the user or fail with a 404 response
-    $user = User::findOrFail($id);
-
-    // Update the user's status
-    $user->status = $status;
-    $user->save();
-
-    return response()->json([
-        'message' => "User status has been successfully changed to {$status}.",
-        'user' => [
-            'id' => $user->id,
-            'status' => $user->status,
-        ],
-    ]);
-}
-
-
-
-
-
-    /**
-     * Ban or unban a user.
-     *
-     * @param int $id
-     * @return JsonResponse
-     */
     public function ban(int $id): JsonResponse
     {
         User::setApplyActiveScope(false);
@@ -183,8 +144,6 @@ public function deactivate(int $id): JsonResponse
 
 
     }
-
-
     public function destroy(int $id): JsonResponse
     {
         // Find the user or fail with a 404 response
@@ -198,5 +157,37 @@ public function deactivate(int $id): JsonResponse
             'user_id' => $user->id,
         ]);
     }
+
+    public function changePassword(Request $request)
+    {
+        // Validation rules including password confirmation
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|string|min:8|confirmed',  // confirmed rule checks new_password_confirmation
+        ]);
+
+        // Check if validation fails
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Get the authenticated admin
+        $admin = Auth::guard('admin')->user();  // Assuming you're using a guard for admin authentication
+
+        // Check if the current password matches the hashed password
+        if (!Hash::check($request->current_password, $admin->password)) {
+            return response()->json(['error' => 'Current password is incorrect'], 400);
+        }
+
+        // Update admin's password
+        $admin->password = Hash::make($request->new_password);
+        $admin->save();
+
+        return response()->json(['message' => 'Password changed successfully'], 200);
+    }
+
+
+
+
 
 }

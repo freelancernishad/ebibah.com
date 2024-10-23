@@ -39,6 +39,11 @@ Route::middleware('auth:admin')->group(function () {
     Route::get('admin/dashboard', [AdminDashboardController::class, 'index']);
 
     // User Management routes
+
+    Route::post('/admin/change-password', [AdminUserController::class, 'changePassword']);
+
+
+
     Route::get('admin/users', [AdminUserController::class, 'index']);
     Route::get('/admin/users/inactive', [AdminUserController::class, 'inactiveUsers']);
     Route::get('/admin/users/banned', [AdminUserController::class, 'bannedUsers']);
