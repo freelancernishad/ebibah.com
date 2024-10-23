@@ -21,9 +21,16 @@ class AdminDashboardController extends Controller
         // New registrations in the last 7 days
         $newRegistrations = User::where('created_at', '>=', now()->subDays(7))->count();
 
+
+
+
         // Subscription status counts
-        $activeSubscriptions = User::where('subscription_status', 'active')->count();
-        $expiredSubscriptions = User::where('subscription_status', 'expired')->count();
+        // $activeSubscriptions = User::where('subscription_status', 'active')->count();
+        // $expiredSubscriptions = User::where('subscription_status', 'expired')->count();
+
+        $subscribedUsers = User::whereNotNull('active_package_id')->count();
+
+
 
         // Pending verifications
         $pendingVerifications = User::where('is_verified', false)->count();
@@ -31,8 +38,9 @@ class AdminDashboardController extends Controller
         return response()->json([
             'total_users' => $totalUsers,
             'new_registrations' => $newRegistrations,
-            'active_subscriptions' => $activeSubscriptions,
-            'expired_subscriptions' => $expiredSubscriptions,
+            'subscribedUsers' => $subscribedUsers,
+            // 'active_subscriptions' => $activeSubscriptions,
+            // 'expired_subscriptions' => $expiredSubscriptions,
             'pending_verifications' => $pendingVerifications,
         ]);
     }

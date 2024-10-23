@@ -23,6 +23,7 @@ class SupportTicketApiController extends Controller
         $validator = Validator::make($request->all(), [
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
+            'priority' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -33,6 +34,7 @@ class SupportTicketApiController extends Controller
             'user_id' => Auth::id(),
             'subject' => $request->subject,
             'message' => $request->message,
+            'priority' => $request->priority,
         ]);
 
         return response()->json(['message' => 'Ticket created successfully.', 'ticket' => $ticket], 201);
