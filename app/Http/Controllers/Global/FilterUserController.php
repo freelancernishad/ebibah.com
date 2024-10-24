@@ -46,15 +46,16 @@ class FilterUserController extends Controller
                 $ageFrom = $request->age_from;
                 $ageTo = $request->age_to;
             
-                $dateFrom = now()->subYears($ageTo)->toDateString();
-                $dateTo = now()->subYears($ageFrom)->toDateString();
+                // Calculate the date range (from and to years ago)
+                $dateFrom = now()->subYears($ageTo)->toDateString(); // Earliest date (older age)
+                $dateTo = now()->subYears($ageFrom)->toDateString(); // Latest date (younger age)
             
-                // Search for users who are exactly $age_from or $age_to
-                $query->where(function ($query) use ($ageFrom, $ageTo) {
-                    $query->whereDate('date_of_birth', now()->subYears($ageFrom)->toDateString())
-                          ->orWhereDate('date_of_birth', now()->subYears($ageTo)->toDateString());
-                });
+                // Get users between the ages of $age_from and $age_to, excluding exact matches for $age_from and $age_to
+                $query->whereBetween('date_of_birth', [$dateFrom, $dateTo])
+                      ->whereDate('date_of_birth', '!=', now()->subYears($ageFrom)->toDateString()) // Exclude exact $age_from
+                      ->whereDate('date_of_birth', '!=', now()->subYears($ageTo)->toDateString());   // Exclude exact $age_to
             }
+            
             
 
 
