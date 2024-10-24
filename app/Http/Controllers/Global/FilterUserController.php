@@ -42,21 +42,20 @@ class FilterUserController extends Controller
             //     ]);
             // }
 
-
             if ($request->has('age_from') && $request->has('age_to')) {
                 $ageFrom = $request->age_from;
                 $ageTo = $request->age_to;
-
+            
                 $dateFrom = now()->subYears($ageTo)->toDateString();
                 $dateTo = now()->subYears($ageFrom)->toDateString();
-
-                // Pass $ageFrom and $ageTo into the closure
-                $query->where(function ($query) use ($dateFrom, $dateTo, $ageFrom, $ageTo) {
-                    $query->whereBetween('date_of_birth', [$dateTo, $dateFrom])
-                          ->orWhere('date_of_birth', now()->subYears($ageFrom)->toDateString())
-                          ->orWhere('date_of_birth', now()->subYears($ageTo)->toDateString());
+            
+                // Search for users who are exactly $age_from or $age_to
+                $query->where(function ($query) use ($ageFrom, $ageTo) {
+                    $query->whereDate('date_of_birth', now()->subYears($ageFrom)->toDateString())
+                          ->orWhereDate('date_of_birth', now()->subYears($ageTo)->toDateString());
                 });
             }
+            
 
 
 
