@@ -870,7 +870,7 @@ class UserController extends Controller
         $perPage = $request->query('per_page', 10);
 
         // Get the list of contact views (with pagination)
-        $contactViews = ContactView::where('user_id', $id)
+        $contactViews = ContactView::with('user')->where('user_id', $id)
                                    ->where('package_id', $activePackage)
                                    ->paginate($perPage); // Use the custom per_page value
 
