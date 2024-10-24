@@ -856,7 +856,7 @@ class UserController extends Controller
     public function getViewedList(Request $request)
     {
         $user = Auth::user(); // Get the authenticated user
-        $activePackage = $user->activePackage; // Assuming you have this relationship
+        $activePackage = $user->active_package_id; // Assuming you have this relationship
         $id =  $user->id;
         // Check if the user has an active package
         if (!$activePackage) {
@@ -871,7 +871,7 @@ class UserController extends Controller
 
         // Get the list of contact views (with pagination)
         $contactViews = ContactView::where('user_id', $id)
-                                   ->where('package_id', $activePackage->id)
+                                   ->where('package_id', $activePackage)
                                    ->paginate($perPage); // Use the custom per_page value
 
         // Return the total count and list of views
