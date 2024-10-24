@@ -5,6 +5,7 @@ namespace App\Http\Controllers\api;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Package;
+use App\Models\ContactView;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
@@ -42,6 +43,32 @@ class UserController extends Controller
         ]);
 
 
+
+        // Retrieve the user's active package by active_package_id
+        $activePackage = Package::find($user->active_package_id);
+
+        // Check if the user has an active package
+        if ($activePackage) {
+            // Get the 'profile_view' limit from the active package
+            $profileViewLimit = $activePackage->profile_view;
+
+            // Calculate total contacts viewed by the user using this specific package
+            $totalContactViewed = ContactView::where('user_id', $user->id)
+                                            ->where('package_id', $activePackage->id)
+                                            ->count();
+        } else {
+            // Handle case when the user doesn't have an active package
+            $profileViewLimit = 0;
+            $totalContactViewed = 0;
+        }
+
+        // Get the user's contact view balance
+        $contactViewBalance = $user->contact_view_balance;
+
+
+
+
+
         // Calculate age
         // $age = calculateAge($user->date_of_birth);
 
@@ -59,6 +86,9 @@ class UserController extends Controller
             'user' => $userArray,
             'my_match' => $my_match,
             'new_match' => $new_match,
+            'profile_view_limit' => $profileViewLimit,  // Total allowed profile views from the package
+            'contact_view_balance' => $contactViewBalance, // Remaining contact view balance
+            'total_contact_viewed' => $totalContactViewed, // Total contacts viewed by the user using current package
         ], 200);
     }
 
