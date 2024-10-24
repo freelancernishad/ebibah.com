@@ -34,8 +34,8 @@ class UserController extends Controller
         $user->load([
             'sentInvitations',
             'receivedInvitations',
-            'profileViews',
-            'viewedProfiles',
+            // 'profileViews',
+            // 'viewedProfiles',
             'payments',
             'favorites',
             'userImages',
