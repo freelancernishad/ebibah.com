@@ -248,7 +248,7 @@ class UserController extends Controller
         }
 
         // Filter out null values from the request data including new fields
-   // Filter out only null values (allow 0, false, etc.)
+        // Filter out only null values (allow 0, false, etc.)
         $data = array_filter($request->only([
             'name',
             'email',
@@ -323,34 +323,34 @@ class UserController extends Controller
 
 
          // Handle partner qualification
-    if ($request->has('partner_qualification')) {
-        // Remove all current qualifications before inserting new ones
-        $user->partnerQualification()->delete();
-        // Insert the new qualifications
-        foreach ($request->partner_qualification as $qualification) {
-            $user->partnerQualification()->create(['qualification' => $qualification]);
+        if ($request->has('partner_qualification')) {
+            // Remove all current qualifications before inserting new ones
+            $user->partnerQualification()->delete();
+            // Insert the new qualifications
+            foreach ($request->partner_qualification as $qualification) {
+                $user->partnerQualification()->create(['qualification' => $qualification]);
+            }
         }
-    }
 
-    // Handle partner working with
-    if ($request->has('partner_working_with')) {
-        // Remove all current 'working with' records before inserting new ones
-        $user->partnerWorkingWith()->delete();
-        // Insert the new 'working with' records
-        foreach ($request->partner_working_with as $workingWith) {
-            $user->partnerWorkingWith()->create(['working_with' => $workingWith]);
+        // Handle partner working with
+        if ($request->has('partner_working_with')) {
+            // Remove all current 'working with' records before inserting new ones
+            $user->partnerWorkingWith()->delete();
+            // Insert the new 'working with' records
+            foreach ($request->partner_working_with as $workingWith) {
+                $user->partnerWorkingWith()->create(['working_with' => $workingWith]);
+            }
         }
-    }
 
-    // Handle partner profession
-    if ($request->has('partner_profession')) {
-        // Remove all current professions before inserting new ones
-        $user->partnerProfessions()->delete();
-        // Insert the new professions
-        foreach ($request->partner_profession as $profession) {
-            $user->partnerProfessions()->create(['profession' => $profession]);
+        // Handle partner profession
+        if ($request->has('partner_profession')) {
+            // Remove all current professions before inserting new ones
+            $user->partnerProfessions()->delete();
+            // Insert the new professions
+            foreach ($request->partner_profession as $profession) {
+                $user->partnerProfessions()->create(['profession' => $profession]);
+            }
         }
-    }
 
 
         // Handle partner marital statuses (hasMany relationship)
@@ -366,86 +366,86 @@ class UserController extends Controller
 
 
           // Handle partner religion
-    if ($request->has('partner_religion')) {
-        $user->partnerReligions()->delete();
-        foreach ($request->partner_religion as $religion) {
-            $user->partnerReligions()->create(['religion' => $religion]);
+        if ($request->has('partner_religion')) {
+            $user->partnerReligions()->delete();
+            foreach ($request->partner_religion as $religion) {
+                $user->partnerReligions()->create(['religion' => $religion]);
+            }
         }
-    }
 
-    // Handle partner community
-    if ($request->has('partner_community')) {
-        $user->partnerCommunities()->delete();
-        foreach ($request->partner_community as $community) {
-            $user->partnerCommunities()->create(['community' => $community]);
+        // Handle partner community
+        if ($request->has('partner_community')) {
+            $user->partnerCommunities()->delete();
+            foreach ($request->partner_community as $community) {
+                $user->partnerCommunities()->create(['community' => $community]);
+            }
         }
-    }
 
-    // Handle partner mother tongue
-    if ($request->has('partner_mother_tongue')) {
-        $user->partnerMotherTongues()->delete();
-        foreach ($request->partner_mother_tongue as $motherTongue) {
-            $user->partnerMotherTongues()->create(['mother_tongue' => $motherTongue]);
+        // Handle partner mother tongue
+        if ($request->has('partner_mother_tongue')) {
+            $user->partnerMotherTongues()->delete();
+            foreach ($request->partner_mother_tongue as $motherTongue) {
+                $user->partnerMotherTongues()->create(['mother_tongue' => $motherTongue]);
+            }
         }
-    }
 
 
-    // Handle Partner Professional Details
-    if ($request->has('what_u_looking')) {
-        // Remove all current professional details before inserting new ones
-        $user->partnerProfessionalDetails()->delete();
+        // Handle Partner Professional Details
+        if ($request->has('what_u_looking')) {
+            // Remove all current professional details before inserting new ones
+            $user->partnerProfessionalDetails()->delete();
 
-        // Check if the partner_professional_details is a string
-        if (is_string($request->what_u_looking)) {
-            // If it's a string, create a new professional detail directly
-            $user->partnerProfessionalDetails()->create([
-                'profession' => $request->what_u_looking,
-            ]);
-        } elseif (is_array($request->what_u_looking)) {
-            // If it's an array, loop through and create each professional detail
-            foreach ($request->what_u_looking as $professionalDetail) {
+            // Check if the partner_professional_details is a string
+            if (is_string($request->what_u_looking)) {
+                // If it's a string, create a new professional detail directly
                 $user->partnerProfessionalDetails()->create([
-                    'profession' => $professionalDetail,
+                    'profession' => $request->what_u_looking,
+                ]);
+            } elseif (is_array($request->what_u_looking)) {
+                // If it's an array, loop through and create each professional detail
+                foreach ($request->what_u_looking as $professionalDetail) {
+                    $user->partnerProfessionalDetails()->create([
+                        'profession' => $professionalDetail,
+                    ]);
+                }
+            }
+        }
+
+        // Handle partner country
+        if ($request->has('partner_country')) {
+            // Remove existing partner countries and insert new ones
+            $user->partnerCountries()->delete(); // Assuming a relationship exists for partner countries
+
+            foreach ($request->partner_country as $country) {
+                $user->partnerCountries()->create([
+                    'country' => $country,
                 ]);
             }
         }
-    }
 
-    // Handle partner country
-    if ($request->has('partner_country')) {
-        // Remove existing partner countries and insert new ones
-        $user->partnerCountries()->delete(); // Assuming a relationship exists for partner countries
+        // Handle partner state
+        if ($request->has('partner_state')) {
+            // Remove existing partner states and insert new ones
+            $user->partnerStates()->delete(); // Assuming a relationship exists for partner states
 
-        foreach ($request->partner_country as $country) {
-            $user->partnerCountries()->create([
-                'country' => $country,
-            ]);
+            foreach ($request->partner_state as $state) {
+                $user->partnerStates()->create([
+                    'state' => $state,
+                ]);
+            }
         }
-    }
 
-    // Handle partner state
-    if ($request->has('partner_state')) {
-        // Remove existing partner states and insert new ones
-        $user->partnerStates()->delete(); // Assuming a relationship exists for partner states
+        // Handle partner city
+        if ($request->has('partner_city')) {
+            // Remove existing partner cities and insert new ones
+            $user->partnerCities()->delete(); // Assuming a relationship exists for partner cities
 
-        foreach ($request->partner_state as $state) {
-            $user->partnerStates()->create([
-                'state' => $state,
-            ]);
+            foreach ($request->partner_city as $city) {
+                $user->partnerCities()->create([
+                    'city' => $city,
+                ]);
+            }
         }
-    }
-
-    // Handle partner city
-    if ($request->has('partner_city')) {
-        // Remove existing partner cities and insert new ones
-        $user->partnerCities()->delete(); // Assuming a relationship exists for partner cities
-
-        foreach ($request->partner_city as $city) {
-            $user->partnerCities()->create([
-                'city' => $city,
-            ]);
-        }
-    }
 
 
         return response()->json(['message' => 'User updated successfully'], 200);
@@ -851,6 +851,38 @@ class UserController extends Controller
             ]);
 
     }
+
+
+    public function getViewedList(Request $request)
+    {
+        $user = auth()->user(); // Get the authenticated user
+        $activePackage = $user->activePackage; // Assuming you have this relationship
+
+        // Check if the user has an active package
+        if (!$activePackage) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No active package found for this user.'
+            ], 404);
+        }
+
+        // Get the items per page from the query parameter, default to 10 if not provided
+        $perPage = $request->query('per_page', 10);
+
+        // Get the list of contact views (with pagination)
+        $contactViews = ContactView::where('user_id', $user->id)
+                                   ->where('package_id', $activePackage->id)
+                                   ->paginate($perPage); // Use the custom per_page value
+
+        // Return the total count and list of views
+        return response()->json([
+            'status' => 'success',
+            'contactViews' => $contactViews,
+        ], 200);
+    }
+
+
+
 
 
 }
