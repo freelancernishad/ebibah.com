@@ -557,6 +557,7 @@ public function getProfileCompletionAttribute()
         $fields = [
             'id',
             'name',
+            'date_of_birth',
             'age',
             'gender',
             'Height',
