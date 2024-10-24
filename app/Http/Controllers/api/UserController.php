@@ -75,6 +75,8 @@ class UserController extends Controller
         // Convert user to array and include age
         $userArray = $user->toArrayProfile();
         // $userArray['age'] = $age;
+        $userArray['profile_view_limit'] = $profileViewLimit;
+        $userArray['total_contact_viewed'] = $totalContactViewed;
 
        $my_match =  profile_matches('my',4);
        $new_match =  profile_matches('new',4);
@@ -86,9 +88,9 @@ class UserController extends Controller
             'user' => $userArray,
             'my_match' => $my_match,
             'new_match' => $new_match,
-            'profile_view_limit' => $profileViewLimit,  // Total allowed profile views from the package
-            'contact_view_balance' => $contactViewBalance, // Remaining contact view balance
-            'total_contact_viewed' => $totalContactViewed, // Total contacts viewed by the user using current package
+          
+      
+            
         ], 200);
     }
 
