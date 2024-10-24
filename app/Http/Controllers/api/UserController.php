@@ -857,7 +857,7 @@ class UserController extends Controller
     {
         $user = Auth::user(); // Get the authenticated user
         $activePackage = $user->activePackage; // Assuming you have this relationship
-return $user->id;
+        $id =  $user->id;
         // Check if the user has an active package
         if (!$activePackage) {
             return response()->json([
@@ -870,7 +870,7 @@ return $user->id;
         $perPage = $request->query('per_page', 10);
 
         // Get the list of contact views (with pagination)
-        $contactViews = ContactView::where('user_id', $user->id)
+        $contactViews = ContactView::where('user_id', $id)
                                    ->where('package_id', $activePackage->id)
                                    ->paginate($perPage); // Use the custom per_page value
 
