@@ -855,7 +855,7 @@ class UserController extends Controller
 
     public function getViewedList(Request $request)
     {
-        $user = auth()->user(); // Get the authenticated user
+       return $user = auth()->user(); // Get the authenticated user
         $activePackage = $user->activePackage; // Assuming you have this relationship
 
         // Check if the user has an active package
