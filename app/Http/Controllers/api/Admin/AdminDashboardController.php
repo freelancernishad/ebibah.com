@@ -36,6 +36,8 @@ class AdminDashboardController extends Controller
         $pendingVerifications = User::whereNull('email_verified_at')->count();
 
 
+
+
         return response()->json([
             'total_users' => $totalUsers,
             'new_registrations' => $newRegistrations,
@@ -44,9 +46,11 @@ class AdminDashboardController extends Controller
             // 'expired_subscriptions' => $expiredSubscriptions,
             'pending_verifications' => $pendingVerifications,
             'package_revenue' => getPackageRevenueData()['monthly_package_revenue'],
+            'package_revenue_max' => getPackageRevenueData()['monthly_package_revenue_max'],
             'total_revenue_per_package' => getPackageRevenueData()['total_revenue_per_package'],
             'yearly_package_revenue' => getPackageRevenueData()['yearly_package_revenue'],
             'weekly_package_revenue' => getPackageRevenueData()['weekly_package_revenue'],
+            'weekly_package_revenue_max' => getPackageRevenueData()['weekly_package_revenue_max'],
         ]);
     }
 }

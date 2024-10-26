@@ -715,8 +715,7 @@ function allowed_services($activePackage) {
 }
 
 
-
- function getPackageRevenueData($year = null)
+function getPackageRevenueData($year = null)
 {
     // Default to the current year if no year is provided
     $year = $year ?? now()->year;
@@ -804,13 +803,57 @@ function allowed_services($activePackage) {
         ];
     }
 
-    // Return the combined result as a JSON response
+    // Find the maximum total revenue from monthly package revenues
+    $maxMonthlyRevenue = max(array_column($totalRevenueByPackage, 'total_revenue'));
+
+    // Find the maximum total revenue from weekly package revenues
+    $maxWeeklyRevenue = 0;
+    foreach ($totalRevenueByPackageWeekly as $weeklyRevenue) {
+        $maxWeeklyRevenue = max($maxWeeklyRevenue, array_sum($weeklyRevenue['data']));
+    }
+
+    // Return the combined result along with the maximum monthly revenue
     return [
         'monthly_package_revenue' => $monthlyResult,
+        'monthly_package_revenue_max' => getDynamicMaxValue($maxMonthlyRevenue),
         'total_revenue_per_package' => $totalRevenueByPackage,
         'yearly_package_revenue' => $totalRevenueByPackageYearly,
         'weekly_package_revenue' => $totalRevenueByPackageWeekly,
+        'weekly_package_revenue_max' => getDynamicMaxValue($maxWeeklyRevenue), // Max value for weekly revenue
     ];
 }
+
+
+function getDynamicMaxValue($value)
+{
+    // If the value is less than or equal to 0, return 0
+    if ($value <= 0) {
+        return 0;
+    }
+
+    // Determine the number of digits in the value
+    $digitCount = strlen((string)$value);
+
+    // Calculate the base scale dynamically based on the digit count
+    $baseScale = 10 ** ($digitCount - 1); // Example: For 3 digits, baseScale = 100 (10^2)
+
+    // For 1 and 2 digits, we set a minimum scaling factor of 100
+    if ($digitCount < 3) {
+        $baseScale = 100; // Minimum base scale for 1 or 2 digits
+    }
+
+    // Calculate the next max value based on the scaling factor
+    $maxValue = ceil($value / $baseScale) * $baseScale;
+
+    // Ensure the maxValue is at least the original value
+    if ($maxValue < $value) {
+        $maxValue += $baseScale;
+    }
+
+    return $maxValue;
+}
+
+
+
 
 
