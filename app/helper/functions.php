@@ -2,6 +2,9 @@
 
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Package;
+use App\Models\Payment;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -712,4 +715,47 @@ function allowed_services($activePackage) {
 }
 
 
+
+
+
+
+ function getPackageDataByYear($year = null)
+{
+    // Default to the current year if no year is provided
+    $year = $year ?? now()->year;
+
+    // Initialize an array to store the result
+    $result = [];
+
+    // Retrieve all packages and loop through each
+    $packages = Package::all();
+    foreach ($packages as $package) {
+        // Prepare an array of 12 months initialized to 0
+        $monthlyData = array_fill(0, 12, 0);
+
+        // Fetch payments for the current package and year, grouped by month
+        $payments = Payment::select(DB::raw('MONTH(date) as month'), DB::raw('SUM(amount) as total_amount'))
+            ->join('package_purchases', 'payments.package_purchase_id', '=', 'package_purchases.id')
+            ->where('package_purchases.package_id', $package->id)
+            ->where('payments.type', 'package')
+            ->where('payments.status', 'completed')
+            ->whereYear('payments.date', $year)
+            ->groupBy(DB::raw('MONTH(date)'))
+            ->get();
+
+        // Map the monthly payment totals to the monthly data array
+        foreach ($payments as $payment) {
+            $monthlyData[$payment->month - 1] = $payment->total_amount;  // Adjust for 0-based index
+        }
+
+        // Add the package's data to the result array
+        $result[] = [
+            'name' => $package->package_name,
+            'data' => $monthlyData,
+        ];
+    }
+
+    // Return the data as a JSON response
+    return $result;
+}
 

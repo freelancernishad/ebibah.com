@@ -43,6 +43,7 @@ class AdminDashboardController extends Controller
             // 'active_subscriptions' => $activeSubscriptions,
             // 'expired_subscriptions' => $expiredSubscriptions,
             'pending_verifications' => $pendingVerifications,
+            'package_revenue' => getPackageDataByYear()
         ]);
     }
 }
