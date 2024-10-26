@@ -83,12 +83,13 @@ function notificationCreate($userId, $type, $extraUserId = null)
     }
 
     // Create the notification
-    Notification::create([
+    $notification = Notification::create([
         'user_id' => $userId,
         'type' => $type,
         'message' => $message,
         'read' => false,
     ]);
+    return $notification;
 }
 
 

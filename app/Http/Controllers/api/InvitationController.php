@@ -43,12 +43,12 @@ class InvitationController extends Controller
         ]);
 
         // Send notification to the receiver that they received an invitation
-        notificationCreate($receiver_id, 'invitation_received', $sender_id);
+        $message = notificationCreate($receiver_id, 'invitation_received', $sender_id);
 
         // Send notification to the sender that they have sent an invitation
-        notificationCreate($sender_id, 'invitation_send', $receiver_id);
+        $invitation_send_notification = notificationCreate($sender_id, 'invitation_send', $receiver_id);
 
-        return response()->json(['message' => 'Invitation sent successfully', 'invitation' => $invitation], 201);
+        return response()->json(['message' => 'Invitation sent successfully', 'invitation' => $invitation,'invitation_send_notification'=>$invitation_send_notification->message], 201);
     }
 
     // Accept an invitation
