@@ -43,7 +43,10 @@ class AdminDashboardController extends Controller
             // 'active_subscriptions' => $activeSubscriptions,
             // 'expired_subscriptions' => $expiredSubscriptions,
             'pending_verifications' => $pendingVerifications,
-            'package_revenue' => getPackageDataByYear(),
+            'package_revenue' => getPackageRevenueData()['monthly_package_revenue'],
+            'total_revenue_per_package' => getPackageRevenueData()['total_revenue_per_package'],
+            'yearly_package_revenue' => getPackageRevenueData()['yearly_package_revenue'],
+            'weekly_package_revenue' => getPackageRevenueData()['weekly_package_revenue'],
         ]);
     }
 }

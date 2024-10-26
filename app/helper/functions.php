@@ -716,21 +716,21 @@ function allowed_services($activePackage) {
 
 
 
-
-
-
- function getPackageDataByYear($year = null)
+ function getPackageRevenueData($year = null)
 {
     // Default to the current year if no year is provided
     $year = $year ?? now()->year;
 
-    // Initialize an array to store the result
-    $result = [];
+    // Initialize arrays to store the results
+    $monthlyResult = [];
+    $totalRevenueByPackage = [];
+    $totalRevenueByPackageYearly = [];
+    $totalRevenueByPackageWeekly = [];
 
     // Retrieve all packages and loop through each
     $packages = Package::all();
     foreach ($packages as $package) {
-        // Prepare an array of 12 months initialized to 0
+        // Prepare an array of 12 months initialized to 0 for monthly revenue
         $monthlyData = array_fill(0, 12, 0);
 
         // Fetch payments for the current package and year, grouped by month
@@ -745,17 +745,72 @@ function allowed_services($activePackage) {
 
         // Map the monthly payment totals to the monthly data array
         foreach ($payments as $payment) {
-            $monthlyData[$payment->month - 1] = $payment->total_amount;  // Adjust for 0-based index
+            $monthlyData[$payment->month - 1] = (int) $payment->total_amount;  // Cast to integer
         }
 
-        // Add the package's data to the result array
-        $result[] = [
+        // Calculate total revenue for the package and cast to integer
+        $totalRevenue = (int) array_sum($monthlyData);
+
+        // Add the package's data to the monthly result array
+        $monthlyResult[] = [
             'name' => $package->package_name,
             'data' => $monthlyData,
         ];
+
+        // Add total revenue by package
+        $totalRevenueByPackage[] = [
+            'name' => $package->package_name,
+            'total_revenue' => $totalRevenue,
+        ];
+
+        // Fetch total revenue for the package for the entire year and cast to integer
+        $yearlyRevenue = (int) Payment::whereHas('packagePurchase', function ($query) use ($package) {
+                $query->where('package_id', $package->id);
+            })
+            ->where('type', 'package')
+            ->where('status', 'completed')
+            ->whereYear('date', $year)
+            ->sum('amount');
+
+        // Add total yearly revenue by package
+        $totalRevenueByPackageYearly[] = [
+            'name' => $package->package_name,
+            'total_revenue_yearly' => $yearlyRevenue,
+        ];
+
+        // Prepare an array for daily revenue, initialized to 0 for each day of the week
+        $weeklyData = array_fill(0, 7, 0);
+        $weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        // Fetch total revenue for the package for the current week, grouped by day
+        $weeklyPayments = Payment::select(DB::raw('DAYOFWEEK(date) as day'), DB::raw('SUM(amount) as total_amount'))
+            ->join('package_purchases', 'payments.package_purchase_id', '=', 'package_purchases.id')
+            ->where('package_purchases.package_id', $package->id)
+            ->where('payments.type', 'package')
+            ->where('payments.status', 'completed')
+            ->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->groupBy(DB::raw('DAYOFWEEK(date)'))
+            ->get();
+
+        // Map the daily payment totals to the weekly data array
+        foreach ($weeklyPayments as $payment) {
+            $weeklyData[$payment->day - 1] = (int) $payment->total_amount;  // Cast to integer
+        }
+
+        // Add to total revenue by package weekly in the desired JSON format
+        $totalRevenueByPackageWeekly[] = [
+            'name' => $package->package_name,
+            'data' => $weeklyData,
+        ];
     }
 
-    // Return the data as a JSON response
-    return $result;
+    // Return the combined result as a JSON response
+    return [
+        'monthly_package_revenue' => $monthlyResult,
+        'total_revenue_per_package' => $totalRevenueByPackage,
+        'yearly_package_revenue' => $totalRevenueByPackageYearly,
+        'weekly_package_revenue' => $totalRevenueByPackageWeekly,
+    ];
 }
+
 
