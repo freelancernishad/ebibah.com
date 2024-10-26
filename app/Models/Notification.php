@@ -18,6 +18,11 @@ class Notification extends Model
         'read',
     ];
 
+
+    protected $hidden = [
+        'user_id',
+    ];
+
     /**
      * Get the user that owns the notification.
      */
