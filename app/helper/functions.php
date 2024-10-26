@@ -809,7 +809,10 @@ function getPackageRevenueData($year = null)
     // Find the maximum total revenue from weekly package revenues
     $maxWeeklyRevenue = 0;
     foreach ($totalRevenueByPackageWeekly as $weeklyRevenue) {
-        $maxWeeklyRevenue = max($maxWeeklyRevenue, array_sum($weeklyRevenue['data']));
+        // Get the maximum value for the current package's weekly data
+        $currentPackageMax = max($weeklyRevenue['data']);
+        // Update the overall maximum if the current package's max is greater
+        $maxWeeklyRevenue = max($maxWeeklyRevenue, $currentPackageMax);
     }
 
     // Return the combined result along with the maximum monthly revenue
