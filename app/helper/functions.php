@@ -819,7 +819,7 @@ function getPackageRevenueData($year = null)
         'total_revenue_per_package' => $totalRevenueByPackage,
         'yearly_package_revenue' => $totalRevenueByPackageYearly,
         'weekly_package_revenue' => $totalRevenueByPackageWeekly,
-        'weekly_package_revenue_max' => getDynamicMaxValue($maxWeeklyRevenue), // Max value for weekly revenue
+        'weekly_package_revenue_max' => $maxWeeklyRevenue, // Max value for weekly revenue
     ];
 }
 
