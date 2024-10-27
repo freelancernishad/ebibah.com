@@ -61,10 +61,6 @@ class FilterUserController extends Controller
                       ->where('users.id', '!=', $currentUser->id);
             }
 
-            // Join popularity table and select required columns
-            $query->leftJoin('popularities', 'users.id', '=', 'popularities.user_id')
-                  ->select('users.*', 'popularities.views', 'popularities.likes');
-
             // Retrieve the ID of the "priority listing" service from PackageService
             $priorityService = PackageService::where('slug', 'priority-listing')->first();
             $priorityServiceId = $priorityService->id ?? null;
@@ -78,9 +74,7 @@ class FilterUserController extends Controller
                              ->whereColumn('package_purchases.user_id', 'users.id')
                              ->where('package_active_services.service_id', $priorityServiceId)
                              ->where('package_active_services.status', 'active');
-                })
-                ->orderByDesc('popularities.views')
-                ->orderByDesc('popularities.likes');
+                });
 
             // Regular users without priority listing
             $nonPriorityUsersQuery = (clone $query)
@@ -91,18 +85,11 @@ class FilterUserController extends Controller
                              ->whereColumn('package_purchases.user_id', 'users.id')
                              ->where('package_active_services.service_id', $priorityServiceId)
                              ->where('package_active_services.status', 'active');
-                })
-                ->orderByDesc('popularities.views')
-                ->orderByDesc('popularities.likes');
+                });
 
             // Combine both priority and non-priority users
             $users = $priorityUsersQuery->union($nonPriorityUsersQuery)->paginate(10);
 
-            // Add age calculation to each user
-            // $users->getCollection()->transform(function ($user) {
-            //     $user->age = $this->calculateAge($user->date_of_birth);
-            //     return $user;
-            // });
 
             return response()->json($users);
 
@@ -111,6 +98,7 @@ class FilterUserController extends Controller
             return response()->json(['error' => 'Unable to fetch users.'], 500);
         }
     }
+
 
 
 
