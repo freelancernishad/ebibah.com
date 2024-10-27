@@ -4,23 +4,22 @@ namespace App\Http\Controllers\Global;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\PackageService;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
 class FilterUserController extends Controller
 {
 
-
     public function filter(Request $request)
     {
         try {
-            $authUserId = Auth::id(); // Get the authenticated user's ID
+            $authUserId = Auth::id();
+            $currentUser = Auth::user();
             $query = User::query();
 
-            // Get the currently authenticated user
-            $currentUser = Auth::user();
-
-            // Apply filters
+            // Apply basic filters
             if ($request->has('gender')) {
                 $query->where('gender', $request->gender);
             }
@@ -35,30 +34,13 @@ class FilterUserController extends Controller
                 $query->whereIn('marital_status', $maritalStatuses);
             }
 
-            // if ($request->has('age_from') && $request->has('age_to')) {
-            //     $query->whereBetween('date_of_birth', [
-            //         now()->subYears($request->age_to)->toDateString(),
-            //         now()->subYears($request->age_from)->toDateString(),
-            //     ]);
-            // }
-
             if ($request->has('age_from') && $request->has('age_to')) {
-                $ageFrom = $request->age_from; // Example: 20 (youngest)
-                $ageTo = $request->age_to;     // Example: 25 (oldest)
-            
-                // Calculate the date range (from and to years ago)
-                $dateFrom = now()->subYears($ageTo + 1)->addDay()->toDateString(); // 25 years + 1 day ago
-                $dateTo = now()->subYears($ageFrom)->toDateString();               // 20 years ago
-            
-                // Get users between $age_from (20) and slightly over $age_to (25), excluding 26+
+                $ageFrom = $request->age_from;
+                $ageTo = $request->age_to;
+                $dateFrom = now()->subYears($ageTo + 1)->addDay()->toDateString();
+                $dateTo = now()->subYears($ageFrom)->toDateString();
                 $query->whereBetween('date_of_birth', [$dateFrom, $dateTo]);
             }
-            
-            
-
-
-
-
 
             if ($request->has('living_country')) {
                 $livingCountries = explode(',', $request->living_country);
@@ -70,36 +52,61 @@ class FilterUserController extends Controller
                 $query->whereIn('highest_qualification', $qualifications);
             }
 
-            // Exclude the authenticated user from the results if they are logged in
             if ($authUserId) {
-                $query->where('users.id', '!=', $authUserId); // Qualify the id column
+                $query->where('users.id', '!=', $authUserId);
             }
 
-            // Exclude users with the same gender and ID as the current user
             if ($currentUser) {
                 $query->where('gender', '!=', $currentUser->gender)
-                      ->where('users.id', '!=', $currentUser->id); // Qualify the id column here
+                      ->where('users.id', '!=', $currentUser->id);
             }
 
-            // Add sorting by popularity and select specific columns
+            // Join popularity table and select required columns
             $query->leftJoin('popularities', 'users.id', '=', 'popularities.user_id')
-                  ->select('users.*', 'popularities.views', 'popularities.likes')
-                  ->orderByDesc('popularities.views')
-                  ->orderByDesc('popularities.likes');
+                  ->select('users.*', 'popularities.views', 'popularities.likes');
 
-            // Pagination
-            $users = $query->paginate(10); // 10 users per page
+            // Retrieve the ID of the "priority listing" service from PackageService
+            $priorityService = PackageService::where('slug', 'priority-listing')->first();
+            $priorityServiceId = $priorityService->id ?? null;
+
+            // Separate priority users based on active "priority listing" service
+            $priorityUsersQuery = (clone $query)
+                ->whereExists(function ($subQuery) use ($priorityServiceId) {
+                    $subQuery->select(DB::raw(1))
+                             ->from('package_purchases')
+                             ->join('package_active_services', 'package_purchases.package_id', '=', 'package_active_services.package_id')
+                             ->whereColumn('package_purchases.user_id', 'users.id')
+                             ->where('package_active_services.service_id', $priorityServiceId)
+                             ->where('package_active_services.status', 'active');
+                })
+                ->orderByDesc('popularities.views')
+                ->orderByDesc('popularities.likes');
+
+            // Regular users without priority listing
+            $nonPriorityUsersQuery = (clone $query)
+                ->whereNotExists(function ($subQuery) use ($priorityServiceId) {
+                    $subQuery->select(DB::raw(1))
+                             ->from('package_purchases')
+                             ->join('package_active_services', 'package_purchases.package_id', '=', 'package_active_services.package_id')
+                             ->whereColumn('package_purchases.user_id', 'users.id')
+                             ->where('package_active_services.service_id', $priorityServiceId)
+                             ->where('package_active_services.status', 'active');
+                })
+                ->orderByDesc('popularities.views')
+                ->orderByDesc('popularities.likes');
+
+            // Combine both priority and non-priority users
+            $users = $priorityUsersQuery->union($nonPriorityUsersQuery)->paginate(10);
 
             // Add age calculation to each user
-            $users->getCollection()->transform(function ($user) {
-                $user->age = calculateAge($user->date_of_birth);
-                return $user;
-            });
+            // $users->getCollection()->transform(function ($user) {
+            //     $user->age = $this->calculateAge($user->date_of_birth);
+            //     return $user;
+            // });
 
             return response()->json($users);
 
         } catch (\Exception $e) {
-            // Log the error message and return a response
             \Log::error('Error fetching users: ' . $e->getMessage());
             return response()->json(['error' => 'Unable to fetch users.'], 500);
         }
