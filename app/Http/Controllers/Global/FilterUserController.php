@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class FilterUserController extends Controller
 {
 
+    
     public function filter(Request $request)
     {
         try {
@@ -52,52 +53,62 @@ class FilterUserController extends Controller
                 $query->whereIn('highest_qualification', $qualifications);
             }
 
+            // Exclude the authenticated user
             if ($authUserId) {
                 $query->where('users.id', '!=', $authUserId);
             }
 
+            // Exclude the current user
             if ($currentUser) {
                 $query->where('gender', '!=', $currentUser->gender)
                       ->where('users.id', '!=', $currentUser->id);
             }
 
-            // Retrieve the ID of the "priority listing" service from PackageService
-            $priorityService = PackageService::where('slug', 'priority-listing')->first();
-            $priorityServiceId = $priorityService->id ?? null;
+            // Get all users based on the query
+            $users = $query->get();
 
-            // Separate priority users based on active "priority listing" service
-            $priorityUsersQuery = (clone $query)
-                ->whereExists(function ($subQuery) use ($priorityServiceId) {
-                    $subQuery->select(DB::raw(1))
-                             ->from('package_purchases')
-                             ->join('package_active_services', 'package_purchases.package_id', '=', 'package_active_services.package_id')
-                             ->whereColumn('package_purchases.user_id', 'users.id')
-                             ->where('package_active_services.service_id', $priorityServiceId)
-                             ->where('package_active_services.status', 'active');
-                });
+            // Filter for priority users with access to 'Priority Listing'
+            $priorityUsers = $users->filter(function ($user) {
+                return hasServiceAccess('Priority Listing', $user);
+            });
 
-            // Regular users without priority listing
-            $nonPriorityUsersQuery = (clone $query)
-                ->whereNotExists(function ($subQuery) use ($priorityServiceId) {
-                    $subQuery->select(DB::raw(1))
-                             ->from('package_purchases')
-                             ->join('package_active_services', 'package_purchases.package_id', '=', 'package_active_services.package_id')
-                             ->whereColumn('package_purchases.user_id', 'users.id')
-                             ->where('package_active_services.service_id', $priorityServiceId)
-                             ->where('package_active_services.status', 'active');
-                });
+            // Get non-priority users (without active package)
+            $nonPriorityUsers = $query->whereNull('active_package_id')->get();
 
-            // Combine both priority and non-priority users
-            $users = $priorityUsersQuery->union($nonPriorityUsersQuery)->paginate(10);
+            // Combine both priority and non-priority users into a single collection
+            $combinedUsers = $priorityUsers->merge($nonPriorityUsers);
 
+            // Paginate the combined users using Laravel's paginator
+            $perPage = 10; // Number of users per page
+            $currentPage = $request->input('page', 1); // Current page
+            $offset = ($currentPage - 1) * $perPage; // Calculate the offset
 
-            return response()->json($users);
+            // Slice the combined users for pagination
+            $paginatedUsers = $combinedUsers->slice($offset, $perPage)->values(); // Ensure re-indexing
+
+            // Create a paginator instance
+            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+                $paginatedUsers, // Current items
+                $combinedUsers->count(), // Total items
+                $perPage, // Items per page
+                $currentPage, // Current page
+                ['path' => $request->url(), 'query' => $request->query()] // Pagination path and query parameters
+            );
+
+            // Return only the paginated users
+            return $paginator; // or simply return $paginatedUsers if you only want the user data
 
         } catch (\Exception $e) {
             \Log::error('Error fetching users: ' . $e->getMessage());
-            return response()->json(['error' => 'Unable to fetch users.'], 500);
+            return response()->json(['error' => 'Unable to fetch users. ' . $e->getMessage()], 500);
         }
     }
+
+
+
+
+
+
 
 
 

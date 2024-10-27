@@ -574,6 +574,7 @@ public function getProfileCompletionAttribute()
             'is_favorited',
             'premium_member_badge',
             'trusted_badge_access',
+            'active_package_id',
         ];
 
         $array = array_intersect_key(parent::toArray(), array_flip($fields));
