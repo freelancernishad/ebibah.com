@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class FilterUserController extends Controller
 {
 
-    
+
     public function filter(Request $request)
     {
         try {
@@ -67,16 +67,25 @@ class FilterUserController extends Controller
             // Get all users based on the query
             $users = $query->get();
 
-            // Filter for priority users with access to 'Priority Listing'
+
+
+
+            // 1. Get priority users with access to 'Priority Listing'
             $priorityUsers = $users->filter(function ($user) {
                 return hasServiceAccess('Priority Listing', $user);
             });
 
-            // Get non-priority users (without active package)
+            // 2. Get non-priority users with active_package_id not null
+            $nonPriorityWithPackage = $users->filter(function ($user) {
+                return !hasServiceAccess('Priority Listing', $user) && !is_null($user->active_package_id);
+            });
+
+            // 3. Get non-priority users with active_package_id as null (directly from the query)
             $nonPriorityUsers = $query->whereNull('active_package_id')->get();
 
-            // Combine both priority and non-priority users into a single collection
-            $combinedUsers = $priorityUsers->merge($nonPriorityUsers);
+            // 4. Merge all three collections in the desired order
+            $combinedUsers = $priorityUsers->merge($nonPriorityWithPackage)->merge($nonPriorityUsers);
+
 
             // Paginate the combined users using Laravel's paginator
             $perPage = 10; // Number of users per page
