@@ -173,7 +173,7 @@ class StripePaymentController extends Controller
 
 
 
-                       return  $profile_view = $packagePurchase->package->profile_view;
+                         $profile_view = $packagePurchase->package->profile_view;
 
                         // Log::info("profile_view: ".$profile_view);
                         // Log::info("packagePurchase: ". $packagePurchase);
