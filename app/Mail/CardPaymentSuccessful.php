@@ -21,11 +21,12 @@ class CardPaymentSuccessful extends Mailable
         $this->active_services = $active_services;
         $this->payment = $payment;
         $this->package = $package;
+
     }
 
     public function build()
     {
-        return $this->subject('Card Payment Successful')
+        return $this->subject('Package Purchase Successful')
                     ->view('emails.card_payment_successful');
     }
 }
