@@ -79,11 +79,6 @@ class StripePaymentController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-
-    //     $payment = Payment::where('trxId', 'pi_3QExa6CVHHUKTD7j0QiIBYpP')->first();
-
-    //     $session = $request->all();
-    //    return  $this->updatePaymentStatus($payment, $session);
         // Set your Stripe secret key
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
@@ -151,23 +146,6 @@ class StripePaymentController extends Controller
     private function updatePaymentStatus($payment, $session)
     {
 
-    //     $packagePurchase = $payment->packagePurchase;
-    //     $user = $payment->user;
-    //    // Assuming allowed_services function returns the services array
-    //     $allowed_services = allowed_services($packagePurchase->package)['allowed_services'];
-
-    //     // Filter to get only the active services
-    //     $active_services = array_filter($allowed_services, function ($service) {
-    //         return $service['status'] === 'active';
-    //     });
-
-    //     // Optionally, you can reindex the array
-    //     $active_services = array_values($active_services);
-
-    //     $package = $packagePurchase->package;
-    //    Mail::to($user->email)->send(new CardPaymentSuccessful($user,$active_services,$payment,$package));
-
-    //    return ;
 
 
         // return $session;
@@ -206,9 +184,18 @@ class StripePaymentController extends Controller
 
 
 
+                        $allowed_services = allowed_services($packagePurchase->package)['allowed_services'];
 
+                        // Filter to get only the active services
+                        $active_services = array_filter($allowed_services, function ($service) {
+                            return $service['status'] === 'active';
+                        });
 
-                        // Mail::to($user->email)->send(new CardPaymentSuccessful($user,$active_services,$payment));
+                        // Optionally, you can reindex the array
+                        $active_services = array_values($active_services);
+
+                        $package = $packagePurchase->package;
+                       Mail::to($user->email)->send(new CardPaymentSuccessful($user,$active_services,$payment,$package));
 
                 }
             }

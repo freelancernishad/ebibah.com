@@ -14,7 +14,7 @@
                             </tr>
                             <tr>
                                 <td valign="top" align="center" style="padding: 20px 0 17px;">
-                                    <img src="https://i.ibb.co/com/qMndRP6/ebibah.png" width="150" alt="ebibah.com" title="ebibah.com" />
+                                    <img src="https://api.ebibah.com/public/ebibah.png" width="150" alt="ebibah.com" title="ebibah.com" />
                                 </td>
                             </tr>
                             <tr>
@@ -35,7 +35,7 @@
                                                         <ul style="list-style-type: none; padding: 0;">
                                                             <li style="margin: 5px 0;"><strong>Payment Method:</strong> {{ $payment->method }}</li>
                                                             <li style="margin: 5px 0;"><strong>Amount:</strong> ${{ $payment->amount }}</li>
-                                                            <li style="margin: 5px 0;"><strong>Card Type:</strong> {{ $payment->payment_type }}</li>
+                                                            {{-- <li style="margin: 5px 0;"><strong>Card Type:</strong> {{ $payment->payment_type }}</li> --}}
                                                             <li style="margin: 5px 0;"><strong>Status:</strong> {{ $payment->status }}</li>
                                                             <li style="margin: 5px 0;"><strong>Currency:</strong> {{ $payment->currency }}</li>
                                                         </ul>
@@ -84,7 +84,7 @@
                                             </tr>
                                             <tr>
                                                 <td valign="top" align="center" style="padding: 8px 0 20px;">
-                                                    <img src="https://i.ibb.co/com/qMndRP6/ebibah.png" width="100" alt="ebibah.com" title="ebibah.com" />
+                                                    <img src="https://api.ebibah.com/public/ebibah.png" width="100" alt="ebibah.com" title="ebibah.com" />
                                                     <p style="font-weight: 400; font-size: 16px; line-height: 22px; color: #51505d; margin: 5px 0;">
                                                         Phone: <strong>+1 (888) 887 5027</strong><br />
                                                         Email: <strong><a href="mailto:support@ebibah.com" style="color: #51505d; text-decoration: none;">support@ebibah.com</a></strong><br />
