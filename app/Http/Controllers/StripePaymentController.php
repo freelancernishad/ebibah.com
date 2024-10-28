@@ -7,7 +7,11 @@ use App\Models\Package;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use App\Models\HiringRequest;
+use App\Mail\CardPaymentSuccessful;
+use App\Models\PackageActiveService;
+use App\Models\PackageService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Stripe\Checkout\Session as StripeSession;
 
 class StripePaymentController extends Controller
@@ -75,6 +79,11 @@ class StripePaymentController extends Controller
      */
     public function handleWebhook(Request $request)
     {
+
+    //     $payment = Payment::where('trxId', 'pi_3QExa6CVHHUKTD7j0QiIBYpP')->first();
+
+    //     $session = $request->all();
+    //    return  $this->updatePaymentStatus($payment, $session);
         // Set your Stripe secret key
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
@@ -141,6 +150,27 @@ class StripePaymentController extends Controller
      */
     private function updatePaymentStatus($payment, $session)
     {
+
+    //     $packagePurchase = $payment->packagePurchase;
+    //     $user = $payment->user;
+    //    // Assuming allowed_services function returns the services array
+    //     $allowed_services = allowed_services($packagePurchase->package)['allowed_services'];
+
+    //     // Filter to get only the active services
+    //     $active_services = array_filter($allowed_services, function ($service) {
+    //         return $service['status'] === 'active';
+    //     });
+
+    //     // Optionally, you can reindex the array
+    //     $active_services = array_values($active_services);
+
+    //     $package = $packagePurchase->package;
+    //    Mail::to($user->email)->send(new CardPaymentSuccessful($user,$active_services,$payment,$package));
+
+    //    return ;
+
+
+        // return $session;
         if ($session->payment_status === 'paid') {
             // Update payment to success
             $payment->update([
@@ -165,7 +195,7 @@ class StripePaymentController extends Controller
 
 
 
-                        $profile_view = $packagePurchase->package->profile_view;
+                       return  $profile_view = $packagePurchase->package->profile_view;
 
                         // Log::info("profile_view: ".$profile_view);
                         // Log::info("packagePurchase: ". $packagePurchase);
@@ -174,6 +204,11 @@ class StripePaymentController extends Controller
                             'contact_view_balance' => $profile_view, // Use the profile_view value
                         ]);
 
+
+
+
+
+                        // Mail::to($user->email)->send(new CardPaymentSuccessful($user,$active_services,$payment));
 
                 }
             }

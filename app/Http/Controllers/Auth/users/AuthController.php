@@ -9,9 +9,11 @@ use Illuminate\Validation\Rule;
 use App\Notifications\VerifyEmail;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
+use App\Mail\RegistrationSuccessful;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use App\Notifications\OtpNotification;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -320,6 +322,13 @@ public function checkToken(Request $request)
             ]);
 
             $user->save();
+
+
+            $data = [
+                'name' => $user->name,
+            ];
+            Mail::to($user->email)->send(new RegistrationSuccessful($data));
+
         } else {
             // Validate all fields for traditional registration
             $validator = Validator::make($request->all(), [

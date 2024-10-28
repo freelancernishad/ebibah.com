@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
+use App\Mail\RegistrationSuccessful;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class VerificationController extends Controller
@@ -112,6 +114,12 @@ class VerificationController extends Controller
 
             // Generate a new token for the user after verification
             $token = JWTAuth::fromUser($user);
+
+            $data = [
+                'name' => $user->name,
+            ];
+            Mail::to($user->email)->send(new RegistrationSuccessful($data));
+
 
             return response()->json([
                 'message' => 'Email verified successfully.',
