@@ -24,7 +24,7 @@
                                         <tbody>
                                             <tr style="color: #51505d; margin-left:20px; font-family: Arial, sans-serif; padding: 20px;">
                                                 <td class="content" style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-                                                    <h1 style="color: #4a4a4a; text-align: center;">Card Payment Successful!</h1>
+                                                    <h1 style="color: #4a4a4a; text-align: center;">Payment Successful!</h1>
                                                     <p style="border-top: 1px solid #e0e0e0; margin: 10px 0;"></p>
                                                     <p style="font-size: 16px; line-height: 1.5;">Thank you for your payment, <strong>{{ $user->name }}</strong>. Your card transaction has been completed successfully.</p>
                                                     <p style="font-size: 16px; line-height: 1.5;"><strong>Transaction ID:</strong> <strong>{{ $payment->trxId }}</strong></p>
