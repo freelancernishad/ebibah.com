@@ -85,7 +85,7 @@ class AdminDashboardController extends Controller
              'weekly_package_revenue' => $packageRevenueData['weekly_package_revenue'],
              'weekly_package_revenue_max' => $weeklyPackageRevenueMax,
              'revenue_by_date' => $revenueByDate, // Revenue by package within date range
-             'total_revenue' => $totalRevenue, // Total revenue across all packages
+             'total_revenue' => (int) $totalRevenue, // Total revenue across all packages
          ]);
      }
 
