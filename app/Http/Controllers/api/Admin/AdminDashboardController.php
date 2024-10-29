@@ -17,68 +17,77 @@ class AdminDashboardController extends Controller
      *
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
-    {
-        $year = $request->year ?? now()->year;
-        $week = $request->week ?? 'current';
 
-        $fromDate = $request->from_date;
-        $toDate = $request->to_date;
 
-        // Total users
-        $totalUsers = User::count();
+     public function index(Request $request): JsonResponse
+     {
+         $year = $request->year ?? now()->year;
+         $week = $request->week ?? 'current';
 
-        // New registrations in the last 7 days
-        $newRegistrations = User::where('created_at', '>=', now()->subDays(7))->count();
+         $fromDate = $request->from_date;
+         $toDate = $request->to_date ?? $fromDate; // Set to one day if to_date is missing
 
-        // Subscribed users
-        $subscribedUsers = User::whereNotNull('active_package_id')->count();
+         // Total users
+         $totalUsers = User::count();
 
-        // Pending verifications
-        $pendingVerifications = User::whereNull('email_verified_at')->count();
+         // New registrations in the last 7 days
+         $newRegistrations = User::where('created_at', '>=', now()->subDays(7))->count();
 
-        // Package revenue data (monthly, yearly, weekly)
-        $packageRevenueData = getPackageRevenueData($year, $week);
+         // Subscribed users
+         $subscribedUsers = User::whereNotNull('active_package_id')->count();
 
-        // Total revenue by package
-        $totalRevenueByPackage = $packageRevenueData['total_revenue_per_package'];
+         // Pending verifications
+         $pendingVerifications = User::whereNull('email_verified_at')->count();
 
-        // Weekly package revenue max value
-        $weeklyPackageRevenueMax = $packageRevenueData['weekly_package_revenue_max'];
+         // Package revenue data (monthly, yearly, weekly)
+         $packageRevenueData = getPackageRevenueData($year, $week);
 
-        // Calculate revenue by package within a date range if provided
-        $revenueByDate = [];
-        if ($fromDate && $toDate) {
-            $revenueByDate = Package::all()->map(function ($package) use ($fromDate, $toDate) {
-                // Get total revenue for the package within the specified date range
-                $totalAmount = Payment::whereHas('packagePurchase', function ($query) use ($package) {
-                        $query->where('package_id', $package->id);
-                    })
-                    ->where('type', 'package')
-                    ->where('status', 'completed')
-                    ->whereBetween('date', [$fromDate, $toDate])
-                    ->sum('amount');
+         // Total revenue by package
+         $totalRevenueByPackage = $packageRevenueData['total_revenue_per_package'];
 
-                return [
-                    'name' => $package->package_name,
-                    'total_amount' => (int) $totalAmount, // Cast to integer
-                ];
-            })->toArray();
-        }
+         // Weekly package revenue max value
+         $weeklyPackageRevenueMax = $packageRevenueData['weekly_package_revenue_max'];
 
-        return response()->json([
-            'total_users' => $totalUsers,
-            'new_registrations' => $newRegistrations,
-            'subscribed_users' => $subscribedUsers,
-            'pending_verifications' => $pendingVerifications,
-            'package_revenue' => $packageRevenueData['monthly_package_revenue'],
-            'package_revenue_max' => $packageRevenueData['monthly_package_revenue_max'],
-            'total_revenue_per_package' => $totalRevenueByPackage,
-            'yearly_package_revenue' => $packageRevenueData['yearly_package_revenue'],
-            'weekly_package_revenue' => $packageRevenueData['weekly_package_revenue'],
-            'weekly_package_revenue_max' => $weeklyPackageRevenueMax,
-            'revenue_by_date' => $revenueByDate, // Revenue by package within date range
-        ]);
-    }
+         // Calculate revenue by package within a date range if provided
+         $revenueByDate = [];
+         if ($fromDate) {
+             $revenueByDate = Package::all()->map(function ($package) use ($fromDate, $toDate) {
+                 // Get total revenue for the package within the specified date range or day
+                 $totalAmount = Payment::whereHas('packagePurchase', function ($query) use ($package) {
+                         $query->where('package_id', $package->id);
+                     })
+                     ->where('type', 'package')
+                     ->where('status', 'completed')
+                     ->whereBetween('date', [$fromDate, $toDate])
+                     ->sum('amount');
+
+                 return [
+                     'name' => $package->package_name,
+                     'total_amount' => (int) $totalAmount, // Cast to integer
+                 ];
+             })->toArray();
+         }
+
+         // Calculate total revenue across all packages
+         $totalRevenue = Payment::where('type', 'package')
+             ->where('status', 'completed')
+             ->sum('amount');
+
+         return response()->json([
+             'total_users' => $totalUsers,
+             'new_registrations' => $newRegistrations,
+             'subscribed_users' => $subscribedUsers,
+             'pending_verifications' => $pendingVerifications,
+             'package_revenue' => $packageRevenueData['monthly_package_revenue'],
+             'package_revenue_max' => $packageRevenueData['monthly_package_revenue_max'],
+             'total_revenue_per_package' => $totalRevenueByPackage,
+             'yearly_package_revenue' => $packageRevenueData['yearly_package_revenue'],
+             'weekly_package_revenue' => $packageRevenueData['weekly_package_revenue'],
+             'weekly_package_revenue_max' => $weeklyPackageRevenueMax,
+             'revenue_by_date' => $revenueByDate, // Revenue by package within date range
+             'total_revenue' => $totalRevenue, // Total revenue across all packages
+         ]);
+     }
+
 
 }

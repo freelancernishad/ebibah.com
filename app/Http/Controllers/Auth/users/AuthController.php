@@ -78,6 +78,7 @@ class AuthController extends Controller
             // Build the payload including the username, step, and email verification status
             $payload = [
                 'email' => $user->email,
+                'mobile_number' => $user->mobile_number,
                 'username' => $user->username, // Include username here
                 'name' => $user->name, // Include name here
                 'step' => $user->step, // Include step here
@@ -108,6 +109,7 @@ class AuthController extends Controller
                 // Build the payload including the username, step, and email verification status
                 $payload = [
                     'email' => $user->email,
+                    'mobile_number' => $user->mobile_number,
                     'username' => $user->username, // Include username here
                     'name' => $user->name, // Include name here
                     'step' => $user->step, // Include step here
@@ -334,6 +336,7 @@ public function checkToken(Request $request)
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|max:255|unique:users',
+                'mobile_number' => 'required',
                 'password' => 'required|string|min:6|confirmed', // This validates both password and password_confirmation
                 'date_of_birth' => 'nullable|date',
                 'religion' => 'nullable|string|max:255',
@@ -349,6 +352,7 @@ public function checkToken(Request $request)
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
+                'mobile_number' => $request->mobile_number,
                 'password' => Hash::make($request->password),
                 'date_of_birth' => $request->date_of_birth,
                 'religion' => $request->religion,
@@ -385,6 +389,7 @@ public function checkToken(Request $request)
         $payload = [
             'name' => $user->name,
             'email' => $user->email,
+            'mobile_number' => $user->mobile_number,
             'username' => $user->username ?? $user->name, // Include username or name here
             'step' => $user->step, // Include step here
             'verified' => $user->hasVerifiedEmail(), // Add email verification status
