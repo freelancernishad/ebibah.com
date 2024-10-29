@@ -28,11 +28,9 @@ class AdminDashboardController extends Controller
 
 
          $toDate = isset($request->to_date) ? $request->to_date : $fromDate;
-        if($toDate=='undefined'){
-            $toDate = $fromDate;
-        }
 
-      
+
+
 
 
          // Total users
@@ -65,9 +63,19 @@ class AdminDashboardController extends Controller
                          $query->where('package_id', $package->id);
                      })
                      ->where('type', 'package')
-                     ->where('status', 'completed')
-                     ->whereBetween('date', [$fromDate, $toDate])
-                     ->sum('amount');
+                     ->where('status', 'completed');
+
+
+                     if($toDate=='undefined'){
+                        $fromDate = date("Y-m-d", strtotime($fromDate));
+                        $totalAmount->where('date', $fromDate);
+                    }else{
+                        $totalAmount->whereBetween('date', [$fromDate, $toDate]);
+                    }
+
+
+
+                     $totalAmount = $totalAmount->sum('amount');
 
                  return [
                      'name' => $package->package_name,
