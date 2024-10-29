@@ -28,7 +28,11 @@ class AdminDashboardController extends Controller
 
 
          $toDate = isset($request->to_date) ? $request->to_date : $fromDate;
+        if($toDate=='undefined'){
+            $toDate = $fromDate;
+        }
 
+      
 
 
          // Total users
