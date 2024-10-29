@@ -12,16 +12,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Http\JsonResponse;
-
 
 class UserController extends Controller
 {
 
 
 
-    public function myProfile(): JsonResponse
+    public function myProfile()
     {
         User::setApplyActiveScope(false);
         // Get the authenticated user
@@ -32,53 +29,70 @@ class UserController extends Controller
             return response()->json(['message' => 'User not authenticated'], 401);
         }
 
-        // Load user-related data with caching
+
+
         $user->load([
             'sentInvitations',
             'receivedInvitations',
+            // 'profileViews',
+            // 'viewedProfiles',
             'payments',
             'favorites',
             'userImages',
             'userPendingImages',
         ]);
 
-        // Cache the user's active package
-        $activePackage = Cache::remember("user:{$user->id}:active_package", 60, function () use ($user) {
-            return Package::find($user->active_package_id);
-        });
 
-        // Determine profile view limits
-        $profileViewLimit = $activePackage ? $activePackage->profile_view : 0;
 
-        // Cache the total contacts viewed by the user
-        $totalContactViewed = Cache::remember("user:{$user->id}:total_contacts_viewed:{$activePackage->id}", 60, function () use ($user, $activePackage) {
-            return $activePackage ? ContactView::where('user_id', $user->id)
-                ->where('package_id', $activePackage->id)
-                ->count() : 0;
-        });
+        // Retrieve the user's active package by active_package_id
+        $activePackage = Package::find($user->active_package_id);
 
-        // Prepare user profile data
+        // Check if the user has an active package
+        if ($activePackage) {
+            // Get the 'profile_view' limit from the active package
+            $profileViewLimit = $activePackage->profile_view;
+
+            // Calculate total contacts viewed by the user using this specific package
+            $totalContactViewed = ContactView::where('user_id', $user->id)
+                                            ->where('package_id', $activePackage->id)
+                                            ->count();
+        } else {
+            // Handle case when the user doesn't have an active package
+            $profileViewLimit = 0;
+            $totalContactViewed = 0;
+        }
+
+        // Get the user's contact view balance
+        $contactViewBalance = $user->contact_view_balance;
+
+
+
+
+
+        // Calculate age
+        // $age = calculateAge($user->date_of_birth);
+
+        // Convert user to array and include age
         $userArray = $user->toArrayProfile();
+        // $userArray['age'] = $age;
         $userArray['profile_view_limit'] = $profileViewLimit;
         $userArray['total_contact_viewed'] = $totalContactViewed;
 
-        // Cache profile matches
-        $my_match = Cache::remember("user:{$user->id}:my_match", 60, function () {
-            return profile_matches('my', 4);
-        });
+       $my_match =  profile_matches('my',4);
+       $new_match =  profile_matches('new',4);
 
-        $new_match = Cache::remember("user:{$user->id}:new_match", 60, function () {
-            return profile_matches('new', 4);
-        });
+
 
         // Return the authenticated user's profile
         return response()->json([
             'user' => $userArray,
             'my_match' => $my_match,
             'new_match' => $new_match,
+          
+      
+            
         ], 200);
     }
-
 
 
 
