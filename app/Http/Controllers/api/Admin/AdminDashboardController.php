@@ -19,13 +19,17 @@ class AdminDashboardController extends Controller
      */
 
 
-     public function index(Request $request): JsonResponse
+     public function index(Request $request)
      {
          $year = $request->year ?? now()->year;
          $week = $request->week ?? 'current';
 
          $fromDate = $request->from_date;
-         $toDate = $request->to_date ?? $fromDate; // Set to one day if to_date is missing
+
+
+         $toDate = isset($request->to_date) ? $request->to_date : $fromDate;
+
+
 
          // Total users
          $totalUsers = User::count();
