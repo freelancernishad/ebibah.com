@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\JsonResponse;
 
 
 class UserController extends Controller
@@ -20,10 +21,9 @@ class UserController extends Controller
 
 
 
-    public function myProfile()
+    public function myProfile(): JsonResponse
     {
         User::setApplyActiveScope(false);
-
         // Get the authenticated user
         $user = Auth::guard('api')->user();
 
@@ -32,7 +32,7 @@ class UserController extends Controller
             return response()->json(['message' => 'User not authenticated'], 401);
         }
 
-        // Load user relationships and cache them
+        // Load user-related data with caching
         $user->load([
             'sentInvitations',
             'receivedInvitations',
@@ -42,52 +42,36 @@ class UserController extends Controller
             'userPendingImages',
         ]);
 
-        // Caching the user's active package based on the `updated_at` timestamp
-        $activePackage = Cache::remember("user_{$user->id}_active_package", 60, function () use ($user) {
+        // Cache the user's active package
+        $activePackage = Cache::remember("user:{$user->id}:active_package", 60, function () use ($user) {
             return Package::find($user->active_package_id);
         });
 
-        // Refresh the cache if `updated_at` has changed in the database
-        if ($activePackage && Cache::get("user_{$user->id}_package_updated_at") != $activePackage->updated_at) {
-            Cache::put("user_{$user->id}_active_package", $activePackage, 60);
-            Cache::put("user_{$user->id}_package_updated_at", $activePackage->updated_at, 60);
-        }
-
-        // Determine profile view limit and total contacts viewed, with conditional caching
+        // Determine profile view limits
         $profileViewLimit = $activePackage ? $activePackage->profile_view : 0;
 
-        $totalContactViewed = Cache::remember("user_{$user->id}_contact_views", 60, function () use ($user, $activePackage) {
-            return $activePackage
-                ? ContactView::where('user_id', $user->id)
-                             ->where('package_id', $activePackage->id)
-                             ->count()
-                : 0;
+        // Cache the total contacts viewed by the user
+        $totalContactViewed = Cache::remember("user:{$user->id}:total_contacts_viewed:{$activePackage->id}", 60, function () use ($user, $activePackage) {
+            return $activePackage ? ContactView::where('user_id', $user->id)
+                ->where('package_id', $activePackage->id)
+                ->count() : 0;
         });
 
-        // Caching match results with timestamp verification
-        $my_match = Cache::remember("user_{$user->id}_my_match", 60, function () {
-            return profile_matches('my', 4);
-        });
-        $new_match = Cache::remember("user_{$user->id}_new_match", 60, function () {
-            return profile_matches('new', 4);
-        });
-
-        if (Cache::get("user_{$user->id}_matches_updated_at") !== now()) {
-            $my_match = profile_matches('my', 4);
-            $new_match = profile_matches('new', 4);
-
-            // Store new match data and updated timestamp in the cache
-            Cache::put("user_{$user->id}_my_match", $my_match, 60);
-            Cache::put("user_{$user->id}_new_match", $new_match, 60);
-            Cache::put("user_{$user->id}_matches_updated_at", now(), 60);
-        }
-
-        // Convert user to array and add profile limits and match results
+        // Prepare user profile data
         $userArray = $user->toArrayProfile();
         $userArray['profile_view_limit'] = $profileViewLimit;
         $userArray['total_contact_viewed'] = $totalContactViewed;
 
-        // Return the optimized response
+        // Cache profile matches
+        $my_match = Cache::remember("user:{$user->id}:my_match", 60, function () {
+            return profile_matches('my', 4);
+        });
+
+        $new_match = Cache::remember("user:{$user->id}:new_match", 60, function () {
+            return profile_matches('new', 4);
+        });
+
+        // Return the authenticated user's profile
         return response()->json([
             'user' => $userArray,
             'my_match' => $my_match,
