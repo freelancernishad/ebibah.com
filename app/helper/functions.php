@@ -715,7 +715,7 @@ function allowed_services($activePackage) {
 }
 
 
-function getPackageRevenueData($year = null)
+function getPackageRevenueData($year = null, $week = 'current')
 {
     // Default to the current year if no year is provided
     $year = $year ?? now()->year;
@@ -725,6 +725,15 @@ function getPackageRevenueData($year = null)
     $totalRevenueByPackage = [];
     $totalRevenueByPackageYearly = [];
     $totalRevenueByPackageWeekly = [];
+
+    // Define the week date range based on the $week parameter
+    if ($week === 'current') {
+        $weekStart = Carbon::now()->startOfWeek();
+        $weekEnd = Carbon::now()->endOfWeek();
+    } elseif ($week === 'last') {
+        $weekStart = Carbon::now()->subWeek()->startOfWeek();
+        $weekEnd = Carbon::now()->subWeek()->endOfWeek();
+    }
 
     // Retrieve all packages and loop through each
     $packages = Package::all();
@@ -777,17 +786,16 @@ function getPackageRevenueData($year = null)
             'total_revenue_yearly' => $yearlyRevenue,
         ];
 
-        // Prepare an array for daily revenue, initialized to 0 for each day of the week
+        // Prepare an array for weekly revenue, initialized to 0 for each day
         $weeklyData = array_fill(0, 7, 0);
-        $weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-        // Fetch total revenue for the package for the current week, grouped by day
+        // Fetch total revenue for the specified week, grouped by day
         $weeklyPayments = Payment::select(DB::raw('DAYOFWEEK(date) as day'), DB::raw('SUM(amount) as total_amount'))
             ->join('package_purchases', 'payments.package_purchase_id', '=', 'package_purchases.id')
             ->where('package_purchases.package_id', $package->id)
             ->where('payments.type', 'package')
             ->where('payments.status', 'completed')
-            ->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->whereBetween('date', [$weekStart, $weekEnd])
             ->groupBy(DB::raw('DAYOFWEEK(date)'))
             ->get();
 
@@ -796,7 +804,7 @@ function getPackageRevenueData($year = null)
             $weeklyData[$payment->day - 1] = (int) $payment->total_amount;  // Cast to integer
         }
 
-        // Add to total revenue by package weekly in the desired JSON format
+        // Add to total revenue by package weekly
         $totalRevenueByPackageWeekly[] = [
             'name' => $package->package_name,
             'data' => $weeklyData,
@@ -815,7 +823,7 @@ function getPackageRevenueData($year = null)
         $maxWeeklyRevenue = max($maxWeeklyRevenue, $currentPackageMax);
     }
 
-    // Return the combined result along with the maximum monthly revenue
+    // Return the combined result along with the maximum monthly and weekly revenue
     return [
         'monthly_package_revenue' => $monthlyResult,
         'monthly_package_revenue_max' => getDynamicMaxValue($maxMonthlyRevenue),
@@ -825,6 +833,7 @@ function getPackageRevenueData($year = null)
         'weekly_package_revenue_max' => getDynamicMaxValue($maxWeeklyRevenue), // Max value for weekly revenue
     ];
 }
+
 
 
 function getDynamicMaxValue($value)
