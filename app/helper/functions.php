@@ -204,30 +204,41 @@ function profile_matches($type = '', $limit = null)
 
 
 
-    // Attach matched fields to the final matching users and remove the "user" key
+
+
+
+
     $result = $finalMatchingUsers->map(function ($matchedUser) use ($matchedUsersDetails, $user, $minAge, $maxAge) {
-        // Prepare matched fields for partner age
         $partnerAgeMatch = [
             "field" => "partner_age",
-            "auth_user_preference" => explode('-', $user->partner_age), // Assuming 'partner_age' is a range like '25-30'
-            "matched_user_value" => \Carbon\Carbon::parse($matchedUser->date_of_birth)->age, // Age of the matched user
+            "auth_user_preference" => explode('-', $user->partner_age),
+            "matched_user_value" => \Carbon\Carbon::parse($matchedUser->date_of_birth)->age,
             "is_matched" => (\Carbon\Carbon::parse($matchedUser->date_of_birth)->age >= $minAge &&
-                             \Carbon\Carbon::parse($matchedUser->date_of_birth)->age <= $maxAge) // True/False if age is within range
+                             \Carbon\Carbon::parse($matchedUser->date_of_birth)->age <= $maxAge)
         ];
 
-        // Add partner age match to matchedUsersDetails
         if (!isset($matchedUsersDetails[$matchedUser->id])) {
-            $matchedUsersDetails[$matchedUser->id] = [];
+            $matchedUsersDetails[$matchedUser->id] = [
+                'criteria_matched' => 0,
+                'fields' => []
+            ];
         }
-        $matchedUsersDetails[$matchedUser->id][] = $partnerAgeMatch;
+
+        $matchedUsersDetails[$matchedUser->id]['fields'][] = $partnerAgeMatch;
 
         return array_merge(
-            $matchedUser->toArray(), // Merge the user's attributes directly
+            $matchedUser->toArray(),
             [
-                'matched_fields' => $matchedUsersDetails[$matchedUser->id] // Attach the matched fields
+                'matched_fields' => $matchedUsersDetails[$matchedUser->id]['fields'],
+                'totalCriteriaMatched' => $matchedUsersDetails[$matchedUser->id]['criteria_matched']
             ]
         );
-    })->values(); // Use values() to remove numeric keys
+    })->sortByDesc('totalCriteriaMatched')->values(); // Sort by criteria matched
+
+
+
+
+
 
 
 
@@ -238,36 +249,36 @@ function profile_matches($type = '', $limit = null)
 
 
     // Define the fields to be displayed
-$fields = [
-    'id',
-    'name',
-    'age',
-    'gender',
-    'Height',
-    'city_living_in',
-    'currently_living_in',
-    'living_country',
-    'religion',
-    'marital_status',
-    'working_sector',
-    'profession',
-    'about_myself',
-    'profile_picture_url',
-    'invitation_send_status',
-    'is_favorited',
-    'premium_member_badge',
-    'trusted_badge_access',
-];
+    $fields = [
+        'id',
+        'name',
+        'age',
+        'gender',
+        'Height',
+        'city_living_in',
+        'currently_living_in',
+        'living_country',
+        'religion',
+        'marital_status',
+        'working_sector',
+        'profession',
+        'about_myself',
+        'profile_picture_url',
+        'invitation_send_status',
+        'is_favorited',
+        'premium_member_badge',
+        'trusted_badge_access',
+    ];
 
-// Map the result to only include the specified fields
-$result = $result->map(function ($user) use ($fields) {
-    return array_intersect_key($user, array_flip($fields));
-});
+    // Map the result to only include the specified fields
+    $result = $result->map(function ($user) use ($fields) {
+        return array_intersect_key($user, array_flip($fields));
+    });
 
-// Apply the optional limit if provided
-if ($limit !== null) {
-    $result = $result->take($limit);
-}
+    // Apply the optional limit if provided
+    if ($limit !== null) {
+        $result = $result->take($limit);
+    }
 
 
 
@@ -297,77 +308,61 @@ function addMatchingCriteria($query, $user, &$scoreConditions, &$totalCriteria, 
 
     foreach ($criteriaMappings as $relation => $column) {
         if ($user->$relation) {
-            // Retrieve the values from the authenticated user's relationship
             $userValues = $user->$relation->pluck($column)->toArray();
 
             if (!empty($userValues)) {
+                $userColumn = $column;
 
+                // Adjust column names for specific mappings
+                if ($column === 'qualification') {
+                    $userColumn = 'highest_qualification';
+                } elseif ($column === 'working_with') {
+                    $userColumn = 'working_sector';
+                } elseif ($column === 'country') {
+                    $userColumn = 'living_country';
+                } elseif ($column === 'city') {
+                    $userColumn = 'city_living_in';
+                } elseif ($column === 'profession' && $relation == 'partnerProfessionalDetails') {
+                    $userColumn = 'profession_details';
+                }
 
-                    // Initialize the user column mapping
-                    $userColumn = $column;
-
-                    // Adjust column names for specific mappings
-                    if ($column === 'qualification') {
-                        $userColumn = 'highest_qualification';
-                    } elseif ($column === 'working_with') {
-                        $userColumn = 'working_sector';
-                    } elseif ($column === 'country') {
-                        $userColumn = 'living_country';
-                    } elseif ($column === 'city') {
-                        $userColumn = 'city_living_in';
-                    } elseif ($column === 'profession') {
-                        if($relation=='partnerProfessionalDetails'){
-                            $userColumn = 'profession_details';
-                        }
-                    }
-
-
-                // Apply the query condition using where or orWhere for at least one match
-                $query->orWhere(function ($q) use ($userColumn, $userValues, &$matchedUsersDetails, $user) {
+                $query->orWhere(function ($q) use ($userColumn, $userValues, &$matchedUsersDetails, &$totalCriteria, $user) {
                     foreach ($userValues as $value) {
                         $q->orWhere($userColumn, $value);
                     }
                 });
 
-                // Increment the total criteria count
                 $scoreConditions[] = "1"; // Score for matching criteria
                 $totalCriteria++; // Increment total criteria count
 
-                // Retrieve other users' values from the same column
-                $query->get()->each(function ($matchingUser) use ($userColumn, $userValues, &$matchedUsersDetails, $user, $relation) {
-                    // Check if the other user's value matches the authenticated user's preference
+                // Count matches for each user
+                $query->get()->each(function ($matchingUser) use ($userColumn, $userValues, &$matchedUsersDetails) {
                     $otherUserValue = $matchingUser->$userColumn;
 
-                    // Only add details if there's a match
                     if (in_array($otherUserValue, $userValues)) {
-                        // Log the matched field and values
-                        $matchedUsersDetails[$matchingUser->id][] = [
+                        if (!isset($matchedUsersDetails[$matchingUser->id])) {
+                            $matchedUsersDetails[$matchingUser->id] = [
+                                'criteria_matched' => 0,
+                                'fields' => []
+                            ];
+                        }
+
+                        $matchedUsersDetails[$matchingUser->id]['fields'][] = [
                             'field' => $userColumn,
-                            'auth_user_preference' => $userValues, // The values from the authenticated user's preferences
-                            'matched_user_value' => $otherUserValue, // The value from the other user's profile
-                            'matched' => true, // Indicate that it matched
+                            'auth_user_preference' => $userValues,
+                            'matched_user_value' => $otherUserValue,
+                            'matched' => true
                         ];
 
-                        // Log the matched criteria
-                        \Log::info("Matched " . ucfirst($relation) . ":", [
-                            'auth_user_id' => $user->id,
-                            'auth_user_values' => $userValues, // Log the user's preference values
-                            'other_user_id' => $matchingUser->id,
-                            'other_user_value' => $otherUserValue, // Log the matched value
-                            'column' => $userColumn
-                        ]);
+                        // Increment the match count for this user
+                        $matchedUsersDetails[$matchingUser->id]['criteria_matched']++;
                     }
                 });
-            } else {
-                // Log unmatched criteria with user values
-                \Log::info("No preferences set for " . ucfirst($relation) . ":", [
-                    'user_id' => $user->id,
-                    'column' => $column
-                ]);
             }
         }
     }
 }
+
 
 
 
