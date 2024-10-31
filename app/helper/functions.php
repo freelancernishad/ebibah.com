@@ -115,10 +115,6 @@ function profile_matches($type = '', $limit = null)
     }
 
 
-        // Get partner location preferences
-        $partnerCountries = $user->partnerCountries->pluck('country')->toArray();
-        $partnerStates = $user->partnerStates->pluck('state')->toArray();
-        $partnerCities = $user->partnerCities->pluck('city')->toArray();
 
 
 
@@ -182,6 +178,12 @@ function profile_matches($type = '', $limit = null)
 
 
 
+    // Get partner location preferences
+    $partnerCountries = $user->partnerCountries->pluck('country')->toArray();
+    $partnerStates = $user->partnerStates->pluck('state')->toArray();
+    $partnerCities = $user->partnerCities->pluck('city')->toArray();
+
+
 
   // Filter final users based on match type
   $finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matchedUsersDetails, $minAge, $maxAge, $partnerCountries, $partnerStates, $partnerCities, $type) {
@@ -191,9 +193,9 @@ function profile_matches($type = '', $limit = null)
     // Check if matchType is 'near' to apply location filters
     if ($type === 'near') {
         // Ensure location matches one of the preferred locations
-        $locationMatch = in_array($matchingUser->country, $partnerCountries) ||
+        $locationMatch = in_array($matchingUser->living_country, $partnerCountries) ||
                          in_array($matchingUser->state, $partnerStates) ||
-                         in_array($matchingUser->city, $partnerCities);
+                         in_array($matchingUser->city_living_in, $partnerCities);
 
         // Return if the user has at least 2 matching fields, age is within range, and location matches
         return isset($matchedUsersDetails[$matchingUser->id]) &&
