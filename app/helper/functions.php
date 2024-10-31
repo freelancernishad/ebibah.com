@@ -104,8 +104,6 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 
 
 
-
-
 function profile_matches($type = '', $limit = null)
 {
     // Get the authenticated user
@@ -119,12 +117,17 @@ function profile_matches($type = '', $limit = null)
     // Start the query with the User model
     $query = User::query();
 
-    // Filter based on requested type
-    $matchType = $type;
+    // Determine gender to match against based on authenticated user's gender
+    if ($user->gender === 'Male') {
+        // If authenticated user is Male, show Female users
+        $query->where('gender', 'Female');
+    } elseif ($user->gender === 'Female') {
+        // If authenticated user is Female, show Male users
+        $query->where('gender', 'Male');
+    }
 
-    // Only match users of the opposite gender and exclude the authenticated user
-    $query->where('gender', '!=', $user->gender)
-          ->where('id', '!=', $user->id);
+    // Exclude the authenticated user
+    $query->where('id', '!=', $user->id);
 
     // Initialize criteria count and details arrays
     $matchedUsersDetails = [];
@@ -138,8 +141,13 @@ function profile_matches($type = '', $limit = null)
     // Get matched users
     $matchingUsers = $query->get();
 
+
+   // Filter matching users based on gende
+   $matchingUsers = $matchingUsers->filter(function ($matchedUser) use ($user) {
+    return $user->gender === 'Male' ? $matchedUser->gender === 'Female' : $matchedUser->gender === 'Male';
+});
     // Final filtering based on match type
-    $finalMatchingUsers = filterFinalMatches($matchingUsers, $user, $matchType);
+    $finalMatchingUsers = filterFinalMatches($matchingUsers, $user, $type);
 
     // Attach criteria matched details to each user
     $finalMatchingUsers->each(function ($matchedUser) use (&$matchedUsersDetails) {
@@ -163,9 +171,6 @@ function profile_matches($type = '', $limit = null)
     // Return the final matching users as a JSON response
     return prepareResponse($finalMatchingUsers, $limit);
 }
-
-
-
 
 function addMatchingCriteria($query, $user, &$matchedUsersDetails)
 {
@@ -239,7 +244,6 @@ function addMatchingCriteria($query, $user, &$matchedUsersDetails)
     }
 }
 
-
 function filterByAge($query, $user)
 {
     if (!empty($user->partner_age)) {
@@ -257,23 +261,11 @@ function filterByAge($query, $user)
     }
 }
 
-
 function filterFinalMatches($matchingUsers, $user, $matchType)
 {
-    if ($matchType === 'near') {
-        $matchingUsers = $matchingUsers->filter(function ($matchedUser) use ($user) {
-            // Check if the living country, state, and city match
-            return (
-                $matchedUser->living_country === $user->living_country &&
-                $matchedUser->state === $user->state &&
-                $matchedUser->city_living_in === $user->city_living_in
-            );
-        });
-    }
-
+    // Add your logic for filtering final matches based on type
     return $matchingUsers; // Return the matched users
 }
-
 
 function prepareResponse($users, $limit)
 {
@@ -300,6 +292,8 @@ function prepareResponse($users, $limit)
 
     return $result;
 }
+
+
 
 
 
