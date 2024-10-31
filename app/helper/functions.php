@@ -114,6 +114,15 @@ function profile_matches($type = '', $limit = null)
         return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
     }
 
+
+        // Get partner location preferences
+        $partnerCountries = $user->partnerCountries->pluck('country')->toArray();
+        $partnerStates = $user->partnerStates->pluck('state')->toArray();
+        $partnerCities = $user->partnerCities->pluck('city')->toArray();
+
+
+
+
     // Start the query with the User model
     $query = User::query();
 
@@ -138,9 +147,12 @@ function profile_matches($type = '', $limit = null)
     $maxAge = null;
 
 
-    if($matchType=='near'){
-        $matchingUsers = getNearbyMatches($query,$user);
-    }else{
+
+
+
+
+
+
         // Add other matching criteria checks
         addMatchingCriteria($query, $user, $scoreConditions, $totalCriteria, $matchedUsersDetails);
         // Filter by partner_age to match date_of_birth
@@ -160,7 +172,6 @@ function profile_matches($type = '', $limit = null)
             });
         }
         $matchingUsers = $query->get();
-    }
 
 
 
@@ -169,39 +180,37 @@ function profile_matches($type = '', $limit = null)
 
 
 
-    // Log the SQL and bindings
-    \Log::info($query->toSql());
-    \Log::info($query->getBindings());
-      // Apply additional filters based on the type of match requested
 
 
-    // Log initial matching users count
-    \Log::info('Initial Matching Users Count: ', ['count' => $matchingUsers->count()]);
 
-    // Create a filtered collection for users that meet at least 2 matching criteria
-    $finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matchedUsersDetails, $minAge, $maxAge) {
-        // Calculate age from date_of_birth for the matched user
-        $age = \Carbon\Carbon::parse($matchingUser->date_of_birth)->age;
+  // Filter final users based on match type
+  $finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matchedUsersDetails, $minAge, $maxAge, $partnerCountries, $partnerStates, $partnerCities, $type) {
+    // Calculate age from date_of_birth for the matched user
+    $age = \Carbon\Carbon::parse($matchingUser->date_of_birth)->age;
 
-        // Ensure that the user has at least 2 matching fields and their age is within the partner age range
+    // Check if matchType is 'near' to apply location filters
+    if ($type === 'near') {
+        // Ensure location matches one of the preferred locations
+        $locationMatch = in_array($matchingUser->country, $partnerCountries) ||
+                         in_array($matchingUser->state, $partnerStates) ||
+                         in_array($matchingUser->city, $partnerCities);
+
+        // Return if the user has at least 2 matching fields, age is within range, and location matches
         return isset($matchedUsersDetails[$matchingUser->id]) &&
                count($matchedUsersDetails[$matchingUser->id]) >= 2 &&
-               ($age >= $minAge && $age <= $maxAge); // Ensure age is in the range
-    });
-
-
-    // if ($limit !== null) {
-    //     $finalMatchingUsers = $finalMatchingUsers->take($limit);
-    // }
-
-
-    // Log matched users
-    \Log::info('Final Matching Users Count: ', ['count' => $finalMatchingUsers->count()]);
-
-    // Log details of matched users
-    foreach ($finalMatchingUsers as $matchingUser) {
-        \Log::info('Matched User:', ['user_id' => $matchingUser->id]);
+               ($age >= $minAge && $age <= $maxAge) &&
+               $locationMatch;
     }
+
+    // Default matching logic without location filter
+    return isset($matchedUsersDetails[$matchingUser->id]) &&
+           count($matchedUsersDetails[$matchingUser->id]) >= 2 &&
+           ($age >= $minAge && $age <= $maxAge);
+});
+
+
+
+
 
 
 
@@ -501,23 +510,6 @@ function getNearbyMatches($query, $user)
 
     // Fetch and return only the matched users
     return $matchedUsers = $query->get();
-
-    // Optional: Prepare the match details for each user
-    $matchedUsersDetails = $matchedUsers->map(function ($matchedUser) use ($partnerCountries, $partnerStates, $partnerCities) {
-        return [
-            'user_id' => $matchedUser->id,
-            'matches' => [
-                'country' => in_array($matchedUser->country, $partnerCountries) ? $matchedUser->country : null,
-                'currently_living_in' => in_array($matchedUser->currently_living_in, $partnerStates) ? $matchedUser->currently_living_in : null,
-                'city' => in_array($matchedUser->city, $partnerCities) ? $matchedUser->city : null,
-            ]
-        ];
-    })->filter(function ($details) {
-        // Only keep users with at least one matching field
-        return array_filter($details['matches']);
-    });
-
-    return $matchedUsersDetails;
 }
 
 
