@@ -138,9 +138,9 @@ function profile_matches($type = '', $limit = null)
     $maxAge = null;
 
 
-    if($matchType=='near'){
-        $matchingUsers = getNearbyMatches($query,$user);
-    }else{
+    // if($matchType=='near'){
+    //     $matchingUsers = getNearbyMatches($query,$user);
+    // }else{
         // Add other matching criteria checks
         addMatchingCriteria($query, $user, $scoreConditions, $totalCriteria, $matchedUsersDetails);
         // Filter by partner_age to match date_of_birth
@@ -160,7 +160,7 @@ function profile_matches($type = '', $limit = null)
             });
         }
         $matchingUsers = $query->get();
-    }
+    // }
 
 
 
