@@ -500,7 +500,7 @@ function getNearbyMatches($query, $user)
     }
 
     // Fetch and return only the matched users
-    $matchedUsers = $query->get();
+    return $matchedUsers = $query->get();
 
     // Optional: Prepare the match details for each user
     $matchedUsersDetails = $matchedUsers->map(function ($matchedUser) use ($partnerCountries, $partnerStates, $partnerCities) {
