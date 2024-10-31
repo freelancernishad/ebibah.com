@@ -137,30 +137,34 @@ function profile_matches($type = '', $limit = null)
     $minAge = null;
     $maxAge = null;
 
-    // Add other matching criteria checks
-    addMatchingCriteria($query, $user, $scoreConditions, $totalCriteria, $matchedUsersDetails);
 
+    if($matchType=='near'){
+        $matchingUsers = getNearbyMatches($query,$user);
+    }else{
+        // Add other matching criteria checks
+        addMatchingCriteria($query, $user, $scoreConditions, $totalCriteria, $matchedUsersDetails);
+        // Filter by partner_age to match date_of_birth
+        if (!empty($user->partner_age)) {
+            $partnerAge = explode('-', $user->partner_age); // Assuming 'partner_age' is a range like '25-30'
+            $minAge = isset($partnerAge[0]) ? (int)$partnerAge[0] : null;
+            $maxAge = isset($partnerAge[1]) ? (int)$partnerAge[1] : null;
 
-    // Filter by partner_age to match date_of_birth
-    if (!empty($user->partner_age)) {
-        $partnerAge = explode('-', $user->partner_age); // Assuming 'partner_age' is a range like '25-30'
-        $minAge = isset($partnerAge[0]) ? (int)$partnerAge[0] : null;
-        $maxAge = isset($partnerAge[1]) ? (int)$partnerAge[1] : null;
-
-        $query->where(function ($subQuery) use ($minAge, $maxAge) {
-            $subQuery->whereNotNull('date_of_birth'); // Only include users with a date of birth
-            if ($minAge !== null) {
-                $subQuery->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= ?', [$minAge]);
-            }
-            if ($maxAge !== null) {
-                $subQuery->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) <= ?', [$maxAge]);
-            }
-        });
+            $query->where(function ($subQuery) use ($minAge, $maxAge) {
+                $subQuery->whereNotNull('date_of_birth'); // Only include users with a date of birth
+                if ($minAge !== null) {
+                    $subQuery->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= ?', [$minAge]);
+                }
+                if ($maxAge !== null) {
+                    $subQuery->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) <= ?', [$maxAge]);
+                }
+            });
+        }
+        $matchingUsers = $query->get();
     }
 
 
 
-    $matchingUsers = $query->get();
+
 
 
 
@@ -248,6 +252,11 @@ function profile_matches($type = '', $limit = null)
     $result = applyMatchTypeFilters($result, $matchType, $user);
 
 
+
+
+
+
+
     // Define the fields to be displayed
     $fields = [
         'id',
@@ -286,9 +295,6 @@ function profile_matches($type = '', $limit = null)
     // Return the final matching users as a JSON response
     return $result;
 }
-
-
-
 
 function addMatchingCriteria($query, $user, &$scoreConditions, &$totalCriteria, &$matchedUsersDetails)
 {
@@ -363,10 +369,6 @@ function addMatchingCriteria($query, $user, &$scoreConditions, &$totalCriteria, 
         }
     }
 }
-
-
-
-
 
 
 function applyMatchTypeFilters($users, $matchType, $user)
@@ -472,6 +474,63 @@ function applyMatchTypeFilters($users, $matchType, $user)
     // Return the filtered and sorted users
     return $users->values(); // Reset the array keys after filtering
 }
+
+
+
+
+function getNearbyMatches($query, $user)
+{
+    $partnerCountries = $user->partnerCountries->pluck('country')->toArray();
+    $partnerStates = $user->partnerStates->pluck('state')->toArray();
+    $partnerCities = $user->partnerCities->pluck('city')->toArray();
+
+    // Ensure at least one set of matching criteria exists before proceeding
+    if (!empty($partnerCountries) || !empty($partnerStates) || !empty($partnerCities)) {
+        $query->where(function ($q) use ($partnerCountries, $partnerStates, $partnerCities) {
+            if (!empty($partnerCountries)) {
+                $q->orWhereIn('living_country', $partnerCountries);
+            }
+            if (!empty($partnerStates)) {
+                $q->orWhereIn('state', $partnerStates);
+            }
+            if (!empty($partnerCities)) {
+                $q->orWhereIn('city_living_in', $partnerCities);
+            }
+        });
+    }
+
+    // Fetch and return only the matched users
+    return $matchedUsers = $query->get();
+
+    // Optional: Prepare the match details for each user
+    $matchedUsersDetails = $matchedUsers->map(function ($matchedUser) use ($partnerCountries, $partnerStates, $partnerCities) {
+        return [
+            'user_id' => $matchedUser->id,
+            'matches' => [
+                'country' => in_array($matchedUser->country, $partnerCountries) ? $matchedUser->country : null,
+                'currently_living_in' => in_array($matchedUser->currently_living_in, $partnerStates) ? $matchedUser->currently_living_in : null,
+                'city' => in_array($matchedUser->city, $partnerCities) ? $matchedUser->city : null,
+            ]
+        ];
+    })->filter(function ($details) {
+        // Only keep users with at least one matching field
+        return array_filter($details['matches']);
+    });
+
+    return $matchedUsersDetails;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
