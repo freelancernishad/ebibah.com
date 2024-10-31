@@ -70,8 +70,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'father_occupation',
         'mother_occupation',
         'living_country',
-        'currently_living_in',
+        'state',
         'city_living_in',
+        'currently_living_in',
         'family_details',
         'family_values',
         'family_location',
@@ -90,7 +91,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'race',
         'blood_group',
         'mother_status',
-        'state',
         'about_myself',
         'partner_age',
 
