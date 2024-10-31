@@ -139,7 +139,7 @@ function profile_matches($type = '', $limit = null)
 
 
     if($matchType=='near'){
-       return $matchingUsers = getNearbyMatches($query,$user);
+        $matchingUsers = getNearbyMatches($query,$user);
     }else{
         // Add other matching criteria checks
         addMatchingCriteria($query, $user, $scoreConditions, $totalCriteria, $matchedUsersDetails);
