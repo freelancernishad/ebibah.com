@@ -185,8 +185,8 @@ function profile_matches($type = '', $limit = null)
 
 
 
-  // Filter final users based on match type
-  $finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matchedUsersDetails, $minAge, $maxAge, $partnerCountries, $partnerStates, $partnerCities, $type) {
+// Filter final users based on match type
+$finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matchedUsersDetails, $minAge, $maxAge, $partnerCountries, $partnerStates, $partnerCities, $type) {
     // Calculate age from date_of_birth for the matched user
     $age = \Carbon\Carbon::parse($matchingUser->date_of_birth)->age;
 
@@ -197,14 +197,13 @@ function profile_matches($type = '', $limit = null)
                          in_array($matchingUser->state, $partnerStates) ||
                          in_array($matchingUser->city_living_in, $partnerCities);
 
-        // Return if the user has at least 2 matching fields, age is within range, and location matches
-        return isset($matchedUsersDetails[$matchingUser->id]) &&
-               count($matchedUsersDetails[$matchingUser->id]) >= 2 &&
-               ($age >= $minAge && $age <= $maxAge) &&
-               $locationMatch;
+        // If location doesn't match, exclude this user
+        if (!$locationMatch) {
+            return false;
+        }
     }
 
-    // Default matching logic without location filter
+    // Check if user meets at least 2 matching fields and is within the age range
     return isset($matchedUsersDetails[$matchingUser->id]) &&
            count($matchedUsersDetails[$matchingUser->id]) >= 2 &&
            ($age >= $minAge && $age <= $maxAge);
