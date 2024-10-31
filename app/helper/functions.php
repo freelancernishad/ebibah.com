@@ -288,6 +288,7 @@ $finalMatchingUsers = $matchingUsers->filter(function ($matchingUser) use ($matc
         'premium_member_badge',
         'trusted_badge_access',
         'totalCriteriaMatched',
+        // 'matched_fields',
     ];
 
     // Map the result to only include the specified fields
