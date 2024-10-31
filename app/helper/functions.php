@@ -268,6 +268,7 @@ function profile_matches($type = '', $limit = null)
         'is_favorited',
         'premium_member_badge',
         'trusted_badge_access',
+        'totalCriteriaMatched',
     ];
 
     // Map the result to only include the specified fields
