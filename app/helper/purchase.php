@@ -18,7 +18,14 @@ function purchaseCreate($package_id, $request, $method = 'normal', $coupon_code 
     $currency = $package->currency;
 
 
-    $amount = validateAndCalculateDiscount($amount,$coupon_code)->final_amount;
+
+
+    if($coupon_code){
+
+        $amount = validateAndCalculateDiscount($amount,$coupon_code)->final_amount;
+    }
+
+
 
 
     // Create Package Purchase record
