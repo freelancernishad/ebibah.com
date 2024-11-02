@@ -66,7 +66,7 @@ function purchaseCreate($package_id, $request, $method = 'normal', $coupon_code 
 function validateAndCalculateDiscount($amount, $code)
 {
     // Find the coupon by code
-  return  $coupon = Coupon::where('code', $code)->first();
+    $coupon = Coupon::where('code', $code)->first();
 
     // Check if coupon exists, is active, and not expired
     if (!$coupon || !$coupon->is_active || $coupon->isExpired()) {
@@ -80,6 +80,7 @@ function validateAndCalculateDiscount($amount, $code)
             'expiry_date' => null,
             'is_active' => false,
             'type' => null,
+            'message' => 'Invalid or exprired coupon',
         ];
     }
 
@@ -97,6 +98,7 @@ function validateAndCalculateDiscount($amount, $code)
         'expiry_date' => $coupon->expiry_date,
         'is_active' => $coupon->is_active,
         'type' => $coupon->type,
+        'message' => 'Coupon applied successfully',
     ];
 }
 
