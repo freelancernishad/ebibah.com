@@ -20,8 +20,8 @@ function purchaseCreate($package_id, $request, $method = 'normal', $coupon_code 
 
 
 
-    if($coupon_code){
-        $amount = (int) validateAndCalculateDiscount($amount,$coupon_code)['final_amount'];
+    if ($coupon_code) {
+        $amount = number_format(validateAndCalculateDiscount($amount, $coupon_code)['final_amount'], 2, '.', '');
     }
 
 
