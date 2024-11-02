@@ -57,6 +57,7 @@ function purchaseCreate($package_id, $request, $method = 'normal', $coupon_code 
 
 
     return [
+        "amount" =>$amount,
         'purchase' => $purchase,
         'payment_url' => $paymentUrl, // Return the payment URL
     ];
