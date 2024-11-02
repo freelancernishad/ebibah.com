@@ -25,7 +25,7 @@ class PackagePurchaseController extends Controller
             'package_id' => 'required|exists:packages,id',
             'success_url' => 'required|url',
             'cancel_url' => 'required|url',
-            'coupon_code' => 'nullable|url',
+            'coupon_code' => 'nullable',
         ]);
 
         if ($validator->fails()) {
