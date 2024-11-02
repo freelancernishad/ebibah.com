@@ -14,7 +14,7 @@ function purchaseCreate($package_id, $request, $method = 'normal', $coupon_code 
     $package = Package::findOrFail($package_id);
 
     // Extract package details
-    $amount = $package->price;
+    $amount = $package->sub_total_price;
     $currency = $package->currency;
 
 
