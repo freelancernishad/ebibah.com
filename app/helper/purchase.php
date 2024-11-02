@@ -74,13 +74,13 @@ function validateAndCalculateDiscount($amount, $code)
             'coupon_code' => null,
             'discount_type' => null,
             'discount_value' => 0,
-            'original_amount' => $amount,
-            'discount' => 0,
-            'final_amount' => $amount,
+            'original_amount' => number_format($amount, 2, '.', ''),
+            'discount' => number_format(0, 2, '.', ''),
+            'final_amount' => number_format($amount, 2, '.', ''),
             'expiry_date' => null,
             'is_active' => false,
             'type' => null,
-            'message' => 'Invalid or exprired coupon',
+            'message' => 'Invalid or expired coupon',
         ];
     }
 
@@ -91,14 +91,15 @@ function validateAndCalculateDiscount($amount, $code)
     return [
         'coupon_code' => $coupon->code,
         'discount_type' => $coupon->discount_type,
-        'discount_value' => $coupon->discount_value,
-        'original_amount' => $amount,
-        'discount' => $discount,
-        'final_amount' => $finalAmount,
+        'discount_value' => number_format($coupon->discount_value, 2, '.', ''),
+        'original_amount' => number_format($amount, 2, '.', ''),
+        'discount' => number_format($discount, 2, '.', ''),
+        'final_amount' => number_format($finalAmount, 2, '.', ''),
         'expiry_date' => $coupon->expiry_date,
         'is_active' => $coupon->is_active,
         'type' => $coupon->type,
         'message' => 'Coupon applied successfully',
     ];
 }
+
 
