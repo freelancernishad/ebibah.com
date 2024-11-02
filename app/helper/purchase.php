@@ -21,7 +21,7 @@ function purchaseCreate($package_id, $request, $method = 'normal', $coupon_code 
 
 
     if($coupon_code){
-        $amount = validateAndCalculateDiscount($amount,$coupon_code)['final_amount'];
+        $amount = (int) validateAndCalculateDiscount($amount,$coupon_code)['final_amount'];
     }
 
 
