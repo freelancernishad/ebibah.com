@@ -33,7 +33,7 @@ class PackagePurchaseController extends Controller
         }
 
         // Process the purchase and get the package purchase details
-       return $purchaseResponse = purchaseCreate($request->package_id,$request,'normal',$request->coupon_code);
+        $purchaseResponse = purchaseCreate($request->package_id,$request,'normal',$request->coupon_code);
 
 
         $paymentUrl = $purchaseResponse['payment_url'];

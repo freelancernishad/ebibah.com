@@ -52,7 +52,7 @@ function purchaseCreate($package_id, $request, $method = 'normal', $coupon_code 
     ];
 
     // Trigger the Stripe payment and get the redirect URL
-   return $paymentUrl = stripe($paymentData); // Ensure stripe function is defined elsewhere
+    $paymentUrl = stripe($paymentData); // Ensure stripe function is defined elsewhere
 
 
 
