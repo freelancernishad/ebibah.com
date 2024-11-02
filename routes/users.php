@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\RoleUserController;
 use App\Http\Controllers\PermissionController;
@@ -120,10 +121,21 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::post('/contact-details/{viewedProfileUserId}', [UserController::class, 'viewContactDetails']);
 
+
+
+
+
+
+
+
     Route::get('/user-access', function () {
         return 'user access';
     })->name('user.access')->middleware('checkPermission:user.access');
 });
+
+
+
+Route::post('coupons/{code}/validate-and-calculate', [CouponController::class, 'validateCoupon']);
 
 // IPN response
 Route::post('/ipnresponse', [PackagePurchaseController::class, 'ipnresponse']);

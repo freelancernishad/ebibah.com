@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\PackageController;
 use App\Http\Controllers\api\Admin\AdminUserController;
@@ -91,4 +92,13 @@ Route::middleware('auth:admin')->group(function () {
     // Payment logs routes
     Route::get('/admin/payment-logs', [PaymentLogController::class, 'index']);
     Route::get('/admin/payment-logs/{id}', [PaymentLogController::class, 'show']);
+
+
+
+    Route::get('coupons', [CouponController::class, 'index']);
+    Route::post('coupons', [CouponController::class, 'store']);
+    Route::get('coupons/{id}', [CouponController::class, 'show']);
+    Route::put('coupons/{id}', [CouponController::class, 'update']);
+    Route::delete('coupons/{id}', [CouponController::class, 'destroy']);
+    Route::post('coupons/{code}/calculate', [CouponController::class, 'calculateDiscount']);
 });

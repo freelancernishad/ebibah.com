@@ -1,11 +1,12 @@
 <?php
 
+use App\Models\Coupon;
 use App\Models\Package;
 use App\Models\Payment;
 use App\Models\PackagePurchase;
 use Illuminate\Support\Facades\Auth;
 
-function purchaseCreate($package_id, $request, $method = 'normal')
+function purchaseCreate($package_id, $request, $method = 'normal', $coupon_code = '' )
 {
     $user = Auth::guard('web')->user();
 
@@ -15,6 +16,10 @@ function purchaseCreate($package_id, $request, $method = 'normal')
     // Extract package details
     $amount = $package->price;
     $currency = $package->currency;
+
+
+    $amount = validateAndCalculateDiscount($amount,$coupon_code)->final_amount;
+
 
     // Create Package Purchase record
     $purchase = PackagePurchase::create([
@@ -48,6 +53,44 @@ function purchaseCreate($package_id, $request, $method = 'normal')
     return [
         'purchase' => $purchase,
         'payment_url' => $paymentUrl, // Return the payment URL
+    ];
+}
+
+
+function validateAndCalculateDiscount($amount, $code)
+{
+    // Find the coupon by code
+    $coupon = Coupon::where('code', $code)->first();
+
+    // Check if coupon exists, is active, and not expired
+    if (!$coupon || !$coupon->is_active || $coupon->isExpired()) {
+        return [
+            'coupon_code' => null,
+            'discount_type' => null,
+            'discount_value' => 0,
+            'original_amount' => $amount,
+            'discount' => 0,
+            'final_amount' => $amount,
+            'expiry_date' => null,
+            'is_active' => false,
+            'type' => null,
+        ];
+    }
+
+    // Calculate the discount based on the amount
+    $discount = $coupon->calculateDiscount($amount);
+    $finalAmount = $amount - $discount;
+
+    return [
+        'coupon_code' => $coupon->code,
+        'discount_type' => $coupon->discount_type,
+        'discount_value' => $coupon->discount_value,
+        'original_amount' => $amount,
+        'discount' => $discount,
+        'final_amount' => $finalAmount,
+        'expiry_date' => $coupon->expiry_date,
+        'is_active' => $coupon->is_active,
+        'type' => $coupon->type,
     ];
 }
 

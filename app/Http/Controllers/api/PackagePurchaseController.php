@@ -25,6 +25,7 @@ class PackagePurchaseController extends Controller
             'package_id' => 'required|exists:packages,id',
             'success_url' => 'required|url',
             'cancel_url' => 'required|url',
+            'coupon_code' => 'nullable|url',
         ]);
 
         if ($validator->fails()) {
@@ -32,7 +33,7 @@ class PackagePurchaseController extends Controller
         }
 
         // Process the purchase and get the package purchase details
-        $purchaseResponse = purchaseCreate($request->package_id,$request);
+        $purchaseResponse = purchaseCreate($request->package_id,$request,'normal',$request->coupon_code);
 
 
         $paymentUrl = $purchaseResponse['payment_url'];
