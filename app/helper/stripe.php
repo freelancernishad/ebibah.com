@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 function stripe($array = [])
 {
+    return $array;
     // Set Stripe API key
     Stripe::setApiKey(env('STRIPE_SECRET'));
 
