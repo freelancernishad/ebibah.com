@@ -9,6 +9,7 @@ use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\SocialLinkController;
 use App\Http\Controllers\api\PackageController;
+use App\Http\Controllers\ServerStatusController;
 use App\Http\Controllers\AdvertisementController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\Global\FilterUserController;
@@ -61,3 +62,7 @@ Route::get('package-services', [PackageController::class, 'getAllPackageServices
 
 // Stripe webhook
 Route::post('stripe/webhook', [StripePaymentController::class, 'handleWebhook']);
+
+
+
+Route::get('/server-status', [ServerStatusController::class, 'status']);
