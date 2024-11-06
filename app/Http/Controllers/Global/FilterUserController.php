@@ -43,6 +43,7 @@ class FilterUserController extends Controller
                 $query->whereBetween('date_of_birth', [$dateFrom, $dateTo]);
             }
 
+
             if ($request->has('living_country')) {
                 $livingCountries = explode(',', $request->living_country);
                 $query->whereIn('living_country', $livingCountries);
@@ -51,6 +52,18 @@ class FilterUserController extends Controller
             if ($request->has('highest_qualification')) {
                 $qualifications = explode(',', $request->highest_qualification);
                 $query->whereIn('highest_qualification', $qualifications);
+            }
+
+
+
+                   // Apply height filter
+            if ($request->has('height_from') && $request->has('height_to')) {
+                $heightFromInches = $this->convertHeightToInches($request->height_from);
+                $heightToInches = $this->convertHeightToInches($request->height_to);
+
+                if ($heightFromInches !== null && $heightToInches !== null) {
+                    $query->whereBetween('height', [$heightFromInches, $heightToInches]);
+                }
             }
 
             // Exclude the authenticated user
@@ -114,7 +127,15 @@ class FilterUserController extends Controller
     }
 
 
-
+    private function convertHeightToInches($height)
+    {
+        if (preg_match('/^(\d+)ft\+(\d+)in$/', $height, $matches)) {
+            $feet = (int) $matches[1];
+            $inches = (int) $matches[2];
+            return ($feet * 12) + $inches;
+        }
+        return null; // Return null if the format is invalid
+    }
 
 
 

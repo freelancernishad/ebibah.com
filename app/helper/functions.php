@@ -271,7 +271,7 @@ function prepareResponse($users, $limit)
 {
     // Define the fields to be displayed
     $fields = [
-        'id', 'name', 'age', 'gender', 'Height',
+        'id', 'name', 'age', 'gender', 'height',
         'city_living_in', 'state', 'living_country',
         'religion', 'marital_status', 'working_sector',
         'profession', 'about_myself', 'profile_picture_url',

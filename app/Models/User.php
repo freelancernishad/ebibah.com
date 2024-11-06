@@ -560,7 +560,7 @@ public function getProfileCompletionAttribute()
             'date_of_birth',
             'age',
             'gender',
-            'Height',
+            'height',
             'city_living_in',
             'currently_living_in',
             'living_country',
