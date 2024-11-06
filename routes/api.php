@@ -70,12 +70,19 @@ Route::get('/server-status', [ServerStatusController::class, 'status']);
 
 
 
-
-Route::get('update-height', function (){
-
+Route::get('update-random-height', function () {
+    // Get all users from the database
     $users = User::all();
+
+    // Loop through each user
     foreach ($users as $user) {
-        $convertedHeight = convertHeightToInches($user->height);
-        $user->update(['height' => $convertedHeight]);
+        // Generate a random height value between 50 and 66 inches
+        $randomHeight = rand(50, 66); // Random number between 50 and 66 inches
+
+        // Update the user's height with the random value
+        $user->update(['height' => $randomHeight]);
     }
+
+    return "Random height update complete.";
 });
+
