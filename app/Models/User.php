@@ -1075,12 +1075,16 @@ public function permissions()
          if (is_null($value)) {
              return null;
          }
-
+     
+         // Ensure the value is an integer
+         $value = (int) $value;
+     
          $feet = intdiv($value, 12);
          $inches = $value % 12;
-
+     
          return "{$feet}ft {$inches}in";
      }
+     
 
 
      protected function getHeightRange()
