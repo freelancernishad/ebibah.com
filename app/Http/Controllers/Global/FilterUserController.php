@@ -58,8 +58,8 @@ class FilterUserController extends Controller
 
                    // Apply height filter
             if ($request->has('height_from') && $request->has('height_to')) {
-                $heightFromInches = $this->convertHeightToInches($request->height_from);
-                $heightToInches = $this->convertHeightToInches($request->height_to);
+                $heightFromInches = convertHeightToInches($request->height_from);
+                $heightToInches = convertHeightToInches($request->height_to);
 
                 if ($heightFromInches !== null && $heightToInches !== null) {
                     $query->whereBetween('height', [$heightFromInches, $heightToInches]);
@@ -127,15 +127,7 @@ class FilterUserController extends Controller
     }
 
 
-    private function convertHeightToInches($height)
-    {
-        if (preg_match('/^(\d+)ft\+(\d+)in$/', $height, $matches)) {
-            $feet = (int) $matches[1];
-            $inches = (int) $matches[2];
-            return ($feet * 12) + $inches;
-        }
-        return null; // Return null if the format is invalid
-    }
+
 
 
 

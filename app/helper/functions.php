@@ -695,3 +695,12 @@ function getDynamicMaxValue($value)
 
 
 
+function convertHeightToInches($height)
+{
+    if (preg_match('/^(\d+)ft[+\s]?(\d+)in$/', $height, $matches)) {
+        $feet = (int) $matches[1];
+        $inches = (int) $matches[2];
+        return ($feet * 12) + $inches;
+    }
+    return null; // Return null if the format is invalid
+}

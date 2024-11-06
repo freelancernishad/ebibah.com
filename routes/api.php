@@ -13,6 +13,7 @@ use App\Http\Controllers\ServerStatusController;
 use App\Http\Controllers\AdvertisementController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\Global\FilterUserController;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,3 +67,15 @@ Route::post('stripe/webhook', [StripePaymentController::class, 'handleWebhook'])
 
 
 Route::get('/server-status', [ServerStatusController::class, 'status']);
+
+
+
+
+Route::get('update-height', function (){
+
+    $users = User::all();
+    foreach ($users as $user) {
+        $convertedHeight = convertHeightToInches($user->height);
+        $user->update(['height' => $convertedHeight]);
+    }
+});

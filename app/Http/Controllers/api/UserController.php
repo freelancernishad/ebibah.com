@@ -88,9 +88,9 @@ class UserController extends Controller
             'user' => $userArray,
             'my_match' => $my_match,
             'new_match' => $new_match,
-          
-      
-            
+
+
+
         ], 200);
     }
 
@@ -319,6 +319,11 @@ class UserController extends Controller
 
         // Ensure step is set to 2 if it was not provided in the request
         $data['step'] = 2;
+
+        if (isset($data['height'])) {
+            $data['height'] = convertHeightToInches($data['height']);
+        }
+
 
         // Update the user with the filtered data
         $user->update($data);

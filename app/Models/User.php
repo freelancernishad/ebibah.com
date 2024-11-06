@@ -1070,6 +1070,17 @@ public function permissions()
      */
 
 
+     public function getHeightAttribute($value)
+     {
+         if (is_null($value)) {
+             return null;
+         }
+
+         $feet = intdiv($value, 12);
+         $inches = $value % 12;
+
+         return "{$feet}ft {$inches}in";
+     }
 
 
      protected function getHeightRange()
