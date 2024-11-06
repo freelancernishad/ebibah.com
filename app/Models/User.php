@@ -1070,20 +1070,20 @@ public function permissions()
      */
 
 
-     public function getHeightAttribute($value)
-     {
-         if (is_null($value)) {
-             return null;
-         }
+    //  public function getHeightAttribute($value)
+    //  {
+    //      if (is_null($value)) {
+    //          return null;
+    //      }
      
-         // Ensure the value is an integer
-         $value = (int) $value;
+    //      // Ensure the value is an integer
+    //      $value = (int) $value;
      
-         $feet = intdiv($value, 12);
-         $inches = $value % 12;
+    //      $feet = intdiv($value, 12);
+    //      $inches = $value % 12;
      
-         return "{$feet}ft {$inches}in";
-     }
+    //      return "{$feet}ft {$inches}in";
+    //  }
      
 
 
