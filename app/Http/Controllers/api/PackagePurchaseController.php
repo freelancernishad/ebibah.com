@@ -50,9 +50,10 @@ class PackagePurchaseController extends Controller
 
     public function ipnresponse(Request $request)
 {
+
     // Validate IPN request
     $validator = Validator::make($request->all(), [
-        'trxId' => 'required|string|exists:payments,trxId',
+        'trxId' => 'required|string|exists:payments,checkout_session_id',
     ]);
 
     if ($validator->fails()) {
@@ -60,27 +61,16 @@ class PackagePurchaseController extends Controller
     }
 
     // Retrieve payment by transaction ID
-    $payment = Payment::where('trxId', $request->input('trxId'))->first();
+    $payment = Payment::where('checkout_session_id', $request->input('trxId'))->first();
 
     if (!$payment) {
         return response()->json(['error' => 'Payment not found'], 404);
     }
 
-    // Verify payment status
-    $status = $request->input('status');
 
-    if ($status === 'paid') {
-        // Update Payment record status
-        $payment->update([
-            'status' => 'completed', // Assuming 'completed' is the status for successful payments
-        ]);
 
         // Update PackagePurchase record status
         $packagePurchase = $payment->packagePurchase;
-        $packagePurchase->update([
-            'payment_status' => 'completed', // Update to 'completed' or appropriate status
-        ]);
-
         // Update User's active_package_id
         $user = $payment->user;
         $package = $packagePurchase->package;
@@ -90,22 +80,10 @@ class PackagePurchaseController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Payment verified and updated successfully',
+            'message' => 'Payment verified',
             'payment' => $payment,
-            'packagePurchase' => $packagePurchase,
-            'user' => $user,
         ], 200);
-    } else {
-        // Handle non-paid statuses
-        $payment->update([
-            'status' => 'failed', // Assuming 'failed' is the status for unsuccessful payments
-        ]);
 
-        return response()->json([
-            'message' => 'Payment verification failed',
-            'payment' => $payment,
-        ], 400);
-    }
 }
 
 

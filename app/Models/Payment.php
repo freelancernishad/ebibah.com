@@ -30,7 +30,10 @@ class Payment extends Model
         'balance',
 
     ];
-
+    protected $hidden = [
+        'ipnResponse',
+        'paymentUrl',
+    ];
 
     // Define the relationship with the User model
     public function user()
