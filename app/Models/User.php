@@ -1070,21 +1070,40 @@ public function permissions()
      */
 
 
-    //  public function getHeightAttribute($value)
-    //  {
-    //      if (is_null($value)) {
-    //          return null;
-    //      }
-     
-    //      // Ensure the value is an integer
-    //      $value = (int) $value;
-     
-    //      $feet = intdiv($value, 12);
-    //      $inches = $value % 12;
-     
-    //      return "{$feet}ft {$inches}in";
-    //  }
-     
+     public function getHeightAttribute($value)
+     {
+         if (is_null($value)) {
+             return null;
+         }
+
+         // Ensure the value is an integer
+         $value = (int) $value;
+
+         $feet = intdiv($value, 12);
+         $inches = $value % 12;
+
+         return "{$feet}ft {$inches}in";
+     }
+
+     public function setHeightAttribute($value)
+     {
+         if (is_null($value)) {
+             $this->attributes['height'] = null;
+             return;
+         }
+
+         // Handle the case where the value is in "ft in" format
+         if (preg_match('/(\d+)ft\s*(\d+)in/', $value, $matches)) {
+             // Convert ft and inches to total inches
+             $feet = (int)$matches[1];
+             $inches = (int)$matches[2];
+
+             $this->attributes['height'] = ($feet * 12) + $inches;
+         } else {
+             // If the value is already in inches (integer), just store it
+             $this->attributes['height'] = (int)$value;
+         }
+     }
 
 
      protected function getHeightRange()
