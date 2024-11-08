@@ -207,7 +207,31 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      }
 
     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion','what_u_looking',       'premium_member_badge',
-    'trusted_badge_access'];
+    'trusted_badge_access','is_friend'];
+
+    public function sentacceptedInvitations()
+    {
+        return $this->hasMany(Invitation::class, 'sender_id')->where('status', 'accepted');
+    }
+
+    public function receivedacceptedInvitations()
+    {
+        return $this->hasMany(Invitation::class, 'receiver_id')->where('status', 'accepted');
+    }
+
+
+    public function getIsFriendAttribute()
+    {
+        $authUser = auth()->user();
+
+        if (!$authUser) {
+            return false;
+        }
+
+        // Check if the authenticated user has accepted invitations with this user
+        return $this->sentacceptedInvitations()->where('receiver_id', $authUser->id)->exists() ||
+               $this->receivedacceptedInvitations()->where('sender_id', $authUser->id)->exists();
+    }
 
 
 
@@ -575,6 +599,7 @@ public function getProfileCompletionAttribute()
             'premium_member_badge',
             'trusted_badge_access',
             'active_package_id',
+            'is_friend',
         ];
 
         $array = array_intersect_key(parent::toArray(), array_flip($fields));

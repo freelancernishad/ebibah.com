@@ -103,8 +103,7 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 
 
 
-
-function profile_matches($type = '', $limit = null)
+function profile_matches($type = '', $per_page = null,$limit = null)
 {
     // Get the authenticated user
     $user = Auth::user();
@@ -139,13 +138,19 @@ function profile_matches($type = '', $limit = null)
     filterByAge($query, $user);
 
     // Get matched users
-    $matchingUsers = $query->get();
+    if ($per_page !== null) {
+        // Apply pagination
+        $matchingUsers = $query->paginate($per_page);
+    } else {
+        // If no pagination, fetch all results
+        $matchingUsers = $query->get();
+    }
 
+    // Filter matching users based on gender
+    $matchingUsers = $matchingUsers->filter(function ($matchedUser) use ($user) {
+        return $user->gender === 'Male' ? $matchedUser->gender === 'Female' : $matchedUser->gender === 'Male';
+    });
 
-   // Filter matching users based on gende
-   $matchingUsers = $matchingUsers->filter(function ($matchedUser) use ($user) {
-    return $user->gender === 'Male' ? $matchedUser->gender === 'Female' : $matchedUser->gender === 'Male';
-});
     // Final filtering based on match type
     $finalMatchingUsers = filterFinalMatches($matchingUsers, $user, $type);
 
@@ -163,14 +168,10 @@ function profile_matches($type = '', $limit = null)
     // Order by totalCriteriaMatched in descending order
     $finalMatchingUsers = $finalMatchingUsers->sortByDesc('totalCriteriaMatched');
 
-    // Apply the optional limit if provided
-    if ($limit !== null) {
-        $finalMatchingUsers = $finalMatchingUsers->take($limit);
-    }
-
     // Return the final matching users as a JSON response
-    return prepareResponse($finalMatchingUsers, $limit);
+    return prepareResponse($finalMatchingUsers, $per_page,$limit);
 }
+
 
 function addMatchingCriteria($query, $user, &$matchedUsersDetails)
 {
@@ -267,7 +268,7 @@ function filterFinalMatches($matchingUsers, $user, $matchType)
     return $matchingUsers; // Return the matched users
 }
 
-function prepareResponse($users, $limit)
+function prepareResponse($users,$per_page = 10, $limit)
 {
     // Define the fields to be displayed
     $fields = [
@@ -277,7 +278,7 @@ function prepareResponse($users, $limit)
         'profession', 'about_myself', 'profile_picture_url',
         'invitation_send_status', 'is_favorited',
         'premium_member_badge', 'trusted_badge_access',
-        'totalCriteriaMatched', 'matched_fields',
+        'totalCriteriaMatched', 'matched_fields', 'is_friend'
     ];
 
     // Map the result to include the specified fields without nesting
@@ -290,18 +291,11 @@ function prepareResponse($users, $limit)
         $result = array_slice($result, 0, $limit); // Use array_slice to limit results
     }
 
+    if ($per_page !== null) {
+        $result = array_slice($result, 0, $per_page); // Use array_slice to limit results
+    }
     return $result;
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -385,6 +379,7 @@ function maskUserData($user,$currentUser)
     'profile_completion',
     'what_u_looking',
     'is_contact_details_viewed',
+    'is_friend',
 
 
 
