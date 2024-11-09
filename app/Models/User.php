@@ -207,7 +207,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      }
 
     protected $appends = ['is_favorited', 'age', 'profile_picture_url', 'active_package', 'invitation_send_status','received_invitations_count','accepted_invitations_count','favorites_count','profile_completion','what_u_looking',       'premium_member_badge',
-    'trusted_badge_access','is_friend'];
+    'trusted_badge_access'];
 
     public function sentacceptedInvitations()
     {
@@ -220,18 +220,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     }
 
 
-    public function getIsFriendAttribute()
-    {
-        $authUser = auth()->user();
-
-        if (!$authUser) {
-            return false;
-        }
-
-        // Check if the authenticated user has accepted invitations with this user
-        return $this->sentacceptedInvitations()->where('receiver_id', $authUser->id)->exists() ||
-               $this->receivedacceptedInvitations()->where('sender_id', $authUser->id)->exists();
-    }
 
 
 
@@ -879,15 +867,43 @@ public function permissions()
          return $status; // Return an array of statuses or an empty array if none found
      }
 
+
+
+    // public function getIsFriendAttribute()
+    // {
+    //     $authUser = auth()->user();
+
+    //     if (!$authUser) {
+    //         return false;
+    //     }
+
+    //     // Check if the authenticated user has accepted invitations with this user
+    //     return $this->sentacceptedInvitations()->where('receiver_id', $authUser->id)->exists() ||
+    //            $this->receivedacceptedInvitations()->where('sender_id', $authUser->id)->exists();
+    // }
+
+
+
      public function getInvitationSendStatusAttribute()
      {
          // Assuming you want to get the invitation statuses for the authenticated user
          $authUserId = auth()->id(); // Get the authenticated user's ID
 
-         // Fetch invitations sent by the authenticated user
-         $invitations = Invitation::where('sender_id', $authUserId)
-         ->where('receiver_id', $this->id)
-             ->first();
+
+         $friend =  $this->sentacceptedInvitations()->where('receiver_id', $authUserId)->exists() ||
+         $this->receivedacceptedInvitations()->where('sender_id', $authUserId)->exists();
+         if($friend){
+            return 'friend';
+         }else{
+            $invitations = Invitation::where('sender_id', $authUserId)
+            ->where('receiver_id', $this->id)
+                ->first();
+         }
+
+
+
+
+
 
              if(!$invitations){
                 return 'not sent';

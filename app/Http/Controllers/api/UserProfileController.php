@@ -33,11 +33,17 @@ class UserProfileController extends Controller
         // Get all states associated with the authenticated user's PartnerStates
         $authUserStates = $authUser->partnerStates->pluck('state')->toArray();
 
-        // Fetch users whose state matches any of the authenticated user's PartnerStates
-         $matchingUsersArray = User::whereIn('state', $authUserStates)->get();
+        // Determine the gender to filter opposite to the authenticated user's gender
+        $oppositeGender = $authUser->gender === 'male' ? 'female' : 'male';
+
+        // Fetch users who are in the authenticated user's PartnerStates, have the opposite gender, and exclude the authenticated user
+        $matchingUsersArray = User::whereIn('state', $authUserStates)
+            ->where('gender', $oppositeGender)
+            ->where('id', '!=', $authUser->id) // Exclude the authenticated user
+            ->get();
 
         // Prepare the response with only the specified fields
-        $matchingUsers = prepareResponse($matchingUsersArray,null, null);
+        $matchingUsers = prepareResponse($matchingUsersArray, null, null);
     } else {
         // Use the profile_matches function for other match types
         $matchingUsers = profile_matches($matchType,$perPage);
