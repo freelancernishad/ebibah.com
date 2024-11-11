@@ -78,8 +78,8 @@ class UserController extends Controller
         $userArray['profile_view_limit'] = $profileViewLimit;
         $userArray['total_contact_viewed'] = $totalContactViewed;
 
-       $my_match =  profile_matches('my',10,4);
-       $new_match =  profile_matches('new',10,4);
+       $my_match =  profile_matches('my',4);
+       $new_match =  profile_matches('new',4);
 
 
 

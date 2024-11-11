@@ -46,7 +46,7 @@ class UserProfileController extends Controller
         $matchingUsers = prepareResponse($matchingUsersArray, null, null);
     } else {
         // Use the profile_matches function for other match types
-        $matchingUsers = profile_matches($matchType,$perPage);
+        $matchingUsers = profile_matches($matchType);
     }
 
 
