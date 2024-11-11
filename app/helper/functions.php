@@ -173,7 +173,7 @@ function profile_matches($type = '', $limit = null)
     }
 
     // Return the final matching users as a JSON response
-    return prepareResponse($finalMatchingUsers, $limit);
+    return prepareResponse($finalMatchingUsers, $limit,$type);
 }
 
 function addMatchingCriteria($query, $user, &$matchedUsersDetails)
@@ -288,7 +288,7 @@ function filterFinalMatches($matchingUsers, $user, $matchType)
     return $matchingUsers; // Return the filtered or sorted matched users
 }
 
-function prepareResponse($users, $limit)
+function prepareResponse($users, $limit,$type='')
 {
     // Define the fields to be displayed
     $fields = [
@@ -301,15 +301,29 @@ function prepareResponse($users, $limit)
         'totalCriteriaMatched', 'matched_fields',
     ];
 
-    // Filter users to include only those with at least one matched criterion
+    if($type=='near'){
+
+        // Map the result to include the specified fields without nesting
+        $result = $users->map(function ($user) use ($fields) {
+            return array_intersect_key($user->toArray(), array_flip($fields));
+        })->values()->all(); // Reset keys
+    }else{
+
+           // Filter users to include only those with at least one matched criterion
     $filteredUsers = $users->filter(function ($user) {
         return $user->totalCriteriaMatched > 0;
     });
 
-    // Map the result to include the specified fields without nesting
-    $result = $filteredUsers->map(function ($user) use ($fields) {
-        return array_intersect_key($user->toArray(), array_flip($fields));
-    })->values()->all(); // Reset keys
+        // Map the result to include the specified fields without nesting
+        $result = $filteredUsers->map(function ($user) use ($fields) {
+            return array_intersect_key($user->toArray(), array_flip($fields));
+        })->values()->all(); // Reset keys
+
+
+    }
+
+
+
 
     // Apply the optional limit if provided
     if ($limit !== null) {
