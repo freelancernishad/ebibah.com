@@ -142,10 +142,10 @@ function profile_matches($type = '', $limit = null)
     $matchingUsers = $query->get();
 
 
-   // Filter matching users based on gende
-   $matchingUsers = $matchingUsers->filter(function ($matchedUser) use ($user) {
-    return $user->gender === 'Male' ? $matchedUser->gender === 'Female' : $matchedUser->gender === 'Male';
-});
+    // Filter matching users based on gende
+    $matchingUsers = $matchingUsers->filter(function ($matchedUser) use ($user) {
+        return $user->gender === 'Male' ? $matchedUser->gender === 'Female' : $matchedUser->gender === 'Male';
+    });
     // Final filtering based on match type
     $finalMatchingUsers = filterFinalMatches($matchingUsers, $user, $type);
 
@@ -301,8 +301,13 @@ function prepareResponse($users, $limit)
         'totalCriteriaMatched', 'matched_fields',
     ];
 
+    // Filter users to include only those with at least one matched criterion
+    $filteredUsers = $users->filter(function ($user) {
+        return $user->totalCriteriaMatched > 0;
+    });
+
     // Map the result to include the specified fields without nesting
-    $result = $users->map(function ($user) use ($fields) {
+    $result = $filteredUsers->map(function ($user) use ($fields) {
         return array_intersect_key($user->toArray(), array_flip($fields));
     })->values()->all(); // Reset keys
 
@@ -313,6 +318,7 @@ function prepareResponse($users, $limit)
 
     return $result;
 }
+
 
 
 
