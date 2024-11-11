@@ -160,8 +160,12 @@ function profile_matches($type = '', $limit = null)
         }
     });
 
-    // Order by totalCriteriaMatched in descending order
-    $finalMatchingUsers = $finalMatchingUsers->sortByDesc('totalCriteriaMatched');
+    if($type=='new'){
+
+    }else{
+
+        $finalMatchingUsers = $finalMatchingUsers->sortByDesc('totalCriteriaMatched');
+    }
 
     // Apply the optional limit if provided
     if ($limit !== null) {
