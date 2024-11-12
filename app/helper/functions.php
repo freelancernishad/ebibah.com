@@ -176,34 +176,33 @@ function profile_matches($type = '', $limit = null)
     return prepareResponse($finalMatchingUsers, $limit,$type);
 }
 
+
 function addMatchingCriteria($query, $user, &$matchedUsersDetails)
 {
     $authUserId = $user->id;
 
-    // Iterate over each user in the query results
+    // Pre-fetch users to improve performance, especially if there's a large dataset
     $query->get()->each(function ($matchingUser) use ($authUserId, &$matchedUsersDetails) {
         $userId = $matchingUser->id;
 
-        // Call the global getCriteriaMatches function to get matching criteria
+        // Fetch matching criteria for the authenticated and target user
         $criteriaMatches = getCriteriaMatches($authUserId, $userId);
 
-        // Initialize count and fields if no matches yet
-        if (!isset($matchedUsersDetails[$userId])) {
-            $matchedUsersDetails[$userId] = [
-                'criteria_matched' => 0,
-                'fields' => []
-            ];
-        }
+        // Initialize criteria count and fields if no matches yet
+        $matchedUsersDetails[$userId] = [
+            'criteria_matched' => 0,
+            'fields' => [],
+        ];
 
-        // Count the number of true matches and add matched fields
+        // Count and store each matched field
         foreach ($criteriaMatches as $match) {
             if ($match['match']) {
-                $matchedUsersDetails[$userId]['criteria_matched']++;
+                $matchedUsersDetails[$userId]['criteria_matched']++; // Increment match count
                 $matchedUsersDetails[$userId]['fields'][] = [
                     'field' => $match['preference'],
                     'auth_user_preference' => $match['required'],
                     'matched_user_value' => $match['user_value'],
-                    'matched' => $match['match']
+                    'matched' => $match['match'],
                 ];
             }
         }
@@ -227,74 +226,63 @@ function filterByAge($query, $user)
         });
     }
 }
-
 function filterFinalMatches($matchingUsers, $user, $matchType)
 {
     switch ($matchType) {
         case 'new':
-            // Sort users by created_at in descending order, ensuring the items are models
+            // Sort by creation date if the type is 'new'
             $matchingUsers = $matchingUsers->sortByDesc(function ($user) {
                 return $user instanceof \Illuminate\Database\Eloquent\Model ? $user->created_at : null;
             });
             break;
 
         case 'today':
-            // Filter users created today
+            // Filter for users created today
             $matchingUsers = $matchingUsers->filter(function ($user) {
                 return $user instanceof \Illuminate\Database\Eloquent\Model && Carbon::today()->isSameDay($user->created_at);
             });
             break;
-
-        // Additional cases can be added here as needed
     }
 
-    return $matchingUsers; // Return the filtered or sorted matched users
+    return $matchingUsers;
 }
 
-function prepareResponse($users, $limit,$type='')
+
+
+function prepareResponse($users, $limit, $type = '')
 {
-    // Define the fields to be displayed
     $fields = [
-        'id', 'name', 'age', 'gender', 'height',
-        'city_living_in', 'state', 'living_country',
-        'religion', 'marital_status', 'working_sector',
-        'profession', 'about_myself', 'profile_picture_url',
-        'invitation_send_status', 'is_favorited',
-        'premium_member_badge', 'trusted_badge_access',
-        'totalCriteriaMatched', 'matched_fields',
+        'id', 'name', 'age', 'gender', 'height', 'city_living_in', 'state', 'living_country',
+        'religion', 'marital_status', 'working_sector', 'profession', 'about_myself',
+        'profile_picture_url', 'invitation_send_status', 'is_favorited', 'premium_member_badge',
+        'trusted_badge_access', 'totalCriteriaMatched', 'matched_fields',
     ];
 
-    if($type=='near'){
-
-        // Map the result to include the specified fields without nesting
+    if ($type == 'near') {
+        // Keep all users regardless of match count
         $result = $users->map(function ($user) use ($fields) {
             return array_intersect_key($user->toArray(), array_flip($fields));
-        })->values()->all(); // Reset keys
-    }else{
+        })->values()->all();
+    } else {
+        // Filter for users with at least one match
+        $filteredUsers = $users->filter(function ($user) {
+            return $user->totalCriteriaMatched > 0;
+        });
 
-           // Filter users to include only those with at least one matched criterion
-    $filteredUsers = $users->filter(function ($user) {
-        return $user->totalCriteriaMatched > 0;
-    });
-
-        // Map the result to include the specified fields without nesting
+        // Map results with selected fields
         $result = $filteredUsers->map(function ($user) use ($fields) {
             return array_intersect_key($user->toArray(), array_flip($fields));
-        })->values()->all(); // Reset keys
-
-
+        })->values()->all();
     }
 
-
-
-
-    // Apply the optional limit if provided
+    // Apply limit if specified
     if ($limit !== null) {
-        $result = array_slice($result, 0, $limit); // Use array_slice to limit results
+        $result = array_slice($result, 0, $limit);
     }
 
     return $result;
 }
+
 
 
 
