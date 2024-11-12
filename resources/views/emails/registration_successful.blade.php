@@ -379,7 +379,7 @@
                                                                 <td valign="top" align="left"
                                                                     style="padding: 15px 10px; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 16px; line-height: 24px; text-align: left; color: #41404d;">
                                                                     Chat or Video Call your Matches without disclosing
-                                                                    any personal Contact information using Shaadi Chat
+                                                                    any personal Contact information using Ebibah Chat
                                                                 </td>
                                                             </tr>
                                                         </tbody>

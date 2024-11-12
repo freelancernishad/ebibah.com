@@ -60,9 +60,15 @@ class AuthController extends Controller
                     'password' => Hash::make(Str::random(16)), // Generate a random password
                     'step' => 1, // Set step value to 1
                     'email_verified_at' => now(),
-
                 ]);
             } else {
+                // Check if the user is banned
+                if ($user->status === 'banned') {
+                    Auth::logout();
+                    return response()->json(['error' => 'Your account has been banned. Please contact support for further assistance.'], 403);
+                }
+
+
                 // Check if email is not verified
                 if (is_null($user->email_verified_at)) {
                     // If not verified, set email_verified_at to current timestamp
@@ -70,7 +76,6 @@ class AuthController extends Controller
                     $user->save();
                 }
             }
-
 
             // Login the user
             Auth::login($user);
@@ -106,6 +111,13 @@ class AuthController extends Controller
             if (Auth::attempt($credentials)) {
                 $user = Auth::user();
 
+                // Check if the user is banned
+                if ($user->status === 'banned') {
+                    Auth::logout();
+                    return response()->json(['error' => 'Your account has been banned. Please contact support for further assistance.'], 403);
+                }
+
+
                 // Build the payload including the username, step, and email verification status
                 $payload = [
                     'email' => $user->email,
@@ -120,7 +132,8 @@ class AuthController extends Controller
                 return response()->json(['token' => $token, 'user' => $payload], 200);
             }
 
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(['message' => 'The email or password you entered is incorrect. Please try again.'], 401);
+
         }
     }
 
