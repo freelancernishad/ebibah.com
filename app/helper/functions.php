@@ -104,36 +104,52 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 
 
 
-
 function profile_matches($type = '', $limit = null)
 {
+    // Get the authenticated user
     $user = Auth::user();
+
+    // Check if the user is authenticated
     if (!$user) {
         return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
     }
 
-    // Start building the query for users who match the required gender and age range
-    $query = User::query()->where('id', '!=', $user->id);
+    // Start the query with the User model
+    $query = User::query();
 
+    // Determine gender to match against based on authenticated user's gender
     if ($user->gender === 'Male') {
+        // If authenticated user is Male, show Female users
         $query->where('gender', 'Female');
     } elseif ($user->gender === 'Female') {
+        // If authenticated user is Female, show Male users
         $query->where('gender', 'Male');
     }
 
+    // Exclude the authenticated user
+    $query->where('id', '!=', $user->id);
+
+    // Initialize criteria count and details arrays
+    $matchedUsersDetails = [];
+
+    // Add matching criteria checks
+    addMatchingCriteria($query, $user, $matchedUsersDetails);
+
+    // Add age filtering
     filterByAge($query, $user);
 
-    // Get the filtered users from the database
+    // Get matched users
     $matchingUsers = $query->get();
 
-    // Initialize criteria details array
-    $matchedUsersDetails = [];
-    addMatchingCriteria($matchingUsers, $user, $matchedUsersDetails);
 
-    // Further filter and sort users by match type
+    // Filter matching users based on gende
+    $matchingUsers = $matchingUsers->filter(function ($matchedUser) use ($user) {
+        return $user->gender === 'Male' ? $matchedUser->gender === 'Female' : $matchedUser->gender === 'Male';
+    });
+    // Final filtering based on match type
     $finalMatchingUsers = filterFinalMatches($matchingUsers, $user, $type);
 
-    // Attach criteria-matched details to each user
+    // Attach criteria matched details to each user
     $finalMatchingUsers->each(function ($matchedUser) use (&$matchedUsersDetails) {
         if (isset($matchedUsersDetails[$matchedUser->id])) {
             $matchedUser->totalCriteriaMatched = $matchedUsersDetails[$matchedUser->id]['criteria_matched'];
@@ -144,44 +160,92 @@ function profile_matches($type = '', $limit = null)
         }
     });
 
-    // Sort by criteria matched count if not 'new' type
-    if ($type !== 'new') {
+    if($type=='new'){
+
+    }else{
+
         $finalMatchingUsers = $finalMatchingUsers->sortByDesc('totalCriteriaMatched');
     }
 
-    // Apply limit if specified
+    // Apply the optional limit if provided
     if ($limit !== null) {
         $finalMatchingUsers = $finalMatchingUsers->take($limit);
     }
 
-    return response()->json(prepareResponse($finalMatchingUsers, $limit, $type));
+    // Return the final matching users as a JSON response
+    return prepareResponse($finalMatchingUsers, $limit,$type);
 }
 
-function addMatchingCriteria($matchingUsers, $authUser, &$matchedUsersDetails)
+function addMatchingCriteria($query, $user, &$matchedUsersDetails)
 {
-    $authUserId = $authUser->id;
+    // Map user relationships to corresponding columns in other users
+    $criteriaMappings = [
+        'partnerMaritalStatuses' => 'marital_status',
+        'partnerReligions' => 'religion',
+        'partnerCommunities' => 'community',
+        'partnerMotherTongues' => 'mother_tongue',
+        'partnerQualification' => 'qualification',
+        'partnerWorkingWith' => 'working_with',
+        'partnerProfessions' => 'profession',
+        'partnerProfessionalDetails' => 'profession',
+        'partnerCountries' => 'country',
+        'partnerStates' => 'state',
+        'partnerCities' => 'city',
+    ];
 
-    $matchingUsers->each(function ($matchingUser) use ($authUserId, &$matchedUsersDetails) {
-        $userId = $matchingUser->id;
-        $criteriaMatches = getCriteriaMatches($authUserId, $userId);
+    foreach ($criteriaMappings as $relation => $column) {
+        if ($user->$relation) {
+            $userValues = $user->$relation->pluck($column)->toArray();
 
-        $matchedUsersDetails[$userId] = [
-            'criteria_matched' => 0,
-            'fields' => [],
-        ];
+            if (!empty($userValues)) {
+                $userColumn = $column;
 
-        foreach ($criteriaMatches as $match) {
-            if ($match['match']) {
-                $matchedUsersDetails[$userId]['criteria_matched']++;
-                $matchedUsersDetails[$userId]['fields'][] = [
-                    'field' => $match['preference'],
-                    'auth_user_preference' => $match['required'],
-                    'matched_user_value' => $match['user_value'],
-                    'matched' => $match['match'],
-                ];
+                // Adjust column names for specific mappings
+                if ($column === 'qualification') {
+                    $userColumn = 'highest_qualification';
+                } elseif ($column === 'working_with') {
+                    $userColumn = 'working_sector';
+                } elseif ($column === 'country') {
+                    $userColumn = 'living_country';
+                } elseif ($column === 'city') {
+                    $userColumn = 'city_living_in';
+                } elseif ($column === 'profession' && $relation == 'partnerProfessionalDetails') {
+                    $userColumn = 'profession_details';
+                }
+
+                $query->orWhere(function ($q) use ($userColumn, $userValues) {
+                    foreach ($userValues as $value) {
+                        $q->orWhere($userColumn, $value);
+                    }
+                });
+
+                // Count matches for each user and update matchedUsersDetails
+                $query->get()->each(function ($matchingUser) use ($userColumn, $userValues, &$matchedUsersDetails) {
+                    $otherUserValue = $matchingUser->$userColumn;
+
+                    if (in_array($otherUserValue, $userValues)) {
+                        if (!isset($matchedUsersDetails[$matchingUser->id])) {
+                            $matchedUsersDetails[$matchingUser->id] = [
+                                'criteria_matched' => 0,
+                                'fields' => []
+                            ];
+                        }
+
+                        // Only add unique matched fields to prevent duplication
+                        if (!in_array($userColumn, array_column($matchedUsersDetails[$matchingUser->id]['fields'], 'field'))) {
+                            $matchedUsersDetails[$matchingUser->id]['fields'][] = [
+                                'field' => $userColumn,
+                                'auth_user_preference' => $userValues,
+                                'matched_user_value' => $otherUserValue,
+                                'matched' => true
+                            ];
+                            $matchedUsersDetails[$matchingUser->id]['criteria_matched']++;
+                        }
+                    }
+                });
             }
         }
-    });
+    }
 }
 
 function filterByAge($query, $user)
@@ -205,50 +269,69 @@ function filterFinalMatches($matchingUsers, $user, $matchType)
 {
     switch ($matchType) {
         case 'new':
-            $matchingUsers = $matchingUsers->sortByDesc('created_at');
+            // Sort users by created_at in descending order, ensuring the items are models
+            $matchingUsers = $matchingUsers->sortByDesc(function ($user) {
+                return $user instanceof \Illuminate\Database\Eloquent\Model ? $user->created_at : null;
+            });
             break;
 
         case 'today':
+            // Filter users created today
             $matchingUsers = $matchingUsers->filter(function ($user) {
-                return Carbon::today()->isSameDay($user->created_at);
+                return $user instanceof \Illuminate\Database\Eloquent\Model && Carbon::today()->isSameDay($user->created_at);
             });
             break;
+
+        // Additional cases can be added here as needed
     }
 
-    return $matchingUsers;
+    return $matchingUsers; // Return the filtered or sorted matched users
 }
 
-function prepareResponse($users, $limit, $type = '')
+function prepareResponse($users, $limit,$type='')
 {
+    // Define the fields to be displayed
     $fields = [
-        'id', 'name', 'age', 'gender', 'height', 'city_living_in', 'state', 'living_country',
-        'religion', 'marital_status', 'working_sector', 'profession', 'about_myself',
-        'profile_picture_url', 'invitation_send_status', 'is_favorited', 'premium_member_badge',
-        'trusted_badge_access', 'totalCriteriaMatched', 'matched_fields',
+        'id', 'name', 'age', 'gender', 'height',
+        'city_living_in', 'state', 'living_country',
+        'religion', 'marital_status', 'working_sector',
+        'profession', 'about_myself', 'profile_picture_url',
+        'invitation_send_status', 'is_favorited',
+        'premium_member_badge', 'trusted_badge_access',
+        'totalCriteriaMatched', 'matched_fields',
     ];
 
-    if ($type == 'near') {
+    if($type=='near'){
+
+        // Map the result to include the specified fields without nesting
         $result = $users->map(function ($user) use ($fields) {
             return array_intersect_key($user->toArray(), array_flip($fields));
-        })->values()->all();
-    } else {
-        $filteredUsers = $users->filter(function ($user) {
-            return $user->totalCriteriaMatched > 0;
-        });
+        })->values()->all(); // Reset keys
+    }else{
 
+           // Filter users to include only those with at least one matched criterion
+    $filteredUsers = $users->filter(function ($user) {
+        return $user->totalCriteriaMatched > 0;
+    });
+
+        // Map the result to include the specified fields without nesting
         $result = $filteredUsers->map(function ($user) use ($fields) {
             return array_intersect_key($user->toArray(), array_flip($fields));
-        })->values()->all();
+        })->values()->all(); // Reset keys
+
+
     }
 
+
+
+
+    // Apply the optional limit if provided
     if ($limit !== null) {
-        $result = array_slice($result, 0, $limit);
+        $result = array_slice($result, 0, $limit); // Use array_slice to limit results
     }
 
     return $result;
 }
-
-
 
 
 
