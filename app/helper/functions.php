@@ -103,7 +103,7 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 
 
 
-public function profile_matches($type = '', $limit = null)
+ function profile_matches($type = '', $limit = null)
 {
     // Get the authenticated user
     $user = Auth::user();
