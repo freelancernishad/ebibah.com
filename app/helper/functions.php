@@ -140,13 +140,20 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
         $matchedUsersDetails[$matchedUser->id] = $criteriaMatches;
     });
 
+
+    if($type=='new'){
+        $finalMatchingUsers = filterFinalMatches($matchingUsers, $user, $type);
+    }else{
     // Apply the filterFinalMatches method to filter based on the match type
     $matchingUsers = filterFinalMatches($matchingUsers, $user, $type);
-
     // Sort matching users by totalCriteriaMatched
     $finalMatchingUsers = $matchingUsers->sortByDesc(function ($user) use ($matchedUsersDetails) {
         return $matchedUsersDetails[$user->id]['totalCriteriaMatched'];
     });
+    }
+
+
+
 
     // Apply the optional limit if provided
     if ($limit !== null) {
