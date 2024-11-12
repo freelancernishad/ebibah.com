@@ -178,75 +178,38 @@ function profile_matches($type = '', $limit = null)
 
 function addMatchingCriteria($query, $user, &$matchedUsersDetails)
 {
-    // Map user relationships to corresponding columns in other users
-    $criteriaMappings = [
-        'partnerMaritalStatuses' => 'marital_status',
-        'partnerReligions' => 'religion',
-        'partnerCommunities' => 'community',
-        'partnerMotherTongues' => 'mother_tongue',
-        'partnerQualification' => 'qualification',
-        'partnerWorkingWith' => 'working_with',
-        'partnerProfessions' => 'profession',
-        'partnerProfessionalDetails' => 'profession',
-        'partnerCountries' => 'country',
-        'partnerStates' => 'state',
-        'partnerCities' => 'city',
-    ];
+    $authUserId = $user->id;
 
-    foreach ($criteriaMappings as $relation => $column) {
-        if ($user->$relation) {
-            $userValues = $user->$relation->pluck($column)->toArray();
+    // Iterate over each user in the query results
+    $query->get()->each(function ($matchingUser) use ($authUserId, &$matchedUsersDetails) {
+        $userId = $matchingUser->id;
 
-            if (!empty($userValues)) {
-                $userColumn = $column;
+        // Call the global getCriteriaMatches function to get matching criteria
+        $criteriaMatches = getCriteriaMatches($authUserId, $userId);
 
-                // Adjust column names for specific mappings
-                if ($column === 'qualification') {
-                    $userColumn = 'highest_qualification';
-                } elseif ($column === 'working_with') {
-                    $userColumn = 'working_sector';
-                } elseif ($column === 'country') {
-                    $userColumn = 'living_country';
-                } elseif ($column === 'city') {
-                    $userColumn = 'city_living_in';
-                } elseif ($column === 'profession' && $relation == 'partnerProfessionalDetails') {
-                    $userColumn = 'profession_details';
-                }
+        // Initialize count and fields if no matches yet
+        if (!isset($matchedUsersDetails[$userId])) {
+            $matchedUsersDetails[$userId] = [
+                'criteria_matched' => 0,
+                'fields' => []
+            ];
+        }
 
-                $query->orWhere(function ($q) use ($userColumn, $userValues) {
-                    foreach ($userValues as $value) {
-                        $q->orWhere($userColumn, $value);
-                    }
-                });
-
-                // Count matches for each user and update matchedUsersDetails
-                $query->get()->each(function ($matchingUser) use ($userColumn, $userValues, &$matchedUsersDetails) {
-                    $otherUserValue = $matchingUser->$userColumn;
-
-                    if (in_array($otherUserValue, $userValues)) {
-                        if (!isset($matchedUsersDetails[$matchingUser->id])) {
-                            $matchedUsersDetails[$matchingUser->id] = [
-                                'criteria_matched' => 0,
-                                'fields' => []
-                            ];
-                        }
-
-                        // Only add unique matched fields to prevent duplication
-                        if (!in_array($userColumn, array_column($matchedUsersDetails[$matchingUser->id]['fields'], 'field'))) {
-                            $matchedUsersDetails[$matchingUser->id]['fields'][] = [
-                                'field' => $userColumn,
-                                'auth_user_preference' => $userValues,
-                                'matched_user_value' => $otherUserValue,
-                                'matched' => true
-                            ];
-                            $matchedUsersDetails[$matchingUser->id]['criteria_matched']++;
-                        }
-                    }
-                });
+        // Count the number of true matches and add matched fields
+        foreach ($criteriaMatches as $match) {
+            if ($match['match']) {
+                $matchedUsersDetails[$userId]['criteria_matched']++;
+                $matchedUsersDetails[$userId]['fields'][] = [
+                    'field' => $match['preference'],
+                    'auth_user_preference' => $match['required'],
+                    'matched_user_value' => $match['user_value'],
+                    'matched' => $match['match']
+                ];
             }
         }
-    }
+    });
 }
+
 
 function filterByAge($query, $user)
 {
