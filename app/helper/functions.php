@@ -253,12 +253,13 @@ function filterByAge($query, $user)
     }
 }
 
-function filterFinalMatches($matchingUsers, $user, $matchType)
+public function filterFinalMatches($matchingUsers, $user, $matchType)
 {
     switch ($matchType) {
         case 'new':
-            // Sort users by created_at in descending order, ensuring the items are models
+            // Sort users by created_at in descending order (latest first)
             $matchingUsers = $matchingUsers->sortByDesc(function ($user) {
+                // Ensure $user is a model and then return the created_at attribute
                 return $user instanceof \Illuminate\Database\Eloquent\Model ? $user->created_at : null;
             });
             break;
@@ -266,16 +267,20 @@ function filterFinalMatches($matchingUsers, $user, $matchType)
         case 'today':
             // Filter users created today
             $matchingUsers = $matchingUsers->filter(function ($user) {
+                // Ensure $user is a model and then check if it's created today
                 return $user instanceof \Illuminate\Database\Eloquent\Model && Carbon::today()->isSameDay($user->created_at);
             });
             break;
 
-        // Additional cases can be added here as needed
+        // Additional cases can be added here if needed
+
+        default:
+            // If no matchType is given or a different type is provided, return users as is
+            break;
     }
 
     return $matchingUsers; // Return the filtered or sorted matched users
 }
-
 
 
 function prepareResponse($users, $limit,$type='')
