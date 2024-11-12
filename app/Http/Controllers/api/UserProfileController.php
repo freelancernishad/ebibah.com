@@ -34,7 +34,17 @@ class UserProfileController extends Controller
         $authUserStates = $authUser->partnerStates->pluck('state')->toArray();
 
         // Determine the gender to filter opposite to the authenticated user's gender
-         $oppositeGender = $authUser->gender === 'Male' ? 'Female' : 'Male';
+        //  $oppositeGender = $authUser->gender === 'Male' ? 'Female' : 'Male';
+
+
+         if ($authUser->gender === 'Male') {
+            // If authenticated user is Male, show Female users
+            $oppositeGender = 'Female';
+        } elseif ($authUser->gender === 'Female') {
+            // If authenticated user is Female, show Male users
+            $oppositeGender = 'Male';
+        }
+
 
         // Fetch users who are in the authenticated user's PartnerStates, have the opposite gender, and exclude the authenticated user
         $matchingUsersArray = User::whereIn('state', $authUserStates)
