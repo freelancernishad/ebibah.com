@@ -103,8 +103,7 @@ function jsonResponse($success, $message, $data = null, $statusCode = 200, array
 
 
 
-
-function profile_matches($type = '', $limit = null)
+public function profile_matches($type = '', $limit = null)
 {
     // Get the authenticated user
     $user = Auth::user();
@@ -140,6 +139,9 @@ function profile_matches($type = '', $limit = null)
         $criteriaMatches = getCriteriaMatches($user->id, $matchedUser->id);
         $matchedUsersDetails[$matchedUser->id] = $criteriaMatches;
     });
+
+    // Apply the filterFinalMatches method to filter based on the match type
+    $matchingUsers = $this->filterFinalMatches($matchingUsers, $user, $type);
 
     // Sort matching users by totalCriteriaMatched
     $finalMatchingUsers = $matchingUsers->sortByDesc(function ($user) use ($matchedUsersDetails) {
