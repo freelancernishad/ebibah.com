@@ -257,16 +257,16 @@ function filterFinalMatches($matchingUsers, $user, $matchType)
 {
     switch ($matchType) {
         case 'new':
-            // Filter users created today or recently created
-            $matchingUsers = $matchingUsers->filter(function ($user) {
-                return Carbon::today()->isSameDay($user->created_at);
+            // Sort users by created_at in descending order, ensuring the items are models
+            $matchingUsers = $matchingUsers->sortByDesc(function ($user) {
+                return $user instanceof \Illuminate\Database\Eloquent\Model ? $user->created_at : null;
             });
             break;
 
         case 'today':
             // Filter users created today
             $matchingUsers = $matchingUsers->filter(function ($user) {
-                return Carbon::today()->isSameDay($user->created_at);
+                return $user instanceof \Illuminate\Database\Eloquent\Model && Carbon::today()->isSameDay($user->created_at);
             });
             break;
 
@@ -275,6 +275,7 @@ function filterFinalMatches($matchingUsers, $user, $matchType)
 
     return $matchingUsers; // Return the filtered or sorted matched users
 }
+
 
 
 function prepareResponse($users, $limit,$type='')
