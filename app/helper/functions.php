@@ -253,7 +253,7 @@ function filterByAge($query, $user)
     }
 }
 
-public function filterFinalMatches($matchingUsers, $user, $matchType)
+ function filterFinalMatches($matchingUsers, $user, $matchType)
 {
     switch ($matchType) {
         case 'new':
