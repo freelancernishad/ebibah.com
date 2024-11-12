@@ -117,6 +117,8 @@ function profile_matches($type = '', $limit = null)
     // Start the query with the User model
     $query = User::query();
 
+
+   return $criteriaMatches = getCriteriaMatches($user->id, 246);
     // Determine gender to match against based on authenticated user's gender
     if ($user->gender === 'Male') {
         // If authenticated user is Male, show Female users
