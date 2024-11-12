@@ -43,7 +43,7 @@ class UserProfileController extends Controller
             ->get();
 
         // Prepare the response with only the specified fields
-        $matchingUsers = prepareResponse($matchingUsersArray, null, null);
+        $matchingUsers = prepareResponse($matchingUsersArray, null, 'near');
     } else {
         // Use the profile_matches function for other match types
         $matchingUsers = profile_matches($matchType);
