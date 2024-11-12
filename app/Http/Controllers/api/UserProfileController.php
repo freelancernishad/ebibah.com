@@ -153,7 +153,7 @@ class UserProfileController extends Controller
         $userArray['is_contact_details_viewed'] = $authUser->hasViewedProfile($userArray['id']);
 
         // Call the global getCriteriaMatches function to get matching criteria
-        $criteriaMatches = getCriteriaMatches($authUser->id, $id) ?? [];
+        $criteriaMatches = getCriteriaMatches($authUser->id, $id)['matches'] ?? [];
 
         // Calculate match score and percentage
         $matchScore = array_reduce($criteriaMatches, function ($carry, $match) {

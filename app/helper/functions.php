@@ -129,52 +129,38 @@ function profile_matches($type = '', $limit = null)
     // Exclude the authenticated user
     $query->where('id', '!=', $user->id);
 
-    // Initialize criteria count and details arrays
-    $matchedUsersDetails = [];
-
-    // Add matching criteria checks
-    addMatchingCriteria($query, $user, $matchedUsersDetails);
-
-    // Add age filtering
-    filterByAge($query, $user);
-
     // Get matched users
     $matchingUsers = $query->get();
 
+    // Initialize criteria count and details arrays
+    $matchedUsersDetails = [];
 
-    // Filter matching users based on gende
-    $matchingUsers = $matchingUsers->filter(function ($matchedUser) use ($user) {
-        return $user->gender === 'Male' ? $matchedUser->gender === 'Female' : $matchedUser->gender === 'Male';
-    });
-    // Final filtering based on match type
-    $finalMatchingUsers = filterFinalMatches($matchingUsers, $user, $type);
-
-    // Attach criteria matched details to each user
-    $finalMatchingUsers->each(function ($matchedUser) use (&$matchedUsersDetails) {
-        if (isset($matchedUsersDetails[$matchedUser->id])) {
-            $matchedUser->totalCriteriaMatched = $matchedUsersDetails[$matchedUser->id]['criteria_matched'];
-            $matchedUser->matched_fields = $matchedUsersDetails[$matchedUser->id]['fields'];
-        } else {
-            $matchedUser->totalCriteriaMatched = 0;
-            $matchedUser->matched_fields = [];
-        }
+    // Add matching criteria checks and update matchedUsersDetails
+    $matchingUsers->each(function ($matchedUser) use ($user, &$matchedUsersDetails) {
+        $criteriaMatches = getCriteriaMatches($user->id, $matchedUser->id);
+        $matchedUsersDetails[$matchedUser->id] = $criteriaMatches;
     });
 
-    if($type=='new'){
-
-    }else{
-
-        $finalMatchingUsers = $finalMatchingUsers->sortByDesc('totalCriteriaMatched');
-    }
+    // Sort matching users by totalCriteriaMatched
+    $finalMatchingUsers = $matchingUsers->sortByDesc(function ($user) use ($matchedUsersDetails) {
+        return $matchedUsersDetails[$user->id]['totalCriteriaMatched'];
+    });
 
     // Apply the optional limit if provided
     if ($limit !== null) {
         $finalMatchingUsers = $finalMatchingUsers->take($limit);
     }
 
+    // Attach criteria matched details to each user
+    $finalMatchingUsers->each(function ($matchedUser) use ($matchedUsersDetails) {
+        $matchedUser->totalCriteriaMatched = $matchedUsersDetails[$matchedUser->id]['totalCriteriaMatched'];
+        $matchedUser->matched_fields = $matchedUsersDetails[$matchedUser->id]['matches'];
+    });
+
     // Return the final matching users as a JSON response
-    return prepareResponse($finalMatchingUsers, $limit,$type);
+    return prepareResponse($finalMatchingUsers, $limit, $type);
 }
+
 
 function addMatchingCriteria($query, $user, &$matchedUsersDetails)
 {

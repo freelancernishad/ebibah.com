@@ -21,7 +21,7 @@ function calculateAge($dateOfBirth)
 
 
 // Add this new function to handle the criteria matches logic
- function getCriteriaMatches($authUserId, $userId)
+function getCriteriaMatches($authUserId, $userId)
 {
     // Get the authenticated user and target user
     $authUser = User::find($authUserId);
@@ -61,30 +61,38 @@ function calculateAge($dateOfBirth)
         'city_living_in' => 'City Living In',
     ];
 
-    // Initialize the matches array
+    // Initialize the matches array and total matched criteria count
     $matches = [];
+    $totalCriteriaMatched = 0;
 
     // Compare preferences to create match details
     foreach ($partnerPreferences as $preferenceCriteria => $preferenceValue) {
         $displayName = $displayNames[$preferenceCriteria] ?? $preferenceCriteria;
         $userValue = $user->{$preferenceCriteria} ?? null;
 
+        $isMatch = false;
         if (is_array($preferenceValue)) {
-            $matches[] = [
-                'preference' => $displayName,
-                'required' => $preferenceValue,
-                'user_value' => $userValue,
-                'match' => in_array(strtolower($userValue), array_map('strtolower', $preferenceValue))
-            ];
+            $isMatch = in_array(strtolower($userValue), array_map('strtolower', $preferenceValue));
         } else {
-            $matches[] = [
-                'preference' => $displayName,
-                'required' => $preferenceValue,
-                'user_value' => $userValue,
-                'match' => (strtolower($userValue) === strtolower($preferenceValue))
-            ];
+            $isMatch = (strtolower($userValue) === strtolower($preferenceValue));
         }
+
+        // If there's a match, increment the total matched criteria count
+        if ($isMatch) {
+            $totalCriteriaMatched++;
+        }
+
+        $matches[] = [
+            'preference' => $displayName,
+            'required' => $preferenceValue,
+            'user_value' => $userValue,
+            'match' => $isMatch
+        ];
     }
 
-    return  $matches;
+    // Return matches along with the total criteria matched count
+    return [
+        'totalCriteriaMatched' => $totalCriteriaMatched,
+        'matches' => $matches
+    ];
 }
