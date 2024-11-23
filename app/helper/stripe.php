@@ -16,6 +16,7 @@ function stripe($array = [])
         'amount' => $array['amount'] * 100, // Amount in cents
         'currency' => 'usd',
         'payment_method_types' => ['card'],
+        // 'payment_method_types' => ['card','amazon_pay','us_bank_account'],
     ]);
 
     // Create a new payment record in the database
@@ -41,7 +42,7 @@ function stripe($array = [])
 
     // Create Stripe checkout session
     $session = \Stripe\Checkout\Session::create([
-        'payment_method_types' => ['card'],
+        'payment_method_types' => ['card','amazon_pay','us_bank_account'],
         'line_items' => [[
             'price_data' => [
                 'currency' => 'usd',

@@ -22,6 +22,7 @@ class AdminUserController extends Controller
         // Query the users based on status and apply search filters
         $users = User::query()
             ->where('status', $status) // Filter by status
+            ->whereNotNull('email_verified_at')
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -46,10 +47,15 @@ class AdminUserController extends Controller
 
         return response()->json($users); // Return the paginated results as JSON
     }
+
+
     public function index(Request $request): JsonResponse
     {
         return $this->getUsers($request, 'active');
     }
+
+
+
     public function inactiveUsers(Request $request): JsonResponse
     {
         User::setApplyActiveScope(false); // Disable the active user scope
