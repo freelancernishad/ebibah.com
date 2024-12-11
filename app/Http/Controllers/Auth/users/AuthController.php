@@ -118,6 +118,25 @@ class AuthController extends Controller
                 }
 
 
+                // Check if email is not verified
+                if (is_null($user->email_verified_at)) {
+                    // Generate a 6-digit numeric OTP
+                    $otp = random_int(100000, 999999); // Generates a random integer between 100000 and 999999
+                    $user->otp = Hash::make($otp); // Store hashed OTP
+                    $user->otp_expires_at = now()->addMinutes(5); // Set expiration time
+                    $user->save();
+
+                    // Send OTP via email
+                    $user->notify(new OtpNotification($otp));
+
+                    return response()->json([
+                        'message' => 'OTP sent to your email. Please verify your email to proceed.',
+                        'user' => ['email' => $user->email],
+                    ], 200);
+                }
+
+
+
                 // Build the payload including the username, step, and email verification status
                 $payload = [
                     'email' => $user->email,
