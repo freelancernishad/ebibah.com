@@ -35,11 +35,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 
 
 
-    public function routeNotificationForMail()
-    {
-        // return 'freelancernishad123@gmail.com';
-        return 'jerintaskin@gmail.com';
-    }
+    // public function routeNotificationForMail()
+    // {
+    //     // return 'freelancernishad123@gmail.com';
+    //     return 'jerintaskin@gmail.com';
+    // }
 
 
     /**
