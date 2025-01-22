@@ -1,9 +1,11 @@
 <?php
 
+use App\Models\User;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\WeatherController;
@@ -13,7 +15,6 @@ use App\Http\Controllers\ServerStatusController;
 use App\Http\Controllers\AdvertisementController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\Global\FilterUserController;
-use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,7 +65,7 @@ Route::get('package-services', [PackageController::class, 'getAllPackageServices
 // Stripe webhook
 Route::post('stripe/webhook', [StripePaymentController::class, 'handleWebhook']);
 
-
+Route::get('/notices', [NoticeController::class, 'show']);
 
 Route::get('/server-status', [ServerStatusController::class, 'status']);
 

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\PackageController;
 use App\Http\Controllers\api\Admin\AdminUserController;
@@ -21,6 +22,14 @@ Route::post('/admin/check-token', [AdminAuthController::class, 'checkToken']);
 Route::post('/admin/register', [AdminAuthController::class, 'register']);
 
 Route::middleware('auth:admin')->group(function () {
+
+
+    // Create or update the single notice
+Route::post('admin/notices', [NoticeController::class, 'createOrUpdate']);
+
+
+
+
 
     // Admin logout
     Route::post('admin/logout', [AdminAuthController::class, 'logout']);
