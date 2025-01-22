@@ -130,7 +130,14 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'otp',
         'otp_expires_at',
         'contact_view_balance',
-        'email_verified_at'
+        'email_verified_at',
+
+
+        'facebook',
+        'instagram',
+        'twitter',
+        'linkedin',
+
     ];
 
 

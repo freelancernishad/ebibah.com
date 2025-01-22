@@ -336,7 +336,7 @@ public function checkToken(Request $request)
             // Check if the email already exists
             $existingUser = User::where('email', $userData['email'])->first();
             if ($existingUser) {
-                return response()->json(['error' => 'Email already registered'], 400);
+                return response()->json(['error' => 'Your registration was previously completed. Please try logging in using the password you initially used during registration.'], 400);
             }
 
             // Extract username from email

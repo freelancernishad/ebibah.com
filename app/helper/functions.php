@@ -429,6 +429,10 @@ function maskUserData($user,$currentUser)
     'what_u_looking',
     'is_contact_details_viewed',
 
+    'facebook',
+    'instagram',
+    'twitter',
+    'linkedin',
 
 
     'partner_marital_statuses',

@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Auth\admins;
 
+use Carbon\Carbon;
 use App\Models\Admin;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\SendTwoFactorCode;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -41,17 +43,55 @@ class AdminAuthController extends Controller
 
     public function login(Request $request)
     {
-          $credentials = $request->only('email', 'password');
+        $credentials = $request->only('email', 'password');
 
         if (Auth::guard('admin')->attempt($credentials)) {
             $admin = Auth::guard('admin')->user();
-            $token = JWTAuth::fromUser($admin);
-            // $token = $admin->createToken('access_token')->accessToken;
-            return response()->json(['token' => $token]);
+
+            // Generate and send OTP
+            $admin->generateTwoFactorCode();
+            $admin->notify(new SendTwoFactorCode($admin->two_factor_code));
+
+            return response()->json([
+                'message' => 'A two-factor authentication code has been sent to your email.',
+                'requires_2fa' => true, // Indicate that 2FA is required
+            ]);
         }
 
         return response()->json(['error' => 'Unauthorized'], 401);
     }
+
+    public function verifyTwoFactor(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'two_factor_code' => 'required|string|size:6',
+        ]);
+
+        $admin = Admin::where('email', $request->email)->first();
+
+        if (!$admin) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // Check if the OTP is valid and not expired
+        if ($admin->two_factor_code === $request->two_factor_code &&
+            Carbon::now()->lt($admin->two_factor_expires_at)) {
+
+            // Reset the OTP after successful verification
+            $admin->resetTwoFactorCode();
+
+            // Generate JWT token
+            $token = JWTAuth::fromUser($admin);
+
+            return response()->json(['token' => $token]);
+        }
+
+        return response()->json(['error' => 'Invalid or expired two-factor code'], 401);
+    }
+
+
+
 
 
     public function checkTokenExpiration(Request $request)

@@ -15,6 +15,7 @@ use App\Http\Controllers\api\Admin\AdminSupportTicketApiController;
 
 // Admin auth routes
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
+Route::post('admin/verify-2fa', [AdminAuthController::class, 'verifyTwoFactor']);
 Route::post('/admin/check/login', [AdminAuthController::class, 'checkTokenExpiration']);
 Route::post('/admin/check-token', [AdminAuthController::class, 'checkToken']);
 Route::post('/admin/register', [AdminAuthController::class, 'register']);
