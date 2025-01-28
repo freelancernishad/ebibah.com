@@ -48,6 +48,14 @@ class AdminAuthController extends Controller
         if (Auth::guard('admin')->attempt($credentials)) {
             $admin = Auth::guard('admin')->user();
 
+
+            $token = JWTAuth::fromUser($admin);
+            // $token = $admin->createToken('access_token')->accessToken;
+            return response()->json(['token' => $token]);
+
+
+
+
             // Generate and send OTP
             $admin->generateTwoFactorCode();
             $admin->notify(new SendTwoFactorCode($admin->two_factor_code));
