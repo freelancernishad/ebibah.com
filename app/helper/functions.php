@@ -685,7 +685,13 @@ function getPackageRevenueData($year = null, $week = 'current')
     }
 
     // Find the maximum total revenue from monthly package revenues
-    $maxMonthlyRevenue = max(array_column($totalRevenueByPackage, 'total_revenue'));
+    $totalRevenueArray = array_column($totalRevenueByPackage, 'total_revenue');
+
+if (!empty($totalRevenueArray)) {
+    $maxMonthlyRevenue = max($totalRevenueArray);
+} else {
+    $maxMonthlyRevenue = 0; // Default value when no revenue data exists
+}
 
     // Find the maximum total revenue from weekly package revenues
     $maxWeeklyRevenue = 0;
