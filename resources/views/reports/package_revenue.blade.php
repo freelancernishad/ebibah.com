@@ -98,7 +98,7 @@
                 @foreach ($yearly_package_revenue as $month => $revenue)
                     <tr>
                         <td>{{ $month }}</td>
-                        <td>${{ number_format($revenue['total_revenue'], 2) }}</td>
+                        <td>${{ $revenue['total_revenue'] }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -117,7 +117,7 @@
                 @foreach ($total_revenue_per_package as $package)
                     <tr>
                         <td>{{ $package['name'] }}</td>
-                        <td>${{ number_format($package['total_revenue'], 2) }}</td>
+                        <td>${{ $package['total_revenue'] }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -136,7 +136,7 @@
                 @foreach ($weekly_package_revenue as $week => $revenue)
                     <tr>
                         <td>Week {{ $week }}</td>
-                        <td>${{ number_format($revenue['total_revenue'], 2) }}</td>
+                        <td>${{ $revenue['total_revenue'] }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -156,7 +156,7 @@
                 @foreach ($revenue_by_date as $revenue)
                     <tr>
                         <td>{{ $revenue['name'] }}</td>
-                        <td>${{ number_format($revenue['total_amount'], 2) }}</td>
+                        <td>${{ $revenue['total_amount'] }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -169,11 +169,11 @@
             <tbody>
                 <tr>
                     <th>Total Revenue</th>
-                    <td>${{ number_format($total_revenue, 2) }}</td>
+                    <td>${{ $total_revenue }}</td>
                 </tr>
                 <tr>
                     <th>Highest Weekly Revenue</th>
-                    <td>${{ number_format($weekly_package_revenue_max, 2) }}</td>
+                    <td>${{ $weekly_package_revenue_max }}</td>
                 </tr>
             </tbody>
         </table>
