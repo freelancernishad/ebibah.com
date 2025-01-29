@@ -51,7 +51,7 @@ class AdminAuthController extends Controller
 
             $token = JWTAuth::fromUser($admin);
             // $token = $admin->createToken('access_token')->accessToken;
-            return response()->json(['token' => $token]);
+            return response()->json(['token' => $token,'payload'=>$admin]);
 
 
 
