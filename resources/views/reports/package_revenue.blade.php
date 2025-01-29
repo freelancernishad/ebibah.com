@@ -98,7 +98,7 @@
                 @foreach ($yearly_package_revenue as $month => $revenue)
                     <tr>
                         <td>{{ $month }}</td>
-                        <td>${{ $revenue['total_revenue'] }}</td>
+                        <td>${{ $revenue }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -136,7 +136,7 @@
                 @foreach ($weekly_package_revenue as $week => $revenue)
                     <tr>
                         <td>Week {{ $week }}</td>
-                        <td>${{ $revenue['total_revenue'] }}</td>
+                        <td>${{ $revenue }}</td>
                     </tr>
                 @endforeach
             </tbody>
