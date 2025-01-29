@@ -98,7 +98,7 @@
                 @foreach ($yearly_package_revenue as $month => $revenue)
                     <tr>
                         <td>{{ $month }}</td>
-                        <td>${{ $revenue }}</td>
+                        <td>${{ is_array($revenue) ? implode(', ', $revenue) : $revenue }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -117,7 +117,7 @@
                 @foreach ($total_revenue_per_package as $package)
                     <tr>
                         <td>{{ $package['name'] }}</td>
-                        <td>${{ $package['total_revenue'] }}</td>
+                        <td>${{ is_array($package['total_revenue']) ? implode(', ', $package['total_revenue']) : $package['total_revenue'] }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -136,7 +136,7 @@
                 @foreach ($weekly_package_revenue as $week => $revenue)
                     <tr>
                         <td>Week {{ $week }}</td>
-                        <td>${{ $revenue }}</td>
+                        <td>${{ is_array($revenue) ? implode(', ', $revenue) : $revenue }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -156,7 +156,7 @@
                 @foreach ($revenue_by_date as $revenue)
                     <tr>
                         <td>{{ $revenue['name'] }}</td>
-                        <td>${{ $revenue['total_amount'] }}</td>
+                        <td>${{ is_array($revenue['total_amount']) ? implode(', ', $revenue['total_amount']) : $revenue['total_amount'] }}</td>
                     </tr>
                 @endforeach
             </tbody>
