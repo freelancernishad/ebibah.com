@@ -98,7 +98,7 @@
                 @foreach ($yearly_package_revenue as $month => $revenue)
                     <tr>
                         <td>{{ $month }}</td>
-                        <td>${{ $revenue }}</td>
+                        <td>${{ $revenue ?? '0' }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -117,7 +117,7 @@
                 @foreach ($total_revenue_per_package as $package)
                     <tr>
                         <td>{{ $package['name'] }}</td>
-                        <td>${{ $package['total_revenue'] }}</td>
+                        <td>${{ $package['total_revenue'] ?? '0' }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -136,7 +136,7 @@
                 @foreach ($weekly_package_revenue as $week => $revenue)
                     <tr>
                         <td>Week {{ $week }}</td>
-                        <td>${{ $revenue }}</td>
+                        <td>${{ $revenue ?? '0' }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -156,7 +156,7 @@
                 @foreach ($revenue_by_date as $revenue)
                     <tr>
                         <td>{{ $revenue['name'] }}</td>
-                        <td>${{ $revenue['total_amount'] }}</td>
+                        <td>${{ $revenue['total_amount'] ?? '0' }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -169,11 +169,11 @@
             <tbody>
                 <tr>
                     <th>Total Revenue</th>
-                    <td>${{ $total_revenue }}</td>
+                    <td>${{ $total_revenue ?? '0' }}</td>
                 </tr>
                 <tr>
                     <th>Highest Weekly Revenue</th>
-                    <td>${{ $weekly_package_revenue_max }}</td>
+                    <td>${{ $weekly_package_revenue_max ?? '0' }}</td>
                 </tr>
             </tbody>
         </table>
