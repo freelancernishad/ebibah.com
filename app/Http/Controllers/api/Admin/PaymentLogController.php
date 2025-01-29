@@ -60,7 +60,8 @@ class PaymentLogController extends Controller
                     'amount' => $payment->amount,
                     'method' => $payment->method,
                     'status' => ucfirst($payment->status),
-                    'date' => $payment->date->format('Y-m-d'),
+                   'date' => date('Y-m-d', strtotime($payment->date)),
+
                 ];
             });
 
