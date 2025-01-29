@@ -98,7 +98,7 @@
                 @foreach ($yearly_package_revenue as $month => $revenue)
                     <tr>
                         <td>{{ $month }}</td>
-                        <td>${{ is_array($revenue) ? implode(', ', $revenue) : $revenue }}</td>
+                        <td>${{ $revenue }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -117,7 +117,7 @@
                 @foreach ($total_revenue_per_package as $package)
                     <tr>
                         <td>{{ $package['name'] }}</td>
-                        <td>${{ is_array($package['total_revenue']) ? implode(', ', $package['total_revenue']) : $package['total_revenue'] }}</td>
+                        <td>${{ $package['total_revenue'] }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -136,7 +136,7 @@
                 @foreach ($weekly_package_revenue as $week => $revenue)
                     <tr>
                         <td>Week {{ $week }}</td>
-                        <td>${{ is_array($revenue) ? implode(', ', $revenue) : $revenue }}</td>
+                        <td>${{ $revenue }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -156,7 +156,15 @@
                 @foreach ($revenue_by_date as $revenue)
                     <tr>
                         <td>{{ $revenue['name'] }}</td>
-                        <td>${{ is_array($revenue['total_amount']) ? implode(', ', $revenue['total_amount']) : $revenue['total_amount'] }}</td>
+                        <td>
+                            @if (is_array($revenue['total_amount']))
+                                @foreach ($revenue['total_amount'] as $amount)
+                                    ${{ $amount }}
+                                @endforeach
+                            @else
+                                ${{ $revenue['total_amount'] }}
+                            @endif
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
