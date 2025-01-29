@@ -112,3 +112,6 @@ Route::post('admin/notices', [NoticeController::class, 'createOrUpdate']);
     Route::delete('coupons/{id}', [CouponController::class, 'destroy']);
     Route::post('coupons/{code}/calculate', [CouponController::class, 'calculateDiscount']);
 });
+
+Route::get('dashboard', [AdminDashboardController::class, 'index']);
+Route::get('payment-logs', [PaymentLogController::class, 'index']);
