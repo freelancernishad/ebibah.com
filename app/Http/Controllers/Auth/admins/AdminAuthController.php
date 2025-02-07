@@ -34,7 +34,7 @@ class AdminAuthController extends Controller
         $admin = new Admin([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
-            'role' => $request->input('role') ?? 'Editor',
+            'role' => $request->input('role') ?? 'editor',
             'password' => Hash::make($request->input('password')),
         ]);
 
