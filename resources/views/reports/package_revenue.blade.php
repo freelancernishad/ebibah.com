@@ -1,194 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Package Revenue Report</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+            margin: 20px;
+            padding: 20px;
         }
-        .header {
+        h1, h2 {
             text-align: center;
-            background-color: #007BFF;
-            color: white;
-            padding: 20px;
         }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .header p {
-            margin: 5px 0;
-        }
-        .container {
-            padding: 20px;
-        }
-        .section-title {
-            font-size: 18px;
-            margin: 20px 0 10px;
-            color: #333;
-        }
-        .table {
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
-        .table th, .table td {
+        th, td {
             border: 1px solid #ddd;
             padding: 8px;
-            text-align: left;
-        }
-        .table th {
-            background-color: #f4f4f4;
-        }
-        .table tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .footer {
             text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
+        }
+        th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Package Revenue Report</h1>
-        <p>Generated on: {{ now()->format('d M Y') }}</p>
-    </div>
+    <h1>Package Revenue Report</h1>
+    <h2>Generated on: {{ now()->format('Y-m-d') }}</h2>
 
-    <div class="container">
-        <!-- User Statistics -->
-        <h2 class="section-title">User Statistics</h2>
-        <table class="table">
-            <tbody>
-                <tr>
-                    <th>Total Users</th>
-                    <td>{{ $total_users }}</td>
-                </tr>
-                <tr>
-                    <th>New Registrations (Last 7 Days)</th>
-                    <td>{{ $new_registrations }}</td>
-                </tr>
-                <tr>
-                    <th>Subscribed Users</th>
-                    <td>{{ $subscribed_users }}</td>
-                </tr>
-                <tr>
-                    <th>Pending Verifications</th>
-                    <td>{{ $pending_verifications }}</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>Summary</h3>
+    <ul>
+        <li>Total Users: {{ $total_users }}</li>
+        <li>New Registrations (Last 7 Days): {{ $new_registrations }}</li>
+        <li>Subscribed Users: {{ $subscribed_users }}</li>
+        <li>Pending Verifications: {{ $pending_verifications }}</li>
+        <li>Total Revenue: ${{ number_format($total_revenue, 2) }}</li>
+    </ul>
 
-        <!-- Yearly Package Revenue -->
-        <h2 class="section-title">Yearly Package Revenue</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Month</th>
-                    <th>Revenue (USD)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($yearly_package_revenue as $month => $revenue)
-                    <tr>
-                        <td>{{ $month }}</td>
-                        <td>${{ $revenue }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <h3>Revenue by Package</h3>
+    <table>
+        <tr>
+            <th>Package Name</th>
+            <th>Total Revenue</th>
+        </tr>
+        @foreach($total_revenue_per_package as $package)
+        <tr>
+            <td>{{ $package['name'] }}</td>
+            <td>${{ number_format($package['total_revenue'], 2) }}</td>
+        </tr>
+        @endforeach
+    </table>
 
-        <!-- Total Revenue Per Package -->
-        <h2 class="section-title">Total Revenue Per Package</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Package Name</th>
-                    <th>Total Revenue (USD)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($total_revenue_per_package as $package)
-                    <tr>
-                        <td>{{ $package['name'] }}</td>
-                        <td>${{ $package['total_revenue'] }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <h3>Revenue by Date Range</h3>
+    <table>
+        <tr>
+            <th>Package Name</th>
+            <th>Total Amount</th>
+        </tr>
+        @foreach($revenue_by_date as $package)
+        <tr>
+            <td>{{ $package['name'] }}</td>
+            <td>${{ number_format($package['total_amount'], 2) }}</td>
+        </tr>
+        @endforeach
+    </table>
 
-        <!-- Weekly Package Revenue -->
-        <h2 class="section-title">Weekly Package Revenue</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Week</th>
-                    <th>Revenue (USD)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($weekly_package_revenue as $week => $revenue)
-                    <tr>
-                        <td>Week {{ $week }}</td>
-                        <td>${{ $revenue }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        <!-- Revenue By Date Range -->
-        @if (!empty($revenue_by_date))
-        <h2 class="section-title">Revenue By Date Range</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Package Name</th>
-                    <th>Total Revenue (USD)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($revenue_by_date as $revenue)
-                    <tr>
-                        <td>{{ $revenue['name'] }}</td>
-                        <td>
-                            @if (is_array($revenue['total_amount']))
-                                @foreach ($revenue['total_amount'] as $amount)
-                                    ${{ $amount }}
-                                @endforeach
-                            @else
-                                ${{ $revenue['total_amount'] }}
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-        @endif
-
-        <!-- Summary -->
-        <h2 class="section-title">Summary</h2>
-        <table class="table">
-            <tbody>
-                <tr>
-                    <th>Total Revenue</th>
-                    <td>${{ $total_revenue }}</td>
-                </tr>
-                <tr>
-                    <th>Highest Weekly Revenue</th>
-                    <td>${{ $weekly_package_revenue_max }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="footer">
-        Report generated by your system.
-    </div>
+    <h3>Yearly Package Revenue</h3>
+    <table>
+        <tr>
+            <th>Package Name</th>
+            <th>Total Revenue (Yearly)</th>
+        </tr>
+        @foreach($yearly_package_revenue as $package)
+        <tr>
+            <td>{{ $package['name'] }}</td>
+            <td>${{ number_format($package['total_revenue_yearly'], 2) }}</td>
+        </tr>
+        @endforeach
+    </table>
 </body>
 </html>
