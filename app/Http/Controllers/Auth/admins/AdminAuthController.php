@@ -23,6 +23,7 @@ class AdminAuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:admins',
             'password' => 'required|string|min:8',
+            'role' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -33,6 +34,7 @@ class AdminAuthController extends Controller
         $admin = new Admin([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
+            'role' => $request->input('role') ?? 'Editor',
             'password' => Hash::make($request->input('password')),
         ]);
 
