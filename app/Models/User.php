@@ -37,7 +37,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function routeNotificationForMail()
     {
         // You can return multiple email addresses as an array
-        return ['freelancernishad123@gmail.com', 'abirmehedi330@gmail.com','ahhimel.bd2024@gmail.com'];
+        return [ 'abirmehedi330@gmail.com','ahhimel.bd2024@gmail.com','ebibahotp@gmail.com'];
     }
 
 
