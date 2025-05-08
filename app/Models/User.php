@@ -34,11 +34,10 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     use HasApiTokens, HasFactory, Notifiable;
 
 
-
     public function routeNotificationForMail()
     {
-        // return 'freelancernishad123@gmail.com';
-        return 'ahhimel.bd2024@gmail.com';
+        // You can return multiple email addresses as an array
+        return [ 'abirmehedi330@gmail.com','ahhimel.bd2024@gmail.com','ebibahotp@gmail.com'];
     }
 
 
