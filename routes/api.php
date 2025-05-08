@@ -10,6 +10,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\SocialLinkController;
+use App\Http\Controllers\UserCreateController;
 use App\Http\Controllers\api\PackageController;
 use App\Http\Controllers\ServerStatusController;
 use App\Http\Controllers\AdvertisementController;
@@ -68,6 +69,9 @@ Route::post('stripe/webhook', [StripePaymentController::class, 'handleWebhook'])
 Route::get('/notices', [NoticeController::class, 'show']);
 
 Route::get('/server-status', [ServerStatusController::class, 'status']);
+
+
+Route::post('/user/create', [UserCreateController::class, 'createUser']);
 
 
 
