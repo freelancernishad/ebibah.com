@@ -19,6 +19,7 @@ class IpAddressProtectionMiddleware
         'https://admin.ebibah.com',
         'https://www.admin.ebibah.com',
         'https://ebibah-dashboard.vercel.app',
+        'https://ebibah.zsi.ai',
 
     ];
 
