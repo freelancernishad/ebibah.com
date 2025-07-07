@@ -890,6 +890,37 @@ class UserController extends Controller
 
 
 
+public function UserFullList()
+{
+    // সব ইউজার আনুন
+    $users = \DB::table('users')->get();
+
+    // প্রতিটি ইউজার এর জন্য রিলেশনাল ডেটা আনুন
+    $users = $users->map(function ($user) {
+        $user->partner_religions = \DB::table('partner_religions')->where('user_id', $user->id)->pluck('religion');
+        $user->partner_communities = \DB::table('partner_communities')->where('user_id', $user->id)->pluck('community');
+        $user->partner_mother_tongues = \DB::table('partner_mother_tongues')->where('user_id', $user->id)->pluck('mother_tongue');
+        $user->partner_professions = \DB::table('partner_professions')->where('user_id', $user->id)->pluck('profession');
+        $user->partner_qualifications = \DB::table('partner_qualifications')->where('user_id', $user->id)->pluck('qualification');
+        $user->partner_working_with = \DB::table('partner_working_with')->where('user_id', $user->id)->pluck('working_with');
+        $user->partner_marital_statuses = \DB::table('partner_marital_statuses')->where('user_id', $user->id)->pluck('marital_status');
+        $user->partner_professional_details = \DB::table('partner_professional_details')->where('user_id', $user->id)->pluck('profession');
+        $user->partner_countries = \DB::table('partner_countries')->where('user_id', $user->id)->pluck('country');
+        $user->partner_states = \DB::table('partner_states')->where('user_id', $user->id)->pluck('state');
+        $user->partner_cities = \DB::table('partner_cities')->where('user_id', $user->id)->pluck('city');
+
+        return $user;
+    });
+
+    return response()->json([
+        'users' => $users,
+    ]);
+}
+
+
+
+
+
 
 
 }
