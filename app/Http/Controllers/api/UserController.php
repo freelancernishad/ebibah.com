@@ -908,6 +908,11 @@ public function UserFullList()
         $user->partner_countries = \DB::table('partner_countries')->where('user_id', $user->id)->pluck('country');
         $user->partner_states = \DB::table('partner_states')->where('user_id', $user->id)->pluck('state');
         $user->partner_cities = \DB::table('partner_cities')->where('user_id', $user->id)->pluck('city');
+           // ✅ User images যুক্ত করুন (status সহ)
+        $user->user_images = \DB::table('user_images')
+            ->select('id', 'image_path', 'status')
+            ->where('user_id', $user->id)
+            ->get();
 
         return $user;
     });
