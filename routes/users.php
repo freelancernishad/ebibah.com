@@ -141,7 +141,7 @@ Route::post('coupons/{code}/validate-and-calculate', [CouponController::class, '
 Route::post('/ipnresponse', [PackagePurchaseController::class, 'ipnresponse']);
 
 
-Route::get('/UserFullList', [UserController::class, 'UserFullList']);
+// Route::get('/UserFullList', [UserController::class, 'UserFullList']);
 
 // Password reset routes
 Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail']);
